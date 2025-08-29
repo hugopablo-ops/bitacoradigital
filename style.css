@@ -1,0 +1,83 @@
+/* Bitácora Digital — Minimal dark UI */
+:root{
+  --bg:#0b1120;
+  --card:#0f172a;
+  --glass:rgba(15,23,42,.6);
+  --muted:#94a3b8;
+  --text:#e5e7eb;
+  --brand:#22d3ee;
+  --up:#22c55e;
+  --down:#ef4444;
+  --stroke:#1f2937;
+  --pill:#0ea5e9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+a{color:var(--text);text-decoration:none}
+.muted{color:var(--muted)}
+.up{color:var(--up)} .down{color:var(--down)}
+.small{font-size:.9rem}
+h1,h2,h3,h4{margin:0 0 .5rem}
+h1{font-size:clamp(1.8rem,3.5vw,3rem)}
+h2{font-size:1.6rem;margin:2rem 0 1rem}
+h3{font-size:1.1rem}
+.section-label{margin-top:2.2rem;color:#cbd5e1}
+.section-pad{padding:48px 0}
+.grad{background:linear-gradient(90deg,#22d3ee,#60a5fa);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+.site-header{position:sticky;top:0;z-index:10}
+.glass{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.06);backdrop-filter: blur(10px);border-radius:14px}
+.site-header .nav{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;margin-top:10px}
+.brand{display:flex;gap:10px;align-items:center;font-weight:700}
+.logo{width:24px;height:24px}
+.links{display:flex;gap:16px;align-items:center}
+.links .btn{padding:8px 14px;border-radius:10px;border:1px solid #1f2937}
+.btn{display:inline-block;padding:10px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.12)}
+.btn.primary{background:linear-gradient(90deg,#22d3ee,#60a5fa);color:#0b1120;border:0}
+.btn.ghost{border-color:#334155}
+.hero{padding:72px 0 36px}
+.hero-grid{display:grid;gap:24px;grid-template-columns:1.2fr .8fr}
+.hero-copy .lead{color:#cbd5e1;max-width:52ch}
+.cta-row{display:flex;gap:12px;margin:18px 0}
+.ticks{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:6px}
+.ticks li::before{content:'✓ ';color:var(--up)}
+.hero-card{padding:18px}
+.mini-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 6px}
+.mini-metrics .k{background:#0ea5e911;border:1px solid #0ea5e933;color:#7dd3fc;padding:2px 6px;border-radius:8px;margin-right:6px}
+
+.dashboards h3{margin-top:22px}
+.row.scroller{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
+.row.scroller::-webkit-scrollbar{height:8px}
+.row.scroller::-webkit-scrollbar-thumb{background:#1f2937;border-radius:8px}
+.card{min-width:260px;max-width:260px;scroll-snap-align:start;background:var(--card);border:1px solid #111827;border-radius:16px;padding:14px;position:relative}
+.card header{display:grid;grid-template-columns:auto 1fr;grid-template-areas:'pill title' '. sub';column-gap:10px;align-items:center;margin-bottom:8px}
+.card header h4{grid-area:title;font-size:1.05rem}
+.card header small{grid-area:sub;color:var(--muted)}
+.pill{grid-area:pill;background:#0ea5e933;border:1px solid #0ea5e955;padding:4px 8px;border-radius:999px;color:#7dd3fc;font-size:.8rem}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0}
+.kpis label{display:block;color:#94a3b8;font-size:.8rem;margin-bottom:2px}
+.kpis strong{font-weight:700}
+.spark{height:46px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px dashed #263042;border-radius:10px;margin:6px 0 4px;display:flex;align-items:center;justify-content:center}
+.spark svg{width:94%;height:70%}
+.spark path{fill:none;stroke:#22c55e;stroke-width:2}
+.spark.down path{stroke:#ef4444}
+.delta{position:absolute;right:12px;bottom:12px;color:var(--muted)}
+.delta.up{color:var(--up)} .delta.down{color:var(--down)}
+
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.svc{padding:18px}
+.price-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.price{padding:18px}
+.price.featured{outline:2px solid #22d3ee22}
+.price ul{padding-left:18px}
+.steps{display:grid;gap:6px;padding-left:18px}
+
+.site-footer{border-top:1px solid #111827;margin-top:40px}
+.foot{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+
+@media (max-width: 980px){
+  .hero-grid{grid-template-columns:1fr}
+  .cards3,.price-cards{grid-template-columns:1fr}
+  .card{min-width:220px;max-width:220px}
+}

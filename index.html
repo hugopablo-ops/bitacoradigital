@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bitácora Digital — Dashboards + Servicios</title>
+  <meta name="description" content="Dashboards rápidos de DeFi, TradFi y acciones Big Tech. Servicios de analítica para PYMEs." />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="site-header glass">
+  <div class="container nav">
+    <div class="brand">
+      <img src="assets/favicon.svg" alt="" class="logo">
+      <span>Bitácora Digital</span>
+    </div>
+    <nav class="links">
+      <a href="#dashboards">Dashboards</a>
+      <a href="#servicios">Servicios</a>
+      <a href="#packs">Packs</a>
+      <a href="#flujo">Cómo trabajo</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn" href="#contacto">Contactar</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <h1>Decisiones en <span class="grad">tiempo real</span> para negocios reales</h1>
+        <p class="lead">
+          Dashboards simples y accionables. Datos que se entienden, se usan y se traducen en ventas.
+          Desde un café de barrio hasta una empresa en crecimiento.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="#dashboards">Ver dashboards</a>
+          <a class="btn ghost" href="#packs">Ver packs</a>
+        </div>
+        <ul class="ticks">
+          <li>DeFi + TradFi + Acciones Big Tech</li>
+          <li>Implementación express (48–72h)</li>
+          <li>Entrenamiento + handoff</li>
+        </ul>
+      </div>
+      <div class="hero-card glass">
+        <h3>Snapshot</h3>
+        <div class="mini-metrics">
+          <div><span class="k">UF</span><strong>—</strong><small>Chile</small></div>
+          <div><span class="k">IPSA</span><strong>—</strong><small>B.Santiago</small></div>
+          <div><span class="k">BTC</span><strong>—</strong><small>USD</small></div>
+          <div><span class="k">TSLA</span><strong>—</strong><small>NASDAQ</small></div>
+        </div>
+        <p class="muted">* Próxima etapa conecta APIs para valores en vivo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboards -->
+  <section id="dashboards" class="dashboards container">
+    <h2>Dashboard gratuito</h2>
+    <p class="muted up">Vista compacta · cada fila es <b>una sola línea</b> con desplazamiento horizontal</p>
+
+    <!-- DeFi -->
+    <h3 class="section-label">DeFi · Protocolos clave</h3>
+    <div class="row scroller">
+      <article class="card proto">
+        <header><span class="pill">AAVE</span><h4>AAVE</h4><small>Lending · v3</small></header>
+        <div class="kpis">
+          <div><label>TVL</label><strong>—</strong></div>
+          <div><label>Tasa prom.</label><strong>—%</strong></div>
+        </div>
+        <figure class="spark up"></figure><footer><span class="delta up">+1.4%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">VENUS</span><h4>Venus</h4><small>Lending · BNB</small></header>
+        <div class="kpis">
+          <div><label>TVL</label><strong>—</strong></div>
+          <div><label>Tasa stable</label><strong>—%</strong></div>
+        </div>
+        <figure class="spark up"></figure><footer><span class="delta up">+3.2%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">MORPHO</span><h4>Morpho</h4><small>Optimized lending</small></header>
+        <div class="kpis">
+          <div><label>TVL</label><strong>—</strong></div>
+          <div><label>Spread vs AAVE</label><strong>—%</strong></div>
+        </div>
+        <figure class="spark up"></figure><footer><span class="delta up">+5.1%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">DAI</span><h4>MakerDAO</h4><small>Stablecoin · DAI</small></header>
+        <div class="kpis">
+          <div><label>En circulación</label><strong>—</strong></div>
+          <div><label>Colateralización</label><strong>—%</strong></div>
+        </div>
+        <figure class="spark up"></figure><footer><span class="delta up">+0.9%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">UNI</span><h4>Uniswap</h4><small>DEX · Vol 24h</small></header>
+        <div class="kpis">
+          <div><label>Vol 24h</label><strong>—</strong></div>
+          <div><label>Pairs</label><strong>100k+</strong></div>
+        </div>
+        <figure class="spark up"></figure><footer><span class="delta up">+7.1%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">CRV</span><h4>Curve</h4><small>DEX estable</small></header>
+        <div class="kpis">
+          <div><label>TVL</label><strong>—</strong></div>
+          <div><label>Vol 24h</label><strong>—</strong></div>
+        </div>
+        <figure class="spark"></figure><footer><span class="delta">0.0%</span></footer>
+      </article>
+    </div>
+
+    <!-- TradFi -->
+    <h3 class="section-label">TradFi · Índices & Divisas</h3>
+    <div class="row scroller">
+      <article class="card proto">
+        <header><span class="pill">UF</span><h4>UF (Chile)</h4><small>Unidad de Fomento</small></header>
+        <div class="kpis"><div><label>Valor</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+0.3%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">USDCLP</span><h4>USD/CLP</h4><small>Dólar observado</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark down"></figure><footer><span class="delta down">-1.3%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">IPSA</span><h4>IPSA</h4><small>Bolsa de Santiago</small></header>
+        <div class="kpis"><div><label>Puntos</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+1.5%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">S&P</span><h4>S&amp;P 500</h4><small>EE.UU.</small></header>
+        <div class="kpis"><div><label>Puntos</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark"></figure><footer><span class="delta">0.0%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">DJI</span><h4>Dow Jones</h4><small>EE.UU.</small></header>
+        <div class="kpis"><div><label>Puntos</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark"></figure><footer><span class="delta">0.0%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">IXIC</span><h4>Nasdaq</h4><small>Tecnología</small></header>
+        <div class="kpis"><div><label>Puntos</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+0.1%</span></footer>
+      </article>
+
+      <article class="card proto">
+        <header><span class="pill">Cu</span><h4>Cobre</h4><small>USD/libra</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+1.1%</span></footer>
+      </article>
+    </div>
+
+    <!-- Big Tech -->
+    <h3 class="section-label">Acciones · Big Tech</h3>
+    <div class="row scroller">
+      <article class="card stock">
+        <header><span class="pill">TSLA</span><h4>Tesla</h4><small>Estados Unidos</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+1.9%</span></footer>
+      </article>
+
+      <article class="card stock">
+        <header><span class="pill">AAPL</span><h4>Apple</h4><small>Estados Unidos</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark down"></figure><footer><span class="delta down">-0.4%</span></footer>
+      </article>
+
+      <article class="card stock">
+        <header><span class="pill">MSFT</span><h4>Microsoft</h4><small>Estados Unidos</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+1.1%</span></footer>
+      </article>
+
+      <article class="card stock">
+        <header><span class="pill">AMZN</span><h4>Amazon</h4><small>Estados Unidos</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+0.9%</span></footer>
+      </article>
+
+      <article class="card stock">
+        <header><span class="pill">NVDA</span><h4>Nvidia</h4><small>Estados Unidos</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+4.0%</span></footer>
+      </article>
+    </div>
+
+    <!-- Crypto -->
+    <h3 class="section-label">Cripto · Líderes</h3>
+    <div class="row scroller">
+      <article class="card crypto">
+        <header><span class="pill">BTC</span><h4>Bitcoin</h4><small>USD</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+2.4%</span></footer>
+      </article>
+
+      <article class="card crypto">
+        <header><span class="pill">ETH</span><h4>Ethereum</h4><small>USD</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark up"></figure><footer><span class="delta up">+1.7%</span></footer>
+      </article>
+
+      <article class="card crypto">
+        <header><span class="pill">SOL</span><h4>Solana</h4><small>USD</small></header>
+        <div class="kpis"><div><label>Precio</label><strong>—</strong></div><div><label>Δ día</label><strong>—%</strong></div></div>
+        <figure class="spark down"></figure><footer><span class="delta down">-2.1%</span></footer>
+      </article>
+    </div>
+  </section>
+
+  <!-- Servicios -->
+  <section id="servicios" class="container section-pad">
+    <h2>Qué hago</h2>
+    <div class="cards3">
+      <div class="svc glass">
+        <h4>Diagnóstico Express</h4>
+        <p>Radiografía de tu negocio en 72h. KPIs críticos, oportunidades y quick wins.</p>
+      </div>
+      <div class="svc glass">
+        <h4>Dashboard Operativo</h4>
+        <p>Ventas, márgenes, tickets, cohortes y proyecciones. Todo en un tablero simple.</p>
+      </div>
+      <div class="svc glass">
+        <h4>Growth & Automation</h4>
+        <p>Conexión con CRM, notificaciones, reportes automáticos y pruebas A/B.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Packs -->
+  <section id="packs" class="container section-pad">
+    <h2>Packs producto</h2>
+    <div class="price-cards">
+      <div class="price glass">
+        <h3>Starter</h3>
+        <p class="muted">Para validar con datos</p>
+        <ul>
+          <li>Setup de métricas</li><li>1 dashboard</li><li>Entrenamiento 1:1</li>
+        </ul>
+        <a class="btn primary" href="#contacto">Quiero este</a>
+      </div>
+      <div class="price glass featured">
+        <h3>Growth</h3>
+        <p class="muted">El más elegido</p>
+        <ul>
+          <li>2–3 data sources</li><li>2 dashboards</li><li>Automatizaciones</li>
+        </ul>
+        <a class="btn primary" href="#contacto">Lo necesito</a>
+      </div>
+      <div class="price glass">
+        <h3>Pro</h3>
+        <p class="muted">Para escalar</p>
+        <ul>
+          <li>Integraciones avanzadas</li><li>KPIs financieros</li><li>Soporte mensual</li>
+        </ul>
+        <a class="btn primary" href="#contacto">Hablemos</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Flujo -->
+  <section id="flujo" class="container section-pad">
+    <h2>Cómo trabajo</h2>
+    <ol class="steps">
+      <li><strong>Brief</strong> · negocio, canales y objetivos</li>
+      <li><strong>Datos</strong> · fuentes, limpieza y gobernanza</li>
+      <li><strong>Tablero</strong> · KPIs + UX explicable</li>
+      <li><strong>Acción</strong> · alertas, rituales y decisiones</li>
+    </ol>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="container section-pad">
+    <h2>Preguntas frecuentes</h2>
+    <details open>
+      <summary>¿De dónde salen los datos del dashboard gratuito?</summary>
+      <p>De momento son placeholders. La siguiente versión conecta APIs públicas y de pago (CoinGecko, AlphaVantage, BICE/CMF para Chile).</p>
+    </details>
+    <details>
+      <summary>¿Puedo pedir un dashboard a medida?</summary>
+      <p>Sí. Definimos KPIs, conectamos fuentes (ventas, marketing, contabilidad) y te entrego un tablero simple y mantenible.</p>
+    </details>
+  </section>
+
+  <!-- Contacto -->
+  <section id="contacto" class="container section-pad">
+    <h2>Conversemos</h2>
+    <p class="muted">Envíame un correo a <a href="mailto:hugopablo@gmail.com">hugopablo@gmail.com</a> o un DM en LinkedIn.</p>
+    <a class="btn primary" href="mailto:hugopablo@gmail.com">Quiero una llamada</a>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container foot">
+    <div>© <span id="y"></span> Bitácora Digital</div>
+    <div class="small">Hecho con ♥ · Cloudflare Pages</div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+
+  // Decorar micro-sparks (sin datos reales)
+  const sparks = document.querySelectorAll('.spark');
+  sparks.forEach(s => {
+    const isUp = s.classList.contains('up');
+    const isDown = s.classList.contains('down');
+    const points = isDown ? [90,78,70,65,69,66] : [20,35,30,48,56,62];
+    s.innerHTML = '<svg viewBox="0 0 120 40" preserveAspectRatio="none">'+
+      '<path d="M0 35 '+points.map((p,i)=>'L'+(i*20)+' '+(40-p*0.35)).join(' ')+'" />'+
+      '</svg>';
+  });
+</script>
+</body>
+</html>
