@@ -1,28 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bitácora Digital – Dashboards + Podcast</title>
-  <meta name="description" content="Dashboards con datos de mercados (TradFi, Commodities, Crypto) y podcast de educación financiera y tecnología.">
-
-  <!-- Favicon -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bitácora Digital — Dashboards + Podcast</title>
+  <meta name="description" content="Dashboards limpios con datos de mercados (TradFi, Commodities, Crypto) y podcast de educación financiera y tecnología." />
   <link rel="icon" href="assets/favicon.svg" />
-
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-  <!-- Tu CSS principal -->
-  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 <body>
   <!-- NAV -->
   <header class="nav">
     <div class="container nav__inner">
       <div class="brand">
-        <img src="assets/favicon.svg" alt="logo" class="brand__logo">
+        <img src="assets/favicon.svg" alt="" class="brand__logo">
         <span class="brand__name">Bitácora Digital</span>
       </div>
       <nav class="nav__links">
@@ -36,51 +30,197 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero__content">
-      <h1>Decisiones en tiempo real</h1>
-      <p>Datos limpios y accionables para tus inversiones y negocios</p>
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <h1>Decisiones en <span class="accent">tiempo real</span> para negocios reales</h1>
+        <p class="muted">Web3, DeFi, analítica y TradFi — educación aplicada, sin humo. Dashboards claros que se entienden y se usan.</p>
+        <div class="hero__cta">
+          <a class="btn btn--primary" href="#dashboards">Ver dashboards</a>
+          <a class="btn" href="#podcast">Escuchar podcast</a>
+        </div>
+      </div>
+      <div class="hero__snapshot">
+        <div class="chip">CLP</div>
+        <div class="chip">BTC</div>
+        <div class="chip">ETH</div>
+        <div class="chip">UF</div>
+      </div>
     </div>
   </section>
 
   <!-- DASHBOARDS -->
-  <section id="dashboards" class="dashboards">
-    <h2>📊 Dashboard de Mercados</h2>
-    <div class="cards">
-      <div class="card">
-        <h3>Apple (AAPL)</h3>
-        <p>Precio actual: <span id="price-aapl">Cargando...</span></p>
+  <section id="dashboards" class="section">
+    <div class="container">
+      <h2 class="section__title">Dashboards</h2>
+      <p class="section__subtitle">Vista compacta. Si hay APIs, se actualiza solo. Si no, verás “—” (sin romper nada).</p>
+
+      <!-- FILA: TRADFI CHILE -->
+      <h3 class="group__title">TradFi · Chile</h3>
+      <div class="grid">
+        <article class="card" data-key="UF">
+          <header class="card__head">
+            <span class="pill">UF</span>
+            <span class="muted">Unidad de Fomento</span>
+          </header>
+          <div class="card__value" data-field="price">—</div>
+          <div class="card__delta" data-field="delta">—</div>
+        </article>
+
+        <article class="card" data-key="USDCLP">
+          <header class="card__head">
+            <span class="pill">USD/CLP</span>
+            <span class="muted">Dólar observado</span>
+          </header>
+          <div class="card__value" data-field="price">—</div>
+          <div class="card__delta" data-field="delta">—</div>
+        </article>
+
+        <article class="card disabled" data-key="IPSA">
+          <header class="card__head">
+            <span class="pill">IPSA</span>
+            <span class="muted">Bolsa de Santiago</span>
+          </header>
+          <div class="card__value" data-field="price">—</div>
+          <div class="card__delta" data-field="delta">—</div>
+          <div class="hint">Actívalo con clave gratuita (finnhub / alpha vantage).</div>
+        </article>
       </div>
-      <div class="card">
-        <h3>Bitcoin (BTC/USD)</h3>
-        <p>Precio actual: <span id="price-btc">Cargando...</span></p>
+
+      <!-- FILA: ÍNDICES USA/EU -->
+      <h3 class="group__title">Índices · USA / Europa</h3>
+      <div class="grid">
+        <article class="card disabled" data-key="SP500">
+          <header class="card__head"><span class="pill">S&P 500</span><span class="muted">EE.UU.</span></header>
+          <div class="card__value" data-field="price">—</div>
+          <div class="card__delta" data-field="delta">—</div>
+          <div class="hint">Usa tu API KEY para habilitar.</div>
+        </article>
+        <article class="card disabled" data-key="DAX">
+          <header class="card__head"><span class="pill">DAX</span><span class="muted">Alemania</span></header>
+          <div class="card__value" data-field="price">—</div>
+          <div class="card__delta" data-field="delta">—</div>
+          <div class="hint">Usa tu API KEY para habilitar.</div>
+        </article>
+        <article class="card disabled" data-key="NIKKEI">
+          <header class="card__head"><span class="pill">Nikkei 225</span><span class="muted">Japón</span></header>
+          <div class="card__value" data-field="price">—</div>
+          <div class="card__delta" data-field="delta">—</div>
+          <div class="hint">Usa tu API KEY para habilitar.</div>
+        </article>
+      </div>
+
+      <!-- FILA: TECH STOCKS -->
+      <h3 class="group__title">Acciones · Big Tech / IA / Chips</h3>
+      <div class="grid">
+        <article class="card disabled" data-key="AAPL"><header class="card__head"><span class="pill">AAPL</span><span class="muted">Apple</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card disabled" data-key="MSFT"><header class="card__head"><span class="pill">MSFT</span><span class="muted">Microsoft</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card disabled" data-key="NVDA"><header class="card__head"><span class="pill">NVDA</span><span class="muted">NVIDIA</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card disabled" data-key="TSM"><header class="card__head"><span class="pill">TSM</span><span class="muted">TSMC</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+      </div>
+
+      <!-- FILA: CRYPTO (LIVE) -->
+      <h3 class="group__title">Crypto · Top 8 (live)</h3>
+      <div class="grid">
+        <article class="card" data-coin="bitcoin"><header class="card__head"><span class="pill">BTC</span><span class="muted">Bitcoin</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card" data-coin="ethereum"><header class="card__head"><span class="pill">ETH</span><span class="muted">Ethereum</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card" data-coin="solana"><header class="card__head"><span class="pill">SOL</span><span class="muted">Solana</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card" data-coin="ripple"><header class="card__head"><span class="pill">XRP</span><span class="muted">XRP</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card" data-coin="binancecoin"><header class="card__head"><span class="pill">BNB</span><span class="muted">BNB</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card" data-coin="cardano"><header class="card__head"><span class="pill">ADA</span><span class="muted">Cardano</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card" data-coin="chainlink"><header class="card__head"><span class="pill">LINK</span><span class="muted">Chainlink</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card" data-coin="polkadot"><header class="card__head"><span class="pill">DOT</span><span class="muted">Polkadot</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+      </div>
+
+      <!-- FILA: COMMODITIES -->
+      <h3 class="group__title">Commodities · Metales / Energía</h3>
+      <div class="grid">
+        <article class="card disabled" data-key="GOLD"><header class="card__head"><span class="pill">Oro</span><span class="muted">XAU</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div><div class="hint">Habilita con MetalsAPI/AlphaVantage.</div></article>
+        <article class="card disabled" data-key="SILVER"><header class="card__head"><span class="pill">Plata</span><span class="muted">XAG</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
+        <article class="card disabled" data-key="BRENT"><header class="card__head"><span class="pill">Brent</span><span class="muted">Crudo</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
       </div>
     </div>
   </section>
 
+  <!-- MISIÓN / SERVICIOS -->
+  <section class="section alt">
+    <div class="container">
+      <h2 class="section__title">Lo que hacemos</h2>
+      <div class="cards-3">
+        <article class="card soft">
+          <h4>Educación primero</h4>
+          <p>Somos un medio educativo: finanzas, IA, blockchain y analítica — sin “shilling” ni promesas mágicas.</p>
+        </article>
+        <article class="card soft">
+          <h4>Dashboards a medida</h4>
+          <p>Discovery → Integración → Despliegue → Mantenimiento. Datos que se entienden y toman decisiones.</p>
+        </article>
+        <article class="card soft">
+          <h4>IA / DeFi / Pagos</h4>
+          <p>Agentes de IA para tu negocio, consultoría DeFi y pasarelas fiat↔crrypto con buenas prácticas.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- PODCAST -->
+  <section id="podcast" class="section">
+    <div class="container">
+      <h2 class="section__title">Podcast</h2>
+      <p class="section__subtitle">Escucha los últimos episodios sin salir de la web.</p>
+      <div class="embed">
+        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator" width="100%" height="232" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap" class="section alt">
+    <div class="container">
+      <h2 class="section__title">Roadmap</h2>
+      <ol class="roadmap">
+        <li><strong>v0.1</strong> · Maqueta con dashboard en vivo (Crypto + CLP/UF). ✅</li>
+        <li><strong>v0.2</strong> · Conectar índices y acciones con API gratuita (Finnhub/Alpha Vantage). 🔜</li>
+        <li><strong>v0.3</strong> · Commodities y alertas simples. 🔜</li>
+        <li><strong>v0.4</strong> · Email digests + panel admin para noticias. 🔜</li>
+      </ol>
+    </div>
+  </section>
+
   <!-- FOOTER -->
-  <footer>
-    <p>© 2025 Bitácora Digital</p>
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="muted">© 2025 Bitácora Digital</span>
+      <div class="footer__links">
+        <a href="https://bitacoradigital.io" target="_blank" rel="noopener">Sitio</a>
+        <a href="#podcast">Podcast</a>
+        <a href="#servicios">Servicios</a>
+      </div>
+    </div>
   </footer>
 
-  <!-- SCRIPT -->
   <script>
-    // ⚡ Aquí conectamos con tu Worker Proxy en Cloudflare
-    const API_BASE = "https://bd-finnhub-proxy.hugopablo.workers.dev";
-
-    // Función para traer un precio y mostrarlo
-    async function fetchPrice(symbol, elementId) {
-      try {
-        const res = await fetch(`${API_BASE}/quote?symbol=${symbol}`);
-        const data = await res.json();
-        document.getElementById(elementId).innerText = data.c ? `$${data.c}` : "No disponible";
-      } catch (e) {
-        document.getElementById(elementId).innerText = "Error";
-      }
-    }
-
-    // Cargar precios al abrir la página
-    fetchPrice("AAPL", "price-aapl");   // Apple
-    fetchPrice("BINANCE:BTCUSDT", "price-btc"); // Bitcoin
+    /* Opcional: pega aquí tu clave si usarás Finnhub/Alpha Vantage */
+    window.BD_CONFIG = {
+      FINNHUB_KEY: "",          // ej: "c123abc..."
+      ALPHA_VANTAGE_KEY: ""     // ej: "demo"
+    };
   </script>
+  <script src="assets/js/app.js"></script>
 </body>
 </html>
+<script>
+  window.BD_CONFIG = {
+    FINNHUB_PROXY: "https://bd-finnhub-proxy.hugopablo.workers.dev", // o el tuyo
+    FINNHUB_KEY: "",               // si no tienes aún, déjalo vacío
+    ALPHA_VANTAGE_KEY: ""          // opcional
+  };
+</script>
+<script src="assets/js/app.js"></script>
+<script>
+  window.BD_CONFIG = {
+    FINNHUB_PROXY: "https://bd-finnhub-proxy.hugopablo.workers.dev",
+    FINNHUB_KEY: "" // la key la pones como secreto en el Worker; aquí puede ir vacío
+  };
+</script>
+
+
