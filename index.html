@@ -142,7 +142,7 @@
   </section>
 
   <!-- MISIÓN / SERVICIOS -->
-  <section class="section alt">
+  <section class="section alt" id="servicios">
     <div class="container">
       <h2 class="section__title">Lo que hacemos</h2>
       <div class="cards-3">
@@ -156,7 +156,7 @@
         </article>
         <article class="card soft">
           <h4>IA / DeFi / Pagos</h4>
-          <p>Agentes de IA para tu negocio, consultoría DeFi y pasarelas fiat↔crrypto con buenas prácticas.</p>
+          <p>Agentes de IA para tu negocio, consultoría DeFi y pasarelas fiat↔crypto con buenas prácticas.</p>
         </article>
       </div>
     </div>
@@ -198,89 +198,72 @@
     </div>
   </footer>
 
+  <!-- Config opcional para tus claves (no necesarias para este script) -->
   <script>
-    /* Opcional: pega aquí tu clave si usarás Finnhub/Alpha Vantage */
-    window.BD_CONFIG = {
-      FINNHUB_KEY: "",          // ej: "c123abc..."
-      ALPHA_VANTAGE_KEY: ""     // ej: "demo"
-    };
+    window.BD_CONFIG = { FINNHUB_KEY: "", ALPHA_VANTAGE_KEY: "" };
   </script>
+
+  <!-- Crypto/live y estilos propios -->
   <script src="assets/js/app.js"></script>
-<script>
-const CARDS = ["spx","dax","nikkei","ipsa","aapl","msft","nvda","tsm","oro","plata","brent"];
-const ENDPOINT = "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" + CARDS.join(",");
 
-const fmt = (v, cur) => {
-  if (v == null) return "—";
-  const n = Number(v);
-  const s = n >= 1000 ? n.toLocaleString("es-CL", { maximumFractionDigits: 2 }) : n.toString();
-  if (cur === "USD") return "US$" + s;
-  if (cur === "CLP") return "$" + s;
-  return s;
-};
-const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
+  <!-- === Script ÚNICO de hidratación de cards (respeta tu HTML) === -->
+  <script>
+  // 1) Mapa: IDs que expone el Worker -> selectores de TUS tarjetas por data-key
+  const SELECTORS = {
+    spx:   '[data-key="SP500"]',
+    dax:   '[data-key="DAX"]',
+    nikkei:'[data-key="NIKKEI"]',
+    ipsa:  '[data-key="IPSA"]',
+    aapl:  '[data-key="AAPL"]',
+    msft:  '[data-key="MSFT"]',
+    nvda:  '[data-key="NVDA"]',
+    tsm:   '[data-key="TSM"]',
+    oro:   '[data-key="GOLD"]',
+    plata: '[data-key="SILVER"]',
+    brent: '[data-key="BRENT"]'
+  };
 
-async function hydrate() {
-  try {
-    const r = await fetch(ENDPOINT, { cache: "no-store" });
-    const rows = await r.json();
-    const by = Object.fromEntries(rows.map(o => [o.id, o]));
-    for (const id of CARDS) {
-      const el = document.getElementById("card-" + id);
-      if (!el) continue;
-      const q = by[id] || {};
-      const v = el.querySelector(".value");
-      const d = el.querySelector(".delta");
-      if (v) v.textContent = fmt(q.value, q.currency);
-      if (d) d.textContent = pct(q.changePct);
+  // 2) Endpoint del Worker
+  const ENDPOINT = "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" + Object.keys(SELECTORS).join(",");
+
+  // 3) Formato
+  const fmt = (v, cur) => {
+    if (v == null) return "—";
+    const n = Number(v);
+    const s = n >= 1000 ? n.toLocaleString("es-CL",{maximumFractionDigits:2}) : n.toString();
+    if (cur === "USD") return "US$" + s;
+    if (cur === "CLP") return "$" + s;
+    return s;
+  };
+  const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
+
+  // 4) Hidratar
+  async function hydrate() {
+    try {
+      const r = await fetch(ENDPOINT, { cache: "no-store" });
+      const rows = await r.json();
+      const by = Object.fromEntries(rows.map(o => [o.id, o]));
+
+      for (const [id, sel] of Object.entries(SELECTORS)) {
+        const root = document.querySelector(sel);
+        if (!root) continue;
+
+        const q = by[id] || {};
+        const v = root.querySelector('.card__value, .value');
+        const d = root.querySelector('.card__delta, .delta');
+
+        if (v) v.textContent = fmt(q.value, q.currency);
+        if (d) d.textContent = pct(q.changePct);
+
+        // habilitar visualmente si estaba deshabilitada
+        root.classList.remove('disabled');
+      }
+    } catch (e) {
+      console.error("cards load error", e);
     }
-  } catch (e) {
-    console.error("cards load error", e);
   }
-}
-hydrate();
-setInterval(hydrate, 60000);
-</script>
-
- <script>
-const CARDS = ["spx","dax","nikkei","ipsa","aapl","msft","nvda","tsm","oro","plata","brent"];
-const ENDPOINT = "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" + CARDS.join(",");
-
-const fmt = (v, cur) => {
-  if (v == null) return "—";
-  const n = Number(v);
-  const s = n >= 1000 ? n.toLocaleString("es-CL", { maximumFractionDigits: 2 }) : n.toString();
-  if (cur === "USD") return "US$" + s;
-  if (cur === "CLP") return "$" + s;
-  return s;
-};
-const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
-
-async function hydrate() {
-  try {
-    const r = await fetch(ENDPOINT, { cache: "no-store" });
-    const rows = await r.json();
-    const by = Object.fromEntries(rows.map(o => [o.id, o]));
-    for (const id of CARDS) {
-      const el = document.getElementById("card-" + id);
-      if (!el) continue;
-      const q = by[id] || {};
-      const v = el.querySelector(".value");
-      const d = el.querySelector(".delta");
-      if (v) v.textContent = fmt(q.value, q.currency);
-      if (d) d.textContent = pct(q.changePct);
-    }
-  } catch (e) {
-    console.error("cards load error", e);
-  }
-}
-hydrate();
-setInterval(hydrate, 60000);
-</script>
+  hydrate();
+  setInterval(hydrate, 60000);
+  </script>
 </body>
 </html>
- 
-</body>
-</html>
-
-
