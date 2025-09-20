@@ -206,6 +206,42 @@
     };
   </script>
   <script src="assets/js/app.js"></script>
+<script>
+const CARDS = ["spx","dax","nikkei","ipsa","aapl","msft","nvda","tsm","oro","plata","brent"];
+const ENDPOINT = "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" + CARDS.join(",");
+
+const fmt = (v, cur) => {
+  if (v == null) return "—";
+  const n = Number(v);
+  const s = n >= 1000 ? n.toLocaleString("es-CL", { maximumFractionDigits: 2 }) : n.toString();
+  if (cur === "USD") return "US$" + s;
+  if (cur === "CLP") return "$" + s;
+  return s;
+};
+const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
+
+async function hydrate() {
+  try {
+    const r = await fetch(ENDPOINT, { cache: "no-store" });
+    const rows = await r.json();
+    const by = Object.fromEntries(rows.map(o => [o.id, o]));
+    for (const id of CARDS) {
+      const el = document.getElementById("card-" + id);
+      if (!el) continue;
+      const q = by[id] || {};
+      const v = el.querySelector(".value");
+      const d = el.querySelector(".delta");
+      if (v) v.textContent = fmt(q.value, q.currency);
+      if (d) d.textContent = pct(q.changePct);
+    }
+  } catch (e) {
+    console.error("cards load error", e);
+  }
+}
+hydrate();
+setInterval(hydrate, 60000);
+</script>
+
 </body>
 </html>
 <script>
