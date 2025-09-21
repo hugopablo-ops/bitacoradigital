@@ -206,44 +206,29 @@
   <!-- Crypto/live y estilos propios -->
   <script src="assets/js/app.js"></script>
 <script>
-(function () {
-  // Mapeo: múltiples IDs posibles -> 1 selector de TU tarjeta (por data-key)
-  // Aceptamos el ID ideal (spx, dax, nikkei, ipsa, brent)
-  // y también el ID real que hoy entrega tu Worker (spy, ewg, ewj, ech, bno)
+;(function () {
+  // 1) Mapa: ID que devuelve el Worker -> selector de TU tarjeta (data-key)
+  //    OJO: usamos ETFs como proxy: SPY, EWG, EWJ, ECH, BNO
   const SELECTORS = {
-    spx:   '[data-key="SP500"]',
-    spy:   '[data-key="SP500"]',   // ETF SPY (proxy S&P500)
-
-    dax:   '[data-key="DAX"]',
-    ewg:   '[data-key="DAX"]',     // ETF EWG (proxy DAX)
-
-    nikkei:'[data-key="NIKKEI"]',
-    ewj:   '[data-key="NIKKEI"]',  // ETF EWJ (proxy Nikkei)
-
-    ipsa:  '[data-key="IPSA"]',
-    ech:   '[data-key="IPSA"]',    // ETF ECH (proxy IPSA)
-
+    spy:   '[data-key="SP500"]',  // S&P 500 (SPY)
+    ewg:   '[data-key="DAX"]',    // Alemania (EWG como proxy del DAX)
+    ewj:   '[data-key="NIKKEI"]', // Japón (EWJ como proxy del Nikkei)
+    ech:   '[data-key="IPSA"]',   // Chile IPSA (ECH como proxy)
     aapl:  '[data-key="AAPL"]',
     msft:  '[data-key="MSFT"]',
     nvda:  '[data-key="NVDA"]',
     tsm:   '[data-key="TSM"]',
-
-    oro:   '[data-key="GOLD"]',
-    plata: '[data-key="SILVER"]',
-
-    brent: '[data-key="BRENT"]',
-    bno:   '[data-key="BRENT"]'    // ETF BNO (proxy Brent)
+    oro:   '[data-key="GOLD"]',   // puede venir null si hay rate limit
+    plata: '[data-key="SILVER"]', // puede venir null si hay rate limit
+    bno:   '[data-key="BRENT"]'   // Brent (ETF BNO)
   };
 
-  // Armamos la lista de IDs que pediremos al Worker (sin duplicados)
-  const IDS = Array.from(new Set(Object.keys(SELECTORS)));
-
-  // Endpoint del Worker (CORS OK)
+  // 2) Endpoint del Worker
   const ENDPOINT =
     "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" +
-    IDS.join(",");
+    Object.keys(SELECTORS).join(",");
 
-  // Helpers de formato
+  // 3) Helpers
   const fmt = (v, cur) => {
     if (v == null) return "—";
     const n = Number(v);
@@ -254,30 +239,27 @@
   };
   const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
 
-  // Hidratación de cards
+  // 4) Cargar y pintar cards
   async function hydrate() {
     try {
       const r = await fetch(ENDPOINT, { cache: "no-store" });
       if (!r.ok) throw new Error("HTTP " + r.status);
+      const rows = await r.json();
+      // console.log("[BD] rows:", rows); // descomenta para debug
+      const by = Object.fromEntries(rows.map(o => [o.id, o]));
 
-      const rows = await r.json();                  // [{ id, value, changePct, currency, ... }]
-      const byId = Object.fromEntries(rows.map(o => [o.id, o]));
-
-      // Para cada ID que aceptamos, si existe respuesta, pintamos su tarjeta
       for (const [id, sel] of Object.entries(SELECTORS)) {
-        const q = byId[id];
-        if (!q) continue;                           // si ese ID no vino, saltamos
-
         const root = document.querySelector(sel);
-        if (!root) continue;                        // por si no existe la tarjeta
+        if (!root) continue;
 
+        const q = by[id] || {};
         const v = root.querySelector('.card__value, .value');
         const d = root.querySelector('.card__delta, .delta');
 
         if (v) v.textContent = fmt(q.value, q.currency);
         if (d) d.textContent = pct(q.changePct);
 
-        // habilita visualmente aunque estuviera "disabled"
+        // habilita visualmente la card
         root.classList.remove('disabled');
       }
     } catch (e) {
@@ -285,10 +267,12 @@
     }
   }
 
-  // Ejecuta cuando el DOM esté listo y luego cada 60s
-  window.addEventListener("DOMContentLoaded", () => {
+  // 5) Ejecutar
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", hydrate);
+  } else {
     hydrate();
-    setInterval(hydrate, 60000);
-  });
+  }
+  setInterval(hydrate, 60000);
 })();
 </script>
