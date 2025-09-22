@@ -201,84 +201,70 @@
   <!-- Config opcional para tus claves (no necesarias para este script) -->
 <script>
 (function () {
-  // ====== 1) Mapa: ID que entrega el Worker -> tu tarjeta (data-key) ======
-  // Nota: tu Worker hoy devuelve estos IDs (ETFs) para evitar rate-limit:
-  //  - S&P500  -> "spx" (SPY)
-  //  - DAX     -> "ewg" (ETF Alemania)
-  //  - Nikkei  -> "ewj" (ETF Japón)
-  //  - IPSA    -> "ech" (ETF Chile)    [placeholder]
-  //  - Acciones: "aapl","msft","nvda","tsm"
-  //  - Commodities: "iau" (oro), "slv" (plata), "bno" (brent)
+  // === IDs EXACTOS que devuelve el Worker ===
+  // Índices via ETF:  SP500->spy, DAX->ewg, Nikkei->ewj, IPSA->ech
+  // Acciones:         aapl, msft, nvda, tsm
+  // Commodities vía ETF: oro->iau, plata->slv, brent->bno
+  const IDS = ["spy","ewg","ewj","ech","aapl","msft","nvda","tsm","iau","slv","bno"];
+
+  // Mapa: id del backend -> selector de TU tarjeta (por data-key)
   const SELECTORS = {
-    // Índices
-    spx:  '[data-key="SP500"]',
+    spy:  '[data-key="SP500"]',
     ewg:  '[data-key="DAX"]',
     ewj:  '[data-key="NIKKEI"]',
     ech:  '[data-key="IPSA"]',
 
-    // Acciones
     aapl: '[data-key="AAPL"]',
     msft: '[data-key="MSFT"]',
     nvda: '[data-key="NVDA"]',
     tsm:  '[data-key="TSM"]',
 
-    // Commodities (usando ETFs para feed estable del Worker actual)
-    iau:  '[data-key="GOLD"]',
-    slv:  '[data-key="SILVER"]',
-    bno:  '[data-key="BRENT"]'
+    iau:  '[data-key="GOLD"]',   // Oro (ETF IAU)
+    slv:  '[data-key="SILVER"]', // Plata (ETF SLV)
+    bno:  '[data-key="BRENT"]'   // Brent (ETF BNO)
   };
 
-  // ====== 2) Endpoint del Worker (CORS OK) ======
+  // Endpoint del Worker (CORS OK) + cache-busting
   const ENDPOINT =
     "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" +
-    Object.keys(SELECTORS).join(",");
+    IDS.join(",") + "&_=" + Date.now();
 
-  // ====== 3) Formateadores ======
+  // Helpers de formato
   const fmt = (v, cur) => {
     if (v == null) return "—";
     const n = Number(v);
-    const s = n >= 1000
-      ? n.toLocaleString("es-CL", { maximumFractionDigits: 2 })
-      : n.toString();
+    const s = n >= 1000 ? n.toLocaleString("es-CL", { maximumFractionDigits: 2 }) : n.toString();
     if (cur === "USD") return "US$" + s;
     if (cur === "CLP") return "$" + s;
     return s;
   };
   const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
 
-  // ====== 4) Cargar datos en las cards ======
-  async function hydrate() {
-    try {
-      const res = await fetch(ENDPOINT, { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const rows = await res.json();
-
-      // indexar por id que devuelve el Worker
-      const byId = Object.fromEntries(rows.map(o => [o.id, o]));
-
-      for (const [id, sel] of Object.entries(SELECTORS)) {
-        const root = document.querySelector(sel);
-        if (!root) continue;
-
-        const q = byId[id] || {};
-        const v = root.querySelector(".card__value, .value");
-        const d = root.querySelector(".card__delta, .delta");
-
-        if (v) v.textContent = fmt(q.value, q.currency);
-        if (d) d.textContent = pct(q.changePct);
-
-        // Por si la card estaba marcada "disabled", la habilitamos visualmente
-        root.classList.remove("disabled");
-      }
-    } catch (err) {
-      console.error("[BD] cards load error:", err);
+  function paint(rows) {
+    const by = Object.fromEntries(rows.map(o => [o.id, o]));
+    for (const [id, sel] of Object.entries(SELECTORS)) {
+      const root = document.querySelector(sel);
+      if (!root) continue;
+      const q = by[id] || {};
+      const v = root.querySelector(".card__value, .value");
+      const d = root.querySelector(".card__delta, .delta");
+      if (v) v.textContent = fmt(q.value, q.currency);
+      if (d) d.textContent = pct(q.changePct);
+      root.classList.remove("disabled");
     }
   }
 
-  // ====== 5) Ejecutar al cargar y cada 60s ======
-  window.addEventListener("DOMContentLoaded", () => {
-    hydrate();
-    setInterval(hydrate, 60000);
-  });
+  async function run() {
+    try {
+      const r = await fetch(ENDPOINT, { cache: "no-store" });
+      const data = await r.json();
+      paint(data);
+    } catch (e) {
+      console.error("[BD] hydrate error", e);
+    }
+  }
+
+  run();
+  setInterval(run, 60000); // refresco cada 60s
 })();
 </script>
