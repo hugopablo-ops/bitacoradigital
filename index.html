@@ -200,14 +200,20 @@
 
   <!-- Config opcional para tus claves (no necesarias para este script) -->
 <script>
+/* === Mapa: IDS EXACTOS QUE ENTREGA EL WORKER  ===
+   Índices (vía ETFs):
+   - S&P500 -> SPY  (id "spy")
+   - DAX    -> EWG  (id "ewg")
+   - Nikkei -> EWJ  (id "ewj")
+   - IPSA   -> ECH  (id "ech")
+   Acciones:
+   - AAPL/MSFT/NVDA/TSM -> ids "aapl","msft","nvda","tsm"
+   Commodities por ETF:
+   - Oro   -> IAU (id "iau")
+   - Plata -> SLV (id "slv")
+   - Brent -> BNO (id "bno")
+*/
 (function () {
-  // === IDs EXACTOS que devuelve el Worker ===
-  // Índices via ETF:  SP500->spy, DAX->ewg, Nikkei->ewj, IPSA->ech
-  // Acciones:         aapl, msft, nvda, tsm
-  // Commodities vía ETF: oro->iau, plata->slv, brent->bno
-  const IDS = ["spy","ewg","ewj","ech","aapl","msft","nvda","tsm","iau","slv","bno"];
-
-  // Mapa: id del backend -> selector de TU tarjeta (por data-key)
   const SELECTORS = {
     spy:  '[data-key="SP500"]',
     ewg:  '[data-key="DAX"]',
@@ -219,52 +225,63 @@
     nvda: '[data-key="NVDA"]',
     tsm:  '[data-key="TSM"]',
 
-    iau:  '[data-key="GOLD"]',   // Oro (ETF IAU)
-    slv:  '[data-key="SILVER"]', // Plata (ETF SLV)
-    bno:  '[data-key="BRENT"]'   // Brent (ETF BNO)
+    iau:  '[data-key="GOLD"]',
+    slv:  '[data-key="SILVER"]',
+    bno:  '[data-key="BRENT"]',
   };
 
-  // Endpoint del Worker (CORS OK) + cache-busting
-  const ENDPOINT =
-    "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" +
-    IDS.join(",") + "&_=" + Date.now();
-
-  // Helpers de formato
+  // Formateadores
   const fmt = (v, cur) => {
-    if (v == null) return "—";
+    if (v == null) return '—';
     const n = Number(v);
-    const s = n >= 1000 ? n.toLocaleString("es-CL", { maximumFractionDigits: 2 }) : n.toString();
-    if (cur === "USD") return "US$" + s;
-    if (cur === "CLP") return "$" + s;
+    const s = n >= 1000
+      ? n.toLocaleString('es-CL', { maximumFractionDigits: 2 })
+      : n.toString();
+    if (cur === 'USD') return 'US$' + s;
+    if (cur === 'CLP') return '$' + s;
     return s;
   };
-  const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
+  const pct = (x) => (x == null ? '—' :
+    (x >= 0 ? '▲ ' : '▼ ') + Math.abs(Number(x)).toFixed(2) + '%');
 
-  function paint(rows) {
-    const by = Object.fromEntries(rows.map(o => [o.id, o]));
-    for (const [id, sel] of Object.entries(SELECTORS)) {
-      const root = document.querySelector(sel);
-      if (!root) continue;
-      const q = by[id] || {};
-      const v = root.querySelector(".card__value, .value");
-      const d = root.querySelector(".card__delta, .delta");
-      if (v) v.textContent = fmt(q.value, q.currency);
-      if (d) d.textContent = pct(q.changePct);
-      root.classList.remove("disabled");
-    }
-  }
-
-  async function run() {
+  async function hydrateOnce() {
     try {
-      const r = await fetch(ENDPOINT, { cache: "no-store" });
-      const data = await r.json();
-      paint(data);
-    } catch (e) {
-      console.error("[BD] hydrate error", e);
+      const ids = Object.keys(SELECTORS).join(',');
+      const url = 'https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids='
+                  + ids + '&_=' + Date.now();
+
+      const r = await fetch(url, { cache: 'no-store' });
+      const rows = await r.json();
+      const by = Object.fromEntries(rows.map(o => [o.id, o]));
+
+      for (const [id, sel] of Object.entries(SELECTORS)) {
+        const root = document.querySelector(sel);
+        if (!root) {
+          console.warn('[BD] No encontré tarjeta para', id, '->', sel);
+          continue;
+        }
+        const q = by[id];
+        if (!q) {
+          console.warn('[BD] Sin datos para', id);
+          continue;
+        }
+        const v = root.querySelector('.card__value, .value, [data-field="price"]');
+        const d = root.querySelector('.card__delta, .delta, [data-field="delta"]');
+
+        if (v) v.textContent = fmt(q.value, q.currency);
+        if (d) d.textContent = pct(q.changePct);
+
+        // activar tarjeta si estaba deshabilitada
+        root.classList.remove('disabled');
+      }
+    } catch (err) {
+      console.error('[BD] Error al hidratar:', err);
     }
   }
 
-  run();
-  setInterval(run, 60000); // refresco cada 60s
+  // Ejecuta inmediatamente (sin depender de DOMContentLoaded)
+  hydrateOnce();
+  // Repite cada 60s (opcional)
+  setInterval(hydrateOnce, 60000);
 })();
 </script>
