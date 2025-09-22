@@ -199,89 +199,224 @@
   </footer>
 
   <!-- Config opcional para tus claves (no necesarias para este script) -->
+<!-- Lightweight Charts (gráficos livianos) -->
+<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+
+<style>
+  .bd-grid { display:grid; gap:24px; margin-top:32px }
+  .bd-2 { grid-template-columns: 1fr 1fr }
+  .bd-1 { grid-template-columns: 1fr }
+  .bd-card { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px }
+  .bd-title { font-weight:600; margin:4px 0 10px 6px; opacity:.9 }
+  .bd-chart { width:100%; height:360px }
+  @media (max-width:1000px){ .bd-2{grid-template-columns:1fr} }
+</style>
+
+<section class="container">
+  <h2 class="section__title">Dashboards comparativos</h2>
+  <p class="section__subtitle">Series normalizadas (Índice = 100 al inicio del rango) para comparar movimientos.</p>
+
+  <div class="bd-grid bd-2">
+    <div class="bd-card">
+      <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
+      <div id="chart-chile" class="bd-chart"></div>
+      <p class="muted" style="margin:8px 4px 0">UF/US$ desde mindicador.cl · IPSA proxy vía ECH (Yahoo). Rango: 10 años mensuales.</p>
+    </div>
+
+    <div class="bd-card">
+      <h3 class="bd-title">Índices · S&P500 (SPY) vs DAX (EWG) vs Nikkei (EWJ)</h3>
+      <div id="chart-indices" class="bd-chart"></div>
+      <p class="muted" style="margin:8px 4px 0">Yahoo Finance, rango 10 años mensuales.</p>
+    </div>
+
+    <div class="bd-card">
+      <h3 class="bd-title">Big Tech · AAPL vs MSFT vs NVDA</h3>
+      <div id="chart-tech" class="bd-chart"></div>
+      <p class="muted" style="margin:8px 4px 0">Yahoo Finance, rango 10 años mensuales.</p>
+    </div>
+
+    <div class="bd-card">
+      <h3 class="bd-title">Commodities (ETF) · Oro (IAU) vs Plata (SLV) vs Brent (BNO)</h3>
+      <div id="chart-commod" class="bd-chart"></div>
+      <p class="muted" style="margin:8px 4px 0">Yahoo Finance (ETF proxies), rango 10 años mensuales.</p>
+    </div>
+  </div>
+</section>
+
 <script>
-/* === Mapa: IDS EXACTOS QUE ENTREGA EL WORKER  ===
-   Índices (vía ETFs):
-   - S&P500 -> SPY  (id "spy")
-   - DAX    -> EWG  (id "ewg")
-   - Nikkei -> EWJ  (id "ewj")
-   - IPSA   -> ECH  (id "ech")
-   Acciones:
-   - AAPL/MSFT/NVDA/TSM -> ids "aapl","msft","nvda","tsm"
-   Commodities por ETF:
-   - Oro   -> IAU (id "iau")
-   - Plata -> SLV (id "slv")
-   - Brent -> BNO (id "bno")
-*/
 (function () {
-  const SELECTORS = {
-    spy:  '[data-key="SP500"]',
-    ewg:  '[data-key="DAX"]',
-    ewj:  '[data-key="NIKKEI"]',
-    ech:  '[data-key="IPSA"]',
-
-    aapl: '[data-key="AAPL"]',
-    msft: '[data-key="MSFT"]',
-    nvda: '[data-key="NVDA"]',
-    tsm:  '[data-key="TSM"]',
-
-    iau:  '[data-key="GOLD"]',
-    slv:  '[data-key="SILVER"]',
-    bno:  '[data-key="BRENT"]',
+  // ========== Utils ==========
+  const COLORS = ["#4fd1c5","#63b3ed","#f6ad55","#f56565","#9f7aea","#68d391","#ed64a6","#fbd38d"];
+  const toIdx100 = (arr) => {
+    if (!arr.length) return arr;
+    const base = arr[0].value;
+    return arr.map(p => ({ time: p.time, value: (p.value / base) * 100 }));
   };
-
-  // Formateadores
-  const fmt = (v, cur) => {
-    if (v == null) return '—';
-    const n = Number(v);
-    const s = n >= 1000
-      ? n.toLocaleString('es-CL', { maximumFractionDigits: 2 })
-      : n.toString();
-    if (cur === 'USD') return 'US$' + s;
-    if (cur === 'CLP') return '$' + s;
+  const makeChart = (el) => {
+    return LightweightCharts.createChart(el, {
+      layout:{ background:{ type:'solid', color:'transparent' }, textColor:'#cbd5e0' },
+      rightPriceScale:{ borderColor:'#2d3748' },
+      timeScale:{ borderColor:'#2d3748' },
+      grid:{ vertLines:{ color:'#1a202c' }, horzLines:{ color:'#1a202c' } },
+      localization:{ locale: 'es-CL' }
+    });
+  };
+  const addSeries = (chart, title, color, data) => {
+    const s = chart.addLineSeries({ title, lineWidth:2, color });
+    s.setData(data);
     return s;
   };
-  const pct = (x) => (x == null ? '—' :
-    (x >= 0 ? '▲ ' : '▼ ') + Math.abs(Number(x)).toFixed(2) + '%');
+  const ym = (date) => { // YYYY-MM
+    const d = new Date(date);
+    return d.getUTCFullYear() + "-" + String(d.getUTCMonth()+1).padStart(2,"0");
+  };
 
-  async function hydrateOnce() {
-    try {
-      const ids = Object.keys(SELECTORS).join(',');
-      const url = 'https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids='
-                  + ids + '&_=' + Date.now();
-
-      const r = await fetch(url, { cache: 'no-store' });
-      const rows = await r.json();
-      const by = Object.fromEntries(rows.map(o => [o.id, o]));
-
-      for (const [id, sel] of Object.entries(SELECTORS)) {
-        const root = document.querySelector(sel);
-        if (!root) {
-          console.warn('[BD] No encontré tarjeta para', id, '->', sel);
-          continue;
-        }
-        const q = by[id];
-        if (!q) {
-          console.warn('[BD] Sin datos para', id);
-          continue;
-        }
-        const v = root.querySelector('.card__value, .value, [data-field="price"]');
-        const d = root.querySelector('.card__delta, .delta, [data-field="delta"]');
-
-        if (v) v.textContent = fmt(q.value, q.currency);
-        if (d) d.textContent = pct(q.changePct);
-
-        // activar tarjeta si estaba deshabilitada
-        root.classList.remove('disabled');
+  // ========== Fuentes ==========
+  // mindicador.cl — UF & Dólar
+  // - UF mensual: /api/uf/yyyy
+  // - Dólar diario: /api/dolar/yyyy  (agregamos a mensual por promedio)
+  async function fetchUFUSDCLP10y() {
+    const now = new Date();
+    const startY = now.getUTCFullYear() - 10 + 1; // 10 años completos
+    // UF mensual (viene diario, pero /api/uf/yyyy da todos los días del año)
+    const ufMonthly = {};
+    for (let y = startY; y <= now.getUTCFullYear(); y++) {
+      const r = await fetch(`https://mindicador.cl/api/uf/${y}`, { cache:'no-store' });
+      const js = await r.json();
+      for (const it of js.serie || []) {
+        const k = ym(it.fecha);
+        ufMonthly[k] = it.valor; // ultima del mes pisa anteriores
       }
-    } catch (err) {
-      console.error('[BD] Error al hidratar:', err);
+    }
+    // USD/CLP diario → lo reducimos a mensual (promedio)
+    const usdDailyByM = {};
+    for (let y = startY; y <= now.getUTCFullYear(); y++) {
+      const r = await fetch(`https://mindicador.cl/api/dolar/${y}`, { cache:'no-store' });
+      const js = await r.json();
+      for (const it of js.serie || []) {
+        const k = ym(it.fecha);
+        (usdDailyByM[k] ||= []).push(it.valor);
+      }
+    }
+    const usdMonthly = {};
+    for (const [k, arr] of Object.entries(usdDailyByM)) {
+      usdMonthly[k] = arr.reduce((a,b)=>a+b,0) / arr.length;
+    }
+
+    // Convertimos a [{time, value}] mensual, con intersección temporal
+    const keys = Object.keys(ufMonthly).filter(k => usdMonthly[k]).sort();
+    const uf = keys.map(k => ({ time: k + "-01", value: ufMonthly[k] }));
+    const usd = keys.map(k => ({ time: k + "-01", value: usdMonthly[k] }));
+    return { uf, usd };
+  }
+
+  // Yahoo Finance — helper para OHLC mensual (sin API key)
+  // Ej.: ^GSPC, SPY, EWG, EWJ, ECH, AAPL, MSFT, NVDA, IAU, SLV, BNO, CLP=X
+  async function fetchYahooMonthly(ticker, years=10) {
+    const range = years + "y";
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=1mo`;
+    const r = await fetch(url, { headers: { "accept": "application/json" }, cache: "no-store" });
+    if (!r.ok) throw new Error(`Yahoo ${ticker} ${r.status}`);
+    const data = await r.json();
+    const res = data?.chart?.result?.[0];
+    if (!res) throw new Error(`Yahoo ${ticker} no result`);
+    const t = res.timestamp || [];
+    const c = res.indicators?.quote?.[0]?.close || [];
+    const out = [];
+    for (let i=0;i<t.length;i++){
+      const ts = t[i];
+      const val = c[i];
+      if (typeof ts === "number" && typeof val === "number") {
+        const d = new Date(ts * 1000);
+        out.push({ time: d.toISOString().slice(0,10), value: val });
+      }
+    }
+    return out;
+  }
+
+  // ========== CHARTS ==========
+  async function drawChile() {
+    try {
+      const ch = makeChart(document.getElementById("chart-chile"));
+      // UF + USD/CLP (mindicador)
+      const { uf, usd } = await fetchUFUSDCLP10y();
+      // IPSA proxy: ECH mensual (Yahoo)
+      const ech = await fetchYahooMonthly("ECH", 10);
+
+      // Rebase a 100
+      const ufIdx = toIdx100(uf);
+      const usdIdx = toIdx100(usd);
+      // alineamos por fecha disponible en las tres series
+      const dates = new Set(ufIdx.map(p=>p.time));
+      const usdMap = Object.fromEntries(usdIdx.map(p=>[p.time,p.value]));
+      const echMapRaw = Object.fromEntries((toIdx100(ech)).map(p=>[p.time,p.value]));
+      const common = [...dates].filter(t => usdMap[t] && echMapRaw[t]).sort();
+
+      const ufFinal  = common.map(t => ({ time: t, value: ufIdx.find(p=>p.time===t).value }));
+      const usdFinal = common.map(t => ({ time: t, value: usdMap[t] }));
+      const echFinal = common.map(t => ({ time: t, value: echMapRaw[t] }));
+
+      addSeries(ch, "UF (Índice=100)",  COLORS[0], ufFinal);
+      addSeries(ch, "USD/CLP (Índice=100)", COLORS[1], usdFinal);
+      addSeries(ch, "IPSA (proxy ECH) (Índice=100)", COLORS[2], echFinal);
+      ch.timeScale().fitContent();
+    } catch (e) {
+      console.error("Chile chart error", e);
     }
   }
 
-  // Ejecuta inmediatamente (sin depender de DOMContentLoaded)
-  hydrateOnce();
-  // Repite cada 60s (opcional)
-  setInterval(hydrateOnce, 60000);
+  async function drawIndices() {
+    try {
+      const el = document.getElementById("chart-indices");
+      const ch = makeChart(el);
+      const [spy, ewg, ewj] = await Promise.all([
+        fetchYahooMonthly("SPY", 10),
+        fetchYahooMonthly("EWG", 10),
+        fetchYahooMonthly("EWJ", 10),
+      ]);
+      addSeries(ch, "S&P500 (SPY)", COLORS[0], toIdx100(spy));
+      addSeries(ch, "DAX (EWG)", COLORS[1], toIdx100(ewg));
+      addSeries(ch, "Nikkei (EWJ)", COLORS[2], toIdx100(ewj));
+      ch.timeScale().fitContent();
+    } catch(e){ console.error("Indices chart error", e); }
+  }
+
+  async function drawTech() {
+    try {
+      const el = document.getElementById("chart-tech");
+      const ch = makeChart(el);
+      const [aapl, msft, nvda] = await Promise.all([
+        fetchYahooMonthly("AAPL", 10),
+        fetchYahooMonthly("MSFT", 10),
+        fetchYahooMonthly("NVDA", 10),
+      ]);
+      addSeries(ch, "Apple (AAPL)", COLORS[0], toIdx100(aapl));
+      addSeries(ch, "Microsoft (MSFT)", COLORS[1], toIdx100(msft));
+      addSeries(ch, "NVIDIA (NVDA)", COLORS[2], toIdx100(nvda));
+      ch.timeScale().fitContent();
+    } catch(e){ console.error("Tech chart error", e); }
+  }
+
+  async function drawCommod() {
+    try {
+      const el = document.getElementById("chart-commod");
+      const ch = makeChart(el);
+      const [iau, slv, bno] = await Promise.all([
+        fetchYahooMonthly("IAU", 10),
+        fetchYahooMonthly("SLV", 10),
+        fetchYahooMonthly("BNO", 10),
+      ]);
+      addSeries(ch, "Oro (IAU)", COLORS[0], toIdx100(iau));
+      addSeries(ch, "Plata (SLV)", COLORS[1], toIdx100(slv));
+      addSeries(ch, "Brent (BNO)", COLORS[2], toIdx100(bno));
+      ch.timeScale().fitContent();
+    } catch(e){ console.error("Commod chart error", e); }
+  }
+
+  // dispara
+  drawChile();
+  drawIndices();
+  drawTech();
+  drawCommod();
 })();
 </script>
