@@ -199,11 +199,9 @@
   </footer>
 
   <!-- Config opcional para tus claves (no necesarias para este script) -->
-  <script>
-    window.BD_CONFIG = { FINNHUB_KEY: "", ALPHA_VANTAGE_KEY: "" };
- <script>
+<script>
 (function () {
-  // Mapa: ID del backend -> selector de TU tarjeta
+  // 1) Mapa: id del backend -> selector de TU tarjeta (por data-key)
   const SELECTORS = {
     spx:   '[data-key="SP500"]',
     dax:   '[data-key="DAX"]',
@@ -213,18 +211,19 @@
     msft:  '[data-key="MSFT"]',
     nvda:  '[data-key="NVDA"]',
     tsm:   '[data-key="TSM"]',
-
-    // 👇 NUEVO: usar los IDs reales que devuelve el Worker
-    iau:   '[data-key="GOLD"]',   // Oro (ETF IAU)
-    slv:   '[data-key="SILVER"]', // Plata (ETF SLV)
-    bno:   '[data-key="BRENT"]'   // Brent (ETF BNO)
+    // Commodities: tus tarjetas son GOLD / SILVER / BRENT,
+    // y el Worker entrega ids: oro, plata, brent (vía ETFs IAU, SLV, BNO).
+    oro:   '[data-key="GOLD"]',
+    plata: '[data-key="SILVER"]',
+    brent: '[data-key="BRENT"]'
   };
 
-  // Endpoint del Worker pidiendo exactamente esos IDs
+  // 2) Endpoint del Worker (CORS OK)
   const ENDPOINT =
     "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" +
     Object.keys(SELECTORS).join(",");
 
+  // 3) Formateadores
   const fmt = (v, cur) => {
     if (v == null) return "—";
     const n = Number(v);
@@ -235,6 +234,7 @@
   };
   const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
 
+  // 4) Pintar tarjetas
   async function hydrate() {
     try {
       const r = await fetch(ENDPOINT, { cache: "no-store" });
@@ -245,11 +245,15 @@
       for (const [id, sel] of Object.entries(SELECTORS)) {
         const root = document.querySelector(sel);
         if (!root) continue;
+
         const q = by[id] || {};
         const v = root.querySelector('.card__value, .value');
         const d = root.querySelector('.card__delta, .delta');
+
         if (v) v.textContent = fmt(q.value, q.currency);
         if (d) d.textContent = pct(q.changePct);
+
+        // por si la tarjeta estaba deshabilitada visualmente
         root.classList.remove('disabled');
       }
     } catch (e) {
@@ -257,9 +261,17 @@
     }
   }
 
-  window.addEventListener("DOMContentLoaded", () => {
+  // 5) Arranque robusto: corre SIEMPRE, haya o no fired el DOMContentLoaded
+  function start() {
     hydrate();
-    setInterval(hydrate, 60000);
-  });
+    // refresco cada 60s
+    setInterval(hydrate, 60_000);
+  }
+  if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
 })();
 </script>
+
