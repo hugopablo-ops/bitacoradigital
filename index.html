@@ -201,88 +201,63 @@
   <!-- Config opcional para tus claves (no necesarias para este script) -->
   <script>
     window.BD_CONFIG = { FINNHUB_KEY: "", ALPHA_VANTAGE_KEY: "" };
-  </script>
-
-  <!-- Crypto/live y estilos propios -->
-  <script src="assets/js/app.js"></script>
-<script>
+ <script>
 (function () {
-  // === 1) Selectores: id lógico -> data-key de TU HTML ===
+  // Mapa: ID del backend -> selector de TU tarjeta
   const SELECTORS = {
-    spx:   '[data-key="SP500"]', // S&P 500 (SPY)
-    dax:   '[data-key="DAX"]',   // Alemania (EWG)
-    nikkei:'[data-key="NIKKEI"]',// Japón (EWJ)
-    ipsa:  '[data-key="IPSA"]',  // Chile (ECH)
+    spx:   '[data-key="SP500"]',
+    dax:   '[data-key="DAX"]',
+    nikkei:'[data-key="NIKKEI"]',
+    ipsa:  '[data-key="IPSA"]',
     aapl:  '[data-key="AAPL"]',
     msft:  '[data-key="MSFT"]',
     nvda:  '[data-key="NVDA"]',
     tsm:   '[data-key="TSM"]',
-    oro:   '[data-key="GOLD"]',  // XAU
-    plata: '[data-key="SILVER"]',// XAG
-    brent: '[data-key="BRENT"]'
+
+    // 👇 NUEVO: usar los IDs reales que devuelve el Worker
+    iau:   '[data-key="GOLD"]',   // Oro (ETF IAU)
+    slv:   '[data-key="SILVER"]', // Plata (ETF SLV)
+    bno:   '[data-key="BRENT"]'   // Brent (ETF BNO)
   };
 
-  // === 2) Aliases: si el backend responde con otros IDs, los normalizamos ===
-  //   spy -> spx, ewg -> dax, ewj -> nikkei, ech -> ipsa
-  const NORMALIZE = {
-    spy: 'spx',
-    ewg: 'dax',
-    ewj: 'nikkei',
-    ech: 'ipsa'
-  };
+  // Endpoint del Worker pidiendo exactamente esos IDs
+  const ENDPOINT =
+    "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" +
+    Object.keys(SELECTORS).join(",");
 
-  // === 3) Endpoint del Worker (no toques) ===
-  const IDS = Object.keys(SELECTORS).join(',');
-  const ENDPOINT = `https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=${IDS}`;
-
-  // === 4) Helpers de formato ===
   const fmt = (v, cur) => {
-    if (v == null) return '—';
+    if (v == null) return "—";
     const n = Number(v);
-    const s = n >= 1000 ? n.toLocaleString('es-CL', { maximumFractionDigits: 2 }) : n.toString();
-    if (cur === 'USD') return 'US$' + s;
-    if (cur === 'CLP') return '$' + s;
+    const s = n >= 1000 ? n.toLocaleString("es-CL",{ maximumFractionDigits: 2 }) : n.toString();
+    if (cur === "USD") return "US$" + s;
+    if (cur === "CLP") return "$" + s;
     return s;
   };
-  const pct = (x) => (x == null ? '—' : `${Number(x).toFixed(2)}%`);
+  const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
 
-  // === 5) Pinta cada card ===
-  function paintCard(root, q) {
-    const valEl   = root.querySelector('.card__value, .value');
-    const deltaEl = root.querySelector('.card__delta, .delta');
-    if (valEl)   valEl.textContent   = fmt(q.value, q.currency);
-    if (deltaEl) deltaEl.textContent = pct(q.changePct);
-    root.classList.remove('disabled');
-  }
-
-  // === 6) Carga e hidrata ===
   async function hydrate() {
     try {
-      const r = await fetch(ENDPOINT, { cache: 'no-store' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const r = await fetch(ENDPOINT, { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
       const rows = await r.json();
+      const by = Object.fromEntries(rows.map(o => [o.id, o]));
 
-      // normaliza IDs del backend
-      const map = {};
-      for (const row of rows) {
-        const id = NORMALIZE[row.id] || row.id; // p.ej. spy -> spx
-        map[id] = row;
-      }
-
-      // Pinta todas las tarjetas definidas en SELECTORS
       for (const [id, sel] of Object.entries(SELECTORS)) {
         const root = document.querySelector(sel);
         if (!root) continue;
-        const q = map[id] || {};       // si no vino, deja "—"
-        paintCard(root, q);
+        const q = by[id] || {};
+        const v = root.querySelector('.card__value, .value');
+        const d = root.querySelector('.card__delta, .delta');
+        if (v) v.textContent = fmt(q.value, q.currency);
+        if (d) d.textContent = pct(q.changePct);
+        root.classList.remove('disabled');
       }
     } catch (e) {
-      console.error('[BD] cards load error:', e);
+      console.error("[BD] cards load error:", e);
     }
   }
 
-  // === 7) Ejecuta ahora y cada 60s ===
-  window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener("DOMContentLoaded", () => {
     hydrate();
     setInterval(hydrate, 60000);
   });
