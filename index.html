@@ -201,139 +201,84 @@
   <!-- Config opcional para tus claves (no necesarias para este script) -->
 <script>
 (function () {
-  // 1) Mapa: id del backend -> selector de TU tarjeta (usa data-key del HTML)
+  // ====== 1) Mapa: ID que entrega el Worker -> tu tarjeta (data-key) ======
+  // Nota: tu Worker hoy devuelve estos IDs (ETFs) para evitar rate-limit:
+  //  - S&P500  -> "spx" (SPY)
+  //  - DAX     -> "ewg" (ETF Alemania)
+  //  - Nikkei  -> "ewj" (ETF Japón)
+  //  - IPSA    -> "ech" (ETF Chile)    [placeholder]
+  //  - Acciones: "aapl","msft","nvda","tsm"
+  //  - Commodities: "iau" (oro), "slv" (plata), "bno" (brent)
   const SELECTORS = {
-    spx:   '[data-key="SP500"]',
-    dax:   '[data-key="DAX"]',
-    nikkei:'[data-key="NIKKEI"]',
-    ipsa:  '[data-key="IPSA"]',
-    aapl:  '[data-key="AAPL"]',
-    msft:  '[data-key="MSFT"]',
-    nvda:  '[data-key="NVDA"]',
-    tsm:   '[data-key="TSM"]',
-    oro:   '[data-key="GOLD"]',   // Oro (XAU) -> tarjeta con data-key="GOLD"
-    plata: '[data-key="SILVER"]', // Plata (XAG) -> tarjeta con data-key="SILVER"
-    brent: '[data-key="BRENT"]'   // Brent -> tarjeta con data-key="BRENT"
+    // Índices
+    spx:  '[data-key="SP500"]',
+    ewg:  '[data-key="DAX"]',
+    ewj:  '[data-key="NIKKEI"]',
+    ech:  '[data-key="IPSA"]',
+
+    // Acciones
+    aapl: '[data-key="AAPL"]',
+    msft: '[data-key="MSFT"]',
+    nvda: '[data-key="NVDA"]',
+    tsm:  '[data-key="TSM"]',
+
+    // Commodities (usando ETFs para feed estable del Worker actual)
+    iau:  '[data-key="GOLD"]',
+    slv:  '[data-key="SILVER"]',
+    bno:  '[data-key="BRENT"]'
   };
 
-  // 2) Endpoint del Worker (CORS OK)
+  // ====== 2) Endpoint del Worker (CORS OK) ======
   const ENDPOINT =
     "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" +
     Object.keys(SELECTORS).join(",");
 
-  // 3) Helpers de formato
+  // ====== 3) Formateadores ======
   const fmt = (v, cur) => {
     if (v == null) return "—";
     const n = Number(v);
-    const s = n >= 1000 ? n.toLocaleString("es-CL", { maximumFractionDigits: 2 }) : n.toString();
+    const s = n >= 1000
+      ? n.toLocaleString("es-CL", { maximumFractionDigits: 2 })
+      : n.toString();
     if (cur === "USD") return "US$" + s;
     if (cur === "CLP") return "$" + s;
     return s;
   };
   const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
 
-  // 4) Carga y pinta todas las tarjetas
+  // ====== 4) Cargar datos en las cards ======
   async function hydrate() {
     try {
-      const r = await fetch(ENDPOINT, { cache: "no-store" });
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      const rows = await r.json();
-      const by = Object.fromEntries(rows.map(o => [o.id, o]));
+      const res = await fetch(ENDPOINT, { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const rows = await res.json();
+
+      // indexar por id que devuelve el Worker
+      const byId = Object.fromEntries(rows.map(o => [o.id, o]));
 
       for (const [id, sel] of Object.entries(SELECTORS)) {
         const root = document.querySelector(sel);
         if (!root) continue;
 
-        const q = by[id] || {};
-        const v = root.querySelector('.card__value, .value');
-        const d = root.querySelector('.card__delta, .delta');
+        const q = byId[id] || {};
+        const v = root.querySelector(".card__value, .value");
+        const d = root.querySelector(".card__delta, .delta");
 
         if (v) v.textContent = fmt(q.value, q.currency);
         if (d) d.textContent = pct(q.changePct);
 
-        // Habilita visualmente aunque antes estuviera desactivada
-        root.classList.remove('disabled');
+        // Por si la card estaba marcada "disabled", la habilitamos visualmente
+        root.classList.remove("disabled");
       }
-    } catch (e) {
-      console.error("[BD] cards load error:", e);
+    } catch (err) {
+      console.error("[BD] cards load error:", err);
     }
   }
 
-  // 5) Ejecuta cuando el DOM esté listo y luego cada 60s
+  // ====== 5) Ejecutar al cargar y cada 60s ======
   window.addEventListener("DOMContentLoaded", () => {
     hydrate();
     setInterval(hydrate, 60000);
   });
 })();
-  <!-- (bloques anteriores de la página) -->
-
-  <!-- 👇 Pega aquí el JS ANTES de cerrar el body -->
-  <script>
-    (function () {
-      // 1) Mapa id-del-backend -> selector de TU tarjeta (por data-key)
-      const SELECTORS = {
-        spx:   '[data-key="SP500"]',
-        dax:   '[data-key="DAX"]',
-        nikkei:'[data-key="NIKKEI"]',
-        ipsa:  '[data-key="IPSA"]',
-        aapl:  '[data-key="AAPL"]',
-        msft:  '[data-key="MSFT"]',
-        nvda:  '[data-key="NVDA"]',
-        tsm:   '[data-key="TSM"]',
-        oro:   '[data-key="GOLD"]',   // Oro (ETF IAU) → card Oro
-        plata: '[data-key="SILVER"]', // Plata (ETF SLV) → card Plata
-        brent: '[data-key="BRENT"]'   // Brent (ETF BNO) → card Brent
-      };
-
-      // 2) Endpoint del Worker (CORS OK)
-      const ENDPOINT =
-        "https://bd-finnhub-proxy.hugopablo.workers.dev/cards?ids=" +
-        Object.keys(SELECTORS).join(",");
-
-      // 3) Helpers de formato
-      const fmt = (v, cur) => {
-        if (v == null) return "—";
-        const n = Number(v);
-        const s = n >= 1000 ? n.toLocaleString("es-CL",{ maximumFractionDigits: 2 }) : n.toString();
-        if (cur === "USD") return "US$" + s;
-        if (cur === "CLP") return "$" + s;
-        return s;
-      };
-      const pct = (x) => (x == null ? "—" : `${Number(x).toFixed(2)}%`);
-
-      // 4) Hidratación
-      async function hydrate() {
-        try {
-          const r = await fetch(ENDPOINT, { cache: "no-store" });
-          if (!r.ok) throw new Error("HTTP " + r.status);
-          const rows = await r.json();
-          const by = Object.fromEntries(rows.map(o => [o.id, o]));
-
-          for (const [id, sel] of Object.entries(SELECTORS)) {
-            const root = document.querySelector(sel);
-            if (!root) continue;
-            const q = by[id] || {};
-            const v = root.querySelector('.card__value, .value');
-            const d = root.querySelector('.card__delta, .delta');
-            if (v) v.textContent = fmt(q.value, q.currency);
-            if (d) d.textContent = pct(q.changePct);
-            root.classList.remove('disabled'); // por si alguna estaba “apagada”
-          }
-        } catch (e) {
-          console.error("[BD] cards load error:", e);
-        }
-      }
-
-      // 5) Ejecuta cuando el DOM esté listo y refresca cada 60s
-      window.addEventListener("DOMContentLoaded", () => {
-        hydrate();
-        setInterval(hydrate, 60000);
-      });
-    })();
-  </script>
-
-</body>
-</html>
-
-
-
+</script>
