@@ -277,146 +277,71 @@
 </section>
 
 <script>
-(function () {
-  // ------ Configurable rápido ------
-  const YEARS = 5; // cambia a 10 si quieres
-  // Top 8 por notoriedad (puedes cambiar id/label sin problema)
+/* === CRYPTO TOP 8 (Base 100, 5 años) ========================== */
+(async function renderCryptoTop8() {
+  const el = document.getElementById("chart-crypto");
+  if (!el) return;
+
+  // 8 monedas más representativas (puedes ajustar)
   const COINS = [
-    { id: "bitcoin",       label: "BTC"  },
-    { id: "ethereum",      label: "ETH"  },
-    { id: "solana",        label: "SOL"  },
-    { id: "xrp",           label: "XRP"  },
-    { id: "binance-coin",  label: "BNB"  },
-    { id: "cardano",       label: "ADA"  },
-    { id: "chainlink",     label: "LINK" },
-    { id: "polkadot",      label: "DOT"  },
-  ];
-  // ----------------------------------
-
-  // Utilidad: fechas en ms (CoinCap espera epoch ms)
-  const now = Date.now();
-  const start = new Date();
-  start.setFullYear(start.getFullYear() - YEARS);
-  const START_MS = start.getTime();
-  const END_MS   = now;
-
-  // Downsample mensual rápido: tomar ~cada 30 días
-  const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
-
-  // Colores (Chart.js escogerá si faltan)
-  const PALETTE = [
-    "#22c55e","#60a5fa","#f59e0b","#ef4444",
-    "#a78bfa","#34d399","#f472b6","#f97316",
+    { id: "bitcoin",     tag: "BTC",  color: "#f7931a" },
+    { id: "ethereum",    tag: "ETH",  color: "#627eea" },
+    { id: "binancecoin", tag: "BNB",  color: "#f3ba2f" },
+    { id: "ripple",      tag: "XRP",  color: "#00a3ff" },
+    { id: "cardano",     tag: "ADA",  color: "#0cc1f3" },
+    { id: "solana",      tag: "SOL",  color: "#14f195" },
+    { id: "dogecoin",    tag: "DOGE", color: "#c2a633" },
+    { id: "polkadot",    tag: "DOT",  color: "#e6007a" },
   ];
 
-  // Llama CoinCap: /assets/:id/history?interval=d1&start=...&end=...
-  async function fetchHistory(id) {
-    const url = `https://api.coincap.io/v2/assets/${id}/history?interval=d1&start=${START_MS}&end=${END_MS}`;
-    const r = await fetch(url, { cache: "no-store" });
-    if (!r.ok) throw new Error(id + " HTTP " + r.status);
-    const data = await r.json();
-    return data.data; // [{ priceUsd, time, date }, ...]
-  }
+  const chart = LightweightCharts.createChart(el, {
+    layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#cbd5e1' },
+    rightPriceScale: { borderColor: '#243748' },
+    timeScale: { borderColor: '#243748' },
+    grid: { vertLines: { color: '#18202c' }, horzLines: { color: '#18202c' } },
+    localization: { locale: 'es-CL' },
+  });
 
-  // Downsample e.g. 1 punto / ~mes
-  function monthlySample(rows) {
-    const out = [];
-    let last = 0;
-    for (const row of rows) {
-      const t = +row.time;
-      if (t - last >= THIRTY_DAYS || out.length === 0) {
-        out.push({ t, v: Number(row.priceUsd) });
-        last = t;
-      }
-    }
-    return out;
-  }
+  const add = (title, color) => chart.addLineSeries({ title, color, lineWidth: 2 });
 
-  // Normaliza serie a base 100 (primero = 100)
-  function toBase100(series) {
-    if (!series.length) return [];
-    const base = series[0].v;
-    return series.map(p => ({ t: p.t, v: (p.v / base) * 100 }));
-  }
+  // CoinGecko: últimos 5 años ≈ 1825 días
+  const DAYS = 1825;
+  const base100 = (series) => {
+    if (!series.length) return series;
+    const base = series[0].value;
+    return series.map(p => ({ time: p.time, value: (p.value / base) * 100 }));
+  };
 
-  // Arma conjunto común de fechas (x) y mapea cada serie
-  function unifyX(all) {
-    // Tomo fechas de la primera serie como eje x
-    const x = all[0].map(p => p.t);
-    const map = all.map(s =>
-      x.map(t => {
-        // buscar punto con ese 't'
-        const found = s.find(p => p.t === t);
-        return found ? found.v : null;
-      })
+  const fetchSeries = async (coinId) => {
+    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${DAYS}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`CG error ${res.status} ${coinId}`);
+    const json = await res.json();
+    // json.prices: [[ts_ms, price], ...]
+    // Tomamos 1 punto cada ~14 días para aligerar
+    const step = 14;
+    const pts = json.prices
+      .filter((_, i) => i % step === 0)
+      .map(([ts, v]) => ({ time: Math.floor(ts/1000), value: v }));
+    return base100(pts);
+  };
+
+  try {
+    const data = await Promise.allSettled(
+      COINS.map(c => fetchSeries(c.id).then(series => ({ coin: c, series })))
     );
-    return { x, ySets: map };
-  }
 
-  // Principal
-  async function run() {
-    try {
-      const series = [];
-      for (const c of COINS) {
-        const h = await fetchHistory(c.id);
-        const sample = monthlySample(h);
-        const base100 = toBase100(sample);
-        series.push(base100);
-      }
+    const ok = data.filter(x => x.status === 'fulfilled').map(x => x.value);
+    if (!ok.length) throw new Error("Sin datos");
 
-      // Unifica eje x y prepara datasets Chart.js
-      const { x, ySets } = unifyX(series);
-      const labels = x.map(ms => {
-        const d = new Date(ms);
-        return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
-      });
-
-      const datasets = ySets.map((y, i) => ({
-        label: COINS[i].label,
-        data: y,
-        borderColor: PALETTE[i % PALETTE.length],
-        backgroundColor: PALETTE[i % PALETTE.length],
-        borderWidth: 2,
-        pointRadius: 0,
-        tension: 0.25
-      }));
-
-      const ctx = document.getElementById("chart-crypto").getContext("2d");
-      new Chart(ctx, {
-        type: "line",
-        data: { labels, datasets },
-        options: {
-          responsive: true,
-          interaction: { mode: "nearest", intersect: false },
-          plugins: {
-            legend: { position: "top" },
-            tooltip: {
-              callbacks: {
-                label: (c) => `${c.dataset.label}: ${c.raw.toFixed(1)}`
-              }
-            }
-          },
-          scales: {
-            y: {
-              title: { text: "Base 100", display: true },
-              ticks: { callback: v => v.toFixed ? v.toFixed(0) : v }
-            },
-            x: { ticks: { maxRotation: 0, autoSkip: true } }
-          }
-        }
-      });
-    } catch (e) {
-      console.error("[Crypto chart] error:", e);
-      const el = document.querySelector("#charts-crypto .muted");
-      if (el) el.textContent = "No se pudo cargar el comparativo (intenta recargar).";
-    }
-  }
-
-  // dispara cuando el DOM esté listo (y si ya está, igual corre)
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", run, { once: true });
-  } else {
-    run();
+    ok.forEach(({ coin, series }) => {
+      const s = add(coin.tag, coin.color);
+      s.setData(series);
+    });
+  } catch (err) {
+    console.error("Crypto Top 8:", err);
+    // opcional: muestra un mensaje en la tarjeta
+    el.innerHTML = `<div style="padding:1rem;color:#94a3b8">No se pudo cargar el comparativo (intenta recargar).</div>`;
   }
 })();
 </script>
