@@ -288,75 +288,117 @@
 </section>
 
 <script>
-/* === CRYPTO TOP 8 (Base 100, 5 años) ========================== */
-(async function renderCryptoTop8() {
-  const el = document.getElementById("chart-crypto");
-  if (!el) return;
+(function () {
+  // ===== Utilidades comunes =====
+  const COLORS = ["#63b3ed","#a4d1c5","#f6ad55","#f56565","#9f7aea","#48bb78","#ed64a6","#4299e1"];
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-  // 8 monedas más representativas (puedes ajustar)
-  const COINS = [
-    { id: "bitcoin",     tag: "BTC",  color: "#f7931a" },
-    { id: "ethereum",    tag: "ETH",  color: "#627eea" },
-    { id: "binancecoin", tag: "BNB",  color: "#f3ba2f" },
-    { id: "ripple",      tag: "XRP",  color: "#00a3ff" },
-    { id: "cardano",     tag: "ADA",  color: "#0cc1f3" },
-    { id: "solana",      tag: "SOL",  color: "#14f195" },
-    { id: "dogecoin",    tag: "DOGE", color: "#c2a633" },
-    { id: "polkadot",    tag: "DOT",  color: "#e6007a" },
-  ];
-
-  const chart = LightweightCharts.createChart(el, {
-    layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#cbd5e1' },
-    rightPriceScale: { borderColor: '#243748' },
-    timeScale: { borderColor: '#243748' },
-    grid: { vertLines: { color: '#18202c' }, horzLines: { color: '#18202c' } },
-    localization: { locale: 'es-CL' },
-  });
-
-  const add = (title, color) => chart.addLineSeries({ title, color, lineWidth: 2 });
-
-  // CoinGecko: últimos 5 años ≈ 1825 días
-  const DAYS = 1825;
-  const base100 = (series) => {
+  // Normaliza a Base 100 tomando el primer valor válido de cada serie
+  function toBase100(series) {
     if (!series.length) return series;
-    const base = series[0].value;
+    const baseIdx = series.findIndex(p => Number.isFinite(p.value));
+    if (baseIdx < 0) return series;
+    const base = series[baseIdx].value;
     return series.map(p => ({ time: p.time, value: (p.value / base) * 100 }));
-  };
-
-  const fetchSeries = async (coinId) => {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${DAYS}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`CG error ${res.status} ${coinId}`);
-    const json = await res.json();
-    // json.prices: [[ts_ms, price], ...]
-    // Tomamos 1 punto cada ~14 días para aligerar
-    const step = 14;
-    const pts = json.prices
-      .filter((_, i) => i % step === 0)
-      .map(([ts, v]) => ({ time: Math.floor(ts/1000), value: v }));
-    return base100(pts);
-  };
-
-  try {
-    const data = await Promise.allSettled(
-      COINS.map(c => fetchSeries(c.id).then(series => ({ coin: c, series })))
-    );
-
-    const ok = data.filter(x => x.status === 'fulfilled').map(x => x.value);
-    if (!ok.length) throw new Error("Sin datos");
-
-    ok.forEach(({ coin, series }) => {
-      const s = add(coin.tag, coin.color);
-      s.setData(series);
-    });
-  } catch (err) {
-    console.error("Crypto Top 8:", err);
-    // opcional: muestra un mensaje en la tarjeta
-    el.innerHTML = `<div style="padding:1rem;color:#94a3b8">No se pudo cargar el comparativo (intenta recargar).</div>`;
   }
+
+  function makeChart(el, dark = true) {
+    return LightweightCharts.createChart(el, {
+      layout: {
+        background: { type: 'solid', color: 'transparent' },
+        textColor: dark ? '#cbd5e0' : '#1a202c'
+      },
+      rightPriceScale: { borderColor: '#2d3748' },
+      timeScale:      { borderColor: '#2d3748' },
+      grid: { vertLines: { color: '#1a202c' }, horzLines: { color: '#1a202c' } },
+      localization: { locale: 'es-CL' }
+    });
+  }
+
+  function addLineSeries(chart, title, color) {
+    const s = chart.addLineSeries({ title, color, lineWidth: 2 });
+    return s;
+  }
+
+  function monthISO(d) {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    return `${y}-${m}-01`;
+  }
+
+  // ====== CRYPTO TOP 8 (CoinGecko) ======
+  /**
+   * Obtiene histórico diario de N días para un coin (CoinGecko) y lo lleva a formato:
+   * [ {time: 'YYYY-MM-DD', value: <precio>} ]
+   */
+  async function cgHistory(coin, days = 1825) { // ~5 años
+    // Nota: CoinGecko está rate-limited. Si pegas 8 queries en paralelo puede tardar;
+    // por eso ponemos un pequeño sleep entre requests.
+    const url = `https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=${days}`;
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`CG ${coin} ${r.status}`);
+    const data = await r.json();
+    // data.prices = [ [ts_ms, price], ... ]
+    const out = data.prices.map(([ts, price]) => {
+      const d = new Date(ts);
+      return { time: monthISO(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: price };
+    });
+    // Compacta a 1 punto por mes (último valor del mes)
+    const byMonth = {};
+    for (const p of out) byMonth[p.time] = p.value;
+    return Object.entries(byMonth).map(([time, value]) => ({ time, value })).sort((a,b)=> a.time.localeCompare(b.time));
+  }
+
+  async function drawCryptoTop8() {
+    const el = document.getElementById('chart-crypto');
+    if (!el) return;
+
+    // COINS: BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT
+    const coins = [
+      { id: 'bitcoin',     label: 'BTC'  },
+      { id: 'ethereum',    label: 'ETH'  },
+      { id: 'solana',      label: 'SOL'  },
+      { id: 'binancecoin', label: 'BNB'  },
+      { id: 'ripple',      label: 'XRP'  },
+      { id: 'cardano',     label: 'ADA'  },
+      { id: 'chainlink',   label: 'LINK' },
+      { id: 'polkadot',    label: 'DOT'  },
+    ];
+
+    // Crea chart
+    const chart = makeChart(el, true);
+
+    // Trae cada serie con un pequeño delay para no chocar rate-limit
+    const series = [];
+    for (let i = 0; i < coins.length; i++) {
+      const c = coins[i];
+      try {
+        const raw = await cgHistory(c.id, 1825);
+        const norm = toBase100(raw);
+        series.push({ label: c.label, data: norm });
+      } catch (e) {
+        console.error('CG fail', c.id, e);
+      }
+      await sleep(300); // respiro para el rate-limit
+    }
+
+    // Sin datos? aviso
+    if (!series.length) {
+      el.innerHTML = '<div style="padding:1rem;color:#a0aec0">No se pudo cargar el comparativo (CoinGecko limit). Intenta recargar.</div>';
+      return;
+    }
+
+    // Dibuja cada línea
+    series.forEach((s, i) => {
+      const color = COLORS[i % COLORS.length];
+      const line = addLineSeries(chart, s.label, color);
+      line.setData(s.data);
+    });
+  }
+
+  // === Bootstrap ===
+  window.addEventListener('load', () => {
+    drawCryptoTop8();  // ← ya deja el primer comparativo funcionando
+  });
 })();
 </script>
-<!-- Lightweight Charts (lib del gráfico) -->
-<script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
-
-  
