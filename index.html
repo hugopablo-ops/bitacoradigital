@@ -29,6 +29,313 @@
   </header>
 
   <!-- HERO -->
+<!-- === BD ANALYTIC (comparativos) =============================== -->
+<link rel="preconnect" href="https://stooq.com">
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
+<style>
+  /* Grilla responsiva 2×3 */
+  #bd-analytic { padding: 28px 0 8px }
+  .bd-wrap { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+  .bd-grid { display:grid; gap:20px; grid-template-columns: repeat(3,1fr); }
+  @media (max-width: 1024px){ .bd-grid{ grid-template-columns: repeat(2,1fr) } }
+  @media (max-width: 680px){ .bd-grid{ grid-template-columns: 1fr } }
+
+  .bd-card { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+             border-radius:14px; padding:12px; cursor:pointer; transition:.15s }
+  .bd-card:hover { border-color: rgba(255,255,255,.2) }
+  .bd-title { font-weight:600; margin:2px 0 4px 6px }
+  .bd-sub { color:#9aa4af; font-size:.9rem; margin:0 0 8px 6px }
+  .bd-chart { width:100%; height:300px }
+  .bd-note { color:#9aa4af; font-size:.9rem; padding:6px }
+</style>
+
+<section id="bd-analytic">
+  <div class="bd-wrap">
+    <h2 class="section__title">Dashboards comparativos</h2>
+    <p class="section__subtitle">Series mensuales, normalizadas a <strong>Base 100</strong>, para comparar tendencias.</p>
+
+    <div class="bd-grid">
+
+      <!-- 1) TradFi Chile -->
+      <article class="bd-card" onclick="location.href='/detail/tradfi-cl'">
+        <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
+        <p class="bd-sub">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
+        <div id="c-chile" class="bd-chart"></div>
+        <div id="c-chile-note" class="bd-note" style="display:none"></div>
+      </article>
+
+      <!-- 2) Índices -->
+      <article class="bd-card" onclick="location.href='/detail/indices'">
+        <h3 class="bd-title">Índices — SPY (S&P500) vs EWG (DAX) vs EWJ (Nikkei)</h3>
+        <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
+        <div id="c-indices" class="bd-chart"></div>
+        <div id="c-indices-note" class="bd-note" style="display:none"></div>
+      </article>
+
+      <!-- 3) Big Tech -->
+      <article class="bd-card" onclick="location.href='/detail/tech'">
+        <h3 class="bd-title">Big Tech / IA — AAPL vs MSFT vs NVDA</h3>
+        <p class="bd-sub">Precios USD vía Stooq (mensual)</p>
+        <div id="c-tech" class="bd-chart"></div>
+        <div id="c-tech-note" class="bd-note" style="display:none"></div>
+      </article>
+
+      <!-- 4) Crypto Top 8 -->
+      <article class="bd-card" onclick="location.href='/detail/crypto'">
+        <h3 class="bd-title">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
+        <p class="bd-sub">BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT — CoinGecko (USD)</p>
+        <div id="c-crypto" class="bd-chart"></div>
+        <div id="c-crypto-note" class="bd-note" style="display:none"></div>
+      </article>
+
+      <!-- 5) Commodities -->
+      <article class="bd-card" onclick="location.href='/detail/commodities'">
+        <h3 class="bd-title">Commodities (ETF) — IAU (Oro) vs SLV (Plata) vs BNO (Brent)</h3>
+        <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
+        <div id="c-commod" class="bd-chart"></div>
+        <div id="c-commod-note" class="bd-note" style="display:none"></div>
+      </article>
+
+      <!-- 6) Slot libre -->
+      <article class="bd-card">
+        <h3 class="bd-title">Próximamente</h3>
+        <p class="bd-sub">Otro comparativo que elijas</p>
+        <div class="bd-note">Sugerencias: LatAm, Small Caps, o BTC vs Oro vs SPY.</div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  // ===== Paleta consistente =====
+  const COLORS = ["#63b3ed","#a4d1c5","#f6ad55","#ff6585","#97a7ea","#66e4a6","#fbd38d","#b794f4"];
+
+  // ===== Utilidades =====
+  const isoMonth = (d) => {
+    const y=d.getUTCFullYear(), m=String(d.getUTCMonth()+1).padStart(2,"0");
+    return `${y}-${m}-01`;
+  };
+
+  // Normaliza Base 100 desde primer dato válido
+  function base100(arr){
+    if(!arr || !arr.length) return arr;
+    const i = arr.findIndex(p=>Number.isFinite(p.value));
+    if(i<0) return arr;
+    const b = arr[i].value;
+    return arr.map(p=>({ time:p.time, value:(p.value/b)*100 }));
+  }
+
+  // Intersección de fechas (para que comparen mismo rango)
+  function intersectDates(seriesArray){
+    const sets = seriesArray.map(s=> new Set(s.map(p=>p.time)));
+    const common = [...sets[0]].filter(t=> sets.every(S => S.has(t)));
+    const sorted = common.sort((a,b)=>a.localeCompare(b));
+    return seriesArray.map(s => s.filter(p=> sorted.includes(p.time)));
+  }
+
+  // Agrega a mensual (tomar el último valor del mes)
+  function toMonthlyLast(points){
+    const by = {};
+    for(const p of points) by[p.time]=p.value;
+    return Object.entries(by).map(([time,value])=>({time,value}))
+      .sort((a,b)=> a.time.localeCompare(b.time));
+  }
+
+  // ===== Fetchers =====
+
+  // mindicador.cl (uf / dolar) — diario → “YYYY-MM-DD” keys
+  async function fetchMindicador(tipo){
+    const r = await fetch(`https://mindicador.cl/api/${tipo}`, { cache:'no-store' });
+    if(!r.ok) throw new Error(`mindicador ${tipo} ${r.status}`);
+    const j = await r.json();
+    // j.serie: [{fecha, valor}]
+    const pts = j.serie.map(x=>{
+      const d = new Date(x.fecha);
+      return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: x.valor };
+    });
+    return toMonthlyLast(pts);
+  }
+
+  // Stooq mensual CSV (spy.us, ewg.us, ewj.us, ech.us, aapl.us, msft.us, nvda.us, iau.us, slv.us, bno.us)
+  async function fetchStooqMonthly(ticker){
+    const url = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
+    const r = await fetch(url, { cache:'no-store' });
+    if(!r.ok) throw new Error(`stooq ${ticker} ${r.status}`);
+    const csv = await r.text();
+    const lines = csv.trim().split(/\r?\n/).slice(1); // skip header
+    const out = [];
+    for(const ln of lines){
+      const [date,open,high,low,close,vol] = ln.split(',');
+      if(!date || !close) continue;
+      // date = YYYY-MM-DD
+      out.push({ time: date, value: Number(close) });
+    }
+    return out;
+  }
+
+  // CoinGecko: market_chart diario → mensual (último del mes)
+  async function fetchCoinGeckoMonthly(coin, days=1825){ // 5 años aprox
+    const url = `https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=${days}`;
+    const r = await fetch(url, { cache:'no-store' });
+    if(!r.ok) throw new Error(`cg ${coin} ${r.status}`);
+    const j = await r.json();
+    const pts = j.prices.map(([ts,price])=>{
+      const d = new Date(ts);
+      return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: price };
+    });
+    return toMonthlyLast(pts);
+  }
+
+  // ===== Charts =====
+  function makeChart(el){
+    return LightweightCharts.createChart(el, {
+      layout: { background:{type:'solid', color:'transparent'}, textColor:'#cbd5e0' },
+      rightPriceScale:{ borderColor:'#2d3748' },
+      timeScale:{ borderColor:'#2d3748' },
+      grid:{ vertLines:{ color:'#1a202c' }, horzLines:{ color:'#1a202c' } },
+      localization:{ locale:'es-CL' }
+    });
+  }
+  function addLine(chart, label, color){
+    return chart.addLineSeries({ title:label, color, lineWidth:2 });
+  }
+
+  // = 1) Chile
+  async function drawChile(){
+    const root = document.getElementById('c-chile');
+    if(!root) return;
+    try{
+      const [uf, usd, ech] = await Promise.all([
+        fetchMindicador('uf'),
+        fetchMindicador('dolar'),
+        fetchStooqMonthly('ech.us')
+      ]);
+      // A mensual/ordenar/normalizar
+      let [a,b,c] = intersectDates([uf, usd, ech]);
+      a = base100(a); b = base100(b); c = base100(c);
+
+      const chart = makeChart(root);
+      const s1 = addLine(chart,'UF',COLORS[0]);    s1.setData(a);
+      const s2 = addLine(chart,'USD/CLP',COLORS[2]); s2.setData(b);
+      const s3 = addLine(chart,'IPSA (ECH)',COLORS[4]); s3.setData(c);
+    }catch(e){
+      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Chile).</div>`;
+      document.getElementById('c-chile-note').style.display='block';
+    }
+  }
+
+  // = 2) Índices
+  async function drawIndices(){
+    const root = document.getElementById('c-indices');
+    if(!root) return;
+    try{
+      const [spy, ewg, ewj] = await Promise.all([
+        fetchStooqMonthly('spy.us'),
+        fetchStooqMonthly('ewg.us'),
+        fetchStooqMonthly('ewj.us')
+      ]);
+      let [a,b,c] = intersectDates([spy, ewg, ewj]);
+      a = base100(a); b = base100(b); c = base100(c);
+
+      const chart = makeChart(root);
+      addLine(chart,'SPY',COLORS[0]).setData(a);
+      addLine(chart,'EWG',COLORS[1]).setData(b);
+      addLine(chart,'EWJ',COLORS[2]).setData(c);
+    }catch(e){
+      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Índices).</div>`;
+      document.getElementById('c-indices-note').style.display='block';
+    }
+  }
+
+  // = 3) Tech
+  async function drawTech(){
+    const root = document.getElementById('c-tech');
+    if(!root) return;
+    try{
+      const [aapl, msft, nvda] = await Promise.all([
+        fetchStooqMonthly('aapl.us'),
+        fetchStooqMonthly('msft.us'),
+        fetchStooqMonthly('nvda.us')
+      ]);
+      let [a,b,c] = intersectDates([aapl, msft, nvda]);
+      a = base100(a); b = base100(b); c = base100(c);
+
+      const chart = makeChart(root);
+      addLine(chart,'AAPL',COLORS[3]).setData(a);
+      addLine(chart,'MSFT',COLORS[4]).setData(b);
+      addLine(chart,'NVDA',COLORS[5]).setData(c);
+    }catch(e){
+      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Tech).</div>`;
+      document.getElementById('c-tech-note').style.display='block';
+    }
+  }
+
+  // = 4) Crypto top 8
+  async function drawCrypto(){
+    const root = document.getElementById('c-crypto');
+    if(!root) return;
+    const coins = [
+      ['bitcoin','BTC'],['ethereum','ETH'],['solana','SOL'],['binancecoin','BNB'],
+      ['ripple','XRP'],['cardano','ADA'],['chainlink','LINK'],['polkadot','DOT']
+    ];
+    try{
+      const data = [];
+      for(const [id,label] of coins){
+        const series = await fetchCoinGeckoMonthly(id,1825);
+        data.push({ label, series });
+        await new Promise(r=>setTimeout(r,300)); // respiro simple para rate-limit
+      }
+      // Interseca todas por fechas comunes
+      const aligned = intersectDates(data.map(d=>d.series)).map(base100);
+      const chart = makeChart(root);
+      aligned.forEach((ser,i)=>{
+        addLine(chart, coins[i][1], COLORS[i%COLORS.length]).setData(ser);
+      });
+    }catch(e){
+      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Crypto). Intenta Ctrl+F5.</div>`;
+      document.getElementById('c-crypto-note').style.display='block';
+    }
+  }
+
+  // = 5) Commodities IAU/SLV/BNO
+  async function drawCommod(){
+    const root = document.getElementById('c-commod');
+    if(!root) return;
+    try{
+      const [iau, slv, bno] = await Promise.all([
+        fetchStooqMonthly('iau.us'),
+        fetchStooqMonthly('slv.us'),
+        fetchStooqMonthly('bno.us')
+      ]);
+      let [a,b,c] = intersectDates([iau, slv, bno]);
+      a = base100(a); b = base100(b); c = base100(c);
+
+      const chart = makeChart(root);
+      addLine(chart,'IAU (Oro)',COLORS[6]).setData(a);
+      addLine(chart,'SLV (Plata)',COLORS[7]).setData(b);
+      addLine(chart,'BNO (Brent)',COLORS[1]).setData(c);
+    }catch(e){
+      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Commodities).</div>`;
+      document.getElementById('c-commod-note').style.display='block';
+    }
+  }
+
+  // Bootstrap
+  window.addEventListener('DOMContentLoaded', ()=>{
+    drawChile();
+    drawIndices();
+    drawTech();
+    drawCrypto();
+    drawCommod();
+  });
+})();
+</script>
+<!-- === /BD ANALYTIC ============================================ -->
+
+  
   <section class="hero">
     <div class="container hero__inner">
       <div class="hero__copy">
