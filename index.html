@@ -4,71 +4,89 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bitácora Digital: Decisiones en tiempo real para negocios reales</title>
-  <meta name="description" content="Comparativos de mercado (TradFi, Índices, Tech, Crypto y Commodities) con escala logarítmica y series normalizadas a Base 100." />
+  <meta name="description" content="Educación aplicada basada en Web3, IA, Analítica, DeFi, TradFi y Fintech. Dashboards claros, comparativos logarítmicos y podcast." />
   <link rel="icon" href="assets/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css" />
 
-  <!-- Lightweight Charts -->
-  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-
+  <!-- Tema base (oscuro) minimal -->
   <style>
-    /* Base mínimo oscuro */
-    body{ background:#0b1220; color:#e2e8f0; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial }
-    a{ color:#c7d2fe; text-decoration:none }
-    .container{ max-width:1200px; margin:0 auto; padding:0 16px }
-    .muted{ color:#9aa4af }
+    :root{
+      --bg:#0f172a; --bg-alt:#111827; --card:#0b1220;
+      --muted:#94a3b8; --text:#e2e8f0; --accent:#34d399; --border:#1f2937;
+      --chip:#1e293b;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1200px;margin:0 auto;padding:0 16px}
 
-    /* Nav/Hero (igual que antes) */
-    .nav{ position:sticky;top:0;z-index:20;background:rgba(11,18,32,.85);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid rgba(255,255,255,.06) }
-    .nav__inner{ display:flex;align-items:center;justify-content:space-between;height:56px }
-    .brand{ display:flex;gap:10px;align-items:center;font-weight:600 }
-    .brand__logo{ width:22px;height:22px }
-    .nav__links a{ margin-left:18px;color:#cbd5e0 }
-    .hero{ padding:40px 0 24px }
-    .hero__inner{ display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:center }
-    .hero__copy h1{ font-size:34px;line-height:1.2;margin:0 0 8px }
-    .accent{ color:#5eead4 }
-    .hero__cta{ margin-top:14px }
-    .btn{ display:inline-block;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12);color:#cbd5e0 }
-    .btn--primary{ background:#2563eb;border-color:#2563eb;color:#fff }
-    .bd-cta-grid{ display:grid;grid-template-columns:repeat(3,auto);gap:10px 12px }
-    .btn--ghost{ background:transparent }
-    .hero__snapshot{ display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap }
-    .chip{ border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 10px;font-size:.9rem;color:#cbd5e0 }
-    @media (max-width:900px){ .hero__inner{grid-template-columns:1fr} .bd-cta-grid{grid-template-columns:repeat(2,auto)} }
-    @media (max-width:520px){ .bd-cta-grid{grid-template-columns:1fr} .bd-cta-grid .btn{width:100%;text-align:center} }
+    /* NAV (simple) */
+    .nav{position:sticky;top:0;background:rgba(15,23,42,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);z-index:20}
+    .nav__inner{display:flex;align-items:center;gap:16px;padding:12px 0}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand__logo{width:22px;height:22px}
+    .nav__links{margin-left:auto;display:flex;gap:18px}
+    .nav__links a{color:var(--muted)}
+    .nav__links a:hover{color:var(--text)}
 
-    /* ====== Comparativos (2×3) ====== */
-    #bd-analytic{ padding:8px 0 6px }
-    .bd-grid{ display:grid; gap:20px; grid-template-columns:repeat(3,1fr) }
-    @media (max-width:1024px){ .bd-grid{ grid-template-columns:repeat(2,1fr) } }
-    @media (max-width:680px){ .bd-grid{ grid-template-columns:1fr } }
-    .bd-card{ background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; cursor:pointer; transition:.15s }
-    .bd-card:hover{ border-color:rgba(255,255,255,.2) }
-    .bd-title{ font-weight:600; margin:2px 0 4px 6px }
-    .bd-sub{ color:#9aa4af; font-size:.9rem; margin:0 0 8px 6px }
-    .bd-chart{ width:100%; height:300px }
-    .bd-note{ color:#9aa4af; font-size:.9rem; padding:6px }
-    /* leyenda “telográfica” */
-    .legend{ display:flex; gap:10px; flex-wrap:wrap; font-size:.88rem; padding:6px 6px 0 6px; color:#cbd5e0 }
-    .legend .k{ opacity:.8 }
-    .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px }
+    /* HERO */
+    .hero{padding:36px 0 20px;border-bottom:1px solid var(--border)}
+    .hero__inner{display:grid;grid-template-columns:1.2fr .8fr;gap:24px}
+    @media (max-width:900px){ .hero__inner{grid-template-columns:1fr} }
+    .hero h1{font-size:clamp(26px,4vw,44px);line-height:1.1;margin:6px 0 8px}
+    .accent{color:var(--accent)}
+    .muted{color:var(--muted)}
+    .hero__cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+    .btn{padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:transparent}
+    .btn:hover{border-color:#334155}
+    .btn--primary{background:#2563eb;border-color:#2563eb;color:white}
+    .chips{display:flex;gap:10px;margin-top:8px}
+    .chip{background:var(--chip);color:#cbd5e1;border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:.85rem}
 
-    /* Oculta tarjetas antiguas por ahora */
-    #dashboards{ display:none !important }
+    /* BLOQUE ANALÍTICO (grilla 2×3) */
+    #bd-analytic{padding:28px 0 8px}
+    .bd-head h2{margin:.2rem 0 .4rem}
+    .bd-head p{margin:0 0 12px;color:var(--muted)}
+    .bd-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
+    @media (max-width:1024px){ .bd-grid{grid-template-columns:repeat(2,1fr)} }
+    @media (max-width:680px){ .bd-grid{grid-template-columns:1fr} }
+    .bd-card{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));border:1px solid var(--border);border-radius:14px;padding:12px 12px 8px;cursor:pointer;transition:.15s;position:relative}
+    .bd-card:hover{border-color:#334155}
+    .bd-title{font-weight:700;margin:2px 0 2px 6px}
+    .bd-sub{color:var(--muted);font-size:.9rem;margin:0 0 8px 6px}
+    .bd-chart{width:100%;height:300px}
+    .bd-note{color:var(--muted);font-size:.9rem;padding:6px}
+
+    /* Tooltip del gráfico */
+    .bd-tip{
+      position:absolute; pointer-events:none;
+      background:rgba(17,24,39,.92); color:#e2e8f0;
+      border:1px solid rgba(255,255,255,.1); border-radius:10px;
+      padding:8px 10px; font-size:.85rem;
+      box-shadow:0 6px 20px rgba(0,0,0,.35);
+      transform:translate(8px,8px); opacity:0; transition:opacity .08s ease;
+      z-index:5; white-space:nowrap;
+    }
+    .bd-tip.show{opacity:1}
+    .bd-tip .row{display:flex;gap:10px;align-items:center;line-height:1.25}
+    .bd-tip .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
+    .bd-tip .k{color:#a0aec0;margin-bottom:4px;display:block}
+    /* contenedor posicionado relativo para alojar el tooltip */
+    .bd-card .tip-wrap{position:absolute;left:10px;top:10px}
   </style>
+
+  <!-- Lightweight Charts (CDN) -->
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-
   <!-- NAV -->
   <header class="nav">
     <div class="container nav__inner">
       <div class="brand">
         <img src="assets/favicon.svg" alt="" class="brand__logo">
-        <span class="brand__name">Bitácora Digital</span>
+        <strong>Bitácora Digital</strong>
       </div>
       <nav class="nav__links">
         <a href="#dashboards">Dashboards</a>
@@ -82,363 +100,216 @@
   <!-- HERO -->
   <section class="hero">
     <div class="container hero__inner">
-      <div class="hero__copy">
+      <div>
         <h1>Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
-        <p class="muted" style="max-width:72ch">
+        <p class="muted">
           Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>.
           Visión: individuos capacitados para integrar finanzas y tecnología.
         </p>
-        <div class="hero__cta bd-cta-grid">
-          <a class="btn btn--primary" href="#bd-analytic">Ver comparativos</a>
+        <div class="hero__cta">
+          <a class="btn btn--primary" href="#dashboards">Ver comparativos</a>
           <a class="btn" href="#podcast">Escuchar podcast</a>
-          <a class="btn btn--ghost" href="#servicios">Servicios</a>
-          <a class="btn btn--ghost" href="/labs">BD Labs</a>
-          <a class="btn btn--ghost" href="/merch">BD Merchandising</a>
-          <a class="btn btn--ghost" href="/contacto">Contacto</a>
+          <a class="btn" href="#servicios">Servicios</a>
+          <a class="btn" href="#bd-labs">BD Labs</a>
+          <a class="btn" href="#bd-merch">BD Merchandising</a>
+          <a class="btn" href="#contacto">Contacto</a>
         </div>
       </div>
-      <div class="hero__snapshot">
-        <div class="chip">CLP</div><div class="chip">BTC</div><div class="chip">ETH</div><div class="chip">UF</div>
+      <div class="chips">
+        <span class="chip">CLP</span>
+        <span class="chip">BTC</span>
+        <span class="chip">ETH</span>
+        <span class="chip">UF</span>
       </div>
     </div>
   </section>
 
-  <!-- COMPARATIVOS: SOLO GRÁFICOS (LOG) + SINCRONIZADOS -->
-  <section id="bd-analytic">
-    <div class="container">
-      <h2 class="section__title">Dashboards comparativos</h2>
-      <p class="section__subtitle">Series mensuales, <strong>logarítmicas</strong> y normalizadas a <strong>Base 100</strong>. Todos los gráficos están sincronizados.</p>
+  <!-- BLOQUE: Dashboards comparativos -->
+  <section id="bd-analytic" class="container">
+    <div class="bd-head">
+      <h2>Dashboards comparativos</h2>
+      <p>Series mensuales, <em>logarítmicas</em> y normalizadas a <strong>Base 100</strong>. Todos los gráficos están sincronizados.</p>
+    </div>
 
-      <div class="bd-grid">
+    <div class="bd-grid" id="dashboards">
+      <!-- 1) TradFi Chile -->
+      <article class="bd-card" id="card-chile" onclick="location.href='/detail/tradfi-cl'">
+        <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
+        <p class="bd-sub">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
+        <div class="tip-wrap"><div class="bd-tip" id="tip-chile"></div></div>
+        <div id="c-chile" class="bd-chart"></div>
+        <div id="c-chile-note" class="bd-note" style="display:none"></div>
+      </article>
 
-        <!-- 1) TradFi Chile -->
-        <article class="bd-card" onclick="location.href='/detail/tradfi-cl'">
-          <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
-          <p class="bd-sub">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
-          <div class="legend" id="lg-chile"></div>
-          <div id="c-chile" class="bd-chart"></div>
-          <div id="c-chile-note" class="bd-note" style="display:none"></div>
-        </article>
+      <!-- 2) Índices (placeholder) -->
+      <article class="bd-card" id="card-indices" onclick="location.href='/detail/indices'">
+        <h3 class="bd-title">Índices — SPY (S&amp;P500) vs EWG (DAX) vs EWJ (Nikkei)</h3>
+        <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
+        <div class="bd-note">Próximamente.</div>
+      </article>
 
-        <!-- 2) Índices -->
-        <article class="bd-card" onclick="location.href='/detail/indices'">
-          <h3 class="bd-title">Índices — SPY (S&amp;P500) vs EWG (DAX) vs EWJ (Nikkei)</h3>
-          <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
-          <div class="legend" id="lg-indices"></div>
-          <div id="c-indices" class="bd-chart"></div>
-          <div id="c-indices-note" class="bd-note" style="display:none"></div>
-        </article>
+      <!-- 3) Big Tech (placeholder) -->
+      <article class="bd-card" id="card-tech" onclick="location.href='/detail/tech'">
+        <h3 class="bd-title">Big Tech / IA — AAPL vs MSFT vs NVDA</h3>
+        <p class="bd-sub">Precios USD vía Stooq (mensual)</p>
+        <div class="bd-note">Próximamente.</div>
+      </article>
 
-        <!-- 3) Big Tech -->
-        <article class="bd-card" onclick="location.href='/detail/tech'">
-          <h3 class="bd-title">Big Tech / IA — AAPL vs MSFT vs NVDA</h3>
-          <p class="bd-sub">Precios USD vía Stooq (mensual)</p>
-          <div class="legend" id="lg-tech"></div>
-          <div id="c-tech" class="bd-chart"></div>
-          <div id="c-tech-note" class="bd-note" style="display:none"></div>
-        </article>
+      <!-- 4) Crypto Top 8 (placeholder) -->
+      <article class="bd-card" id="card-crypto" onclick="location.href='/detail/crypto'">
+        <h3 class="bd-title">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
+        <p class="bd-sub">BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT — CoinGecko (USD)</p>
+        <div class="bd-note">Próximamente.</div>
+      </article>
 
-        <!-- 4) Crypto -->
-        <article class="bd-card" onclick="location.href='/detail/crypto'">
-          <h3 class="bd-title">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
-          <p class="bd-sub">BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT — CoinGecko (USD)</p>
-          <div class="legend" id="lg-crypto"></div>
-          <div id="c-crypto" class="bd-chart"></div>
-          <div id="c-crypto-note" class="bd-note" style="display:none"></div>
-        </article>
+      <!-- 5) Commodities (placeholder) -->
+      <article class="bd-card" id="card-commod" onclick="location.href='/detail/commodities'">
+        <h3 class="bd-title">Commodities (ETF) — IAU (Oro) vs SLV (Plata) vs BNO (Brent)</h3>
+        <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
+        <div class="bd-note">Próximamente.</div>
+      </article>
 
-        <!-- 5) Commodities -->
-        <article class="bd-card" onclick="location.href='/detail/commodities'">
-          <h3 class="bd-title">Commodities (ETF) — IAU (Oro) vs SLV (Plata) vs BNO (Brent)</h3>
-          <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
-          <div class="legend" id="lg-commod"></div>
-          <div id="c-commod" class="bd-chart"></div>
-          <div id="c-commod-note" class="bd-note" style="display:none"></div>
-        </article>
-
-        <!-- 6) Próximamente -->
-        <article class="bd-card">
-          <h3 class="bd-title">Próximamente</h3>
-          <p class="bd-sub">Otro comparativo que elijas</p>
-          <div class="bd-note">Sugerencias: LatAm, Small Caps, o BTC vs Oro vs SPY.</div>
-        </article>
-
-      </div>
+      <!-- 6) Slot libre -->
+      <article class="bd-card">
+        <h3 class="bd-title">Próximamente</h3>
+        <p class="bd-sub">Otro comparativo que elijas</p>
+        <div class="bd-note">Sugerencias: LatAm, Small Caps, o BTC vs Oro vs SPY.</div>
+      </article>
     </div>
   </section>
 
-  <!-- Lo que hacemos / Podcast / Footer (igual que antes) -->
-  <section class="section alt" id="servicios">
-    <div class="container">
-      <h2 class="section__title">Lo que hacemos</h2>
-      <div class="cards-3">
-        <article class="card soft"><h4>Educación primero</h4><p>Finanzas, IA, blockchain y analítica — sin “shilling”.</p></article>
-        <article class="card soft"><h4>Dashboards a medida</h4><p>Discovery → Integración → Despliegue → Mantenimiento.</p></article>
-        <article class="card soft"><h4>IA / DeFi / Pagos</h4><p>Agentes de IA, consultoría DeFi y pasarelas fiat↔crypto.</p></article>
-      </div>
-    </div>
+  <!-- (Opcional) LO QUE HACEMOS / PODCAST / FOOTER… tu contenido actual debajo -->
+  <section id="servicios" class="container" style="padding:28px 0 60px">
+    <h2>Lo que hacemos</h2>
+    <p class="muted">…(tu bloque existente aquí) …</p>
   </section>
 
-  <section id="podcast" class="section">
-    <div class="container">
-      <h2 class="section__title">Podcast</h2>
-      <p class="section__subtitle">Escucha los últimos episodios sin salir de la web.</p>
-      <div class="embed">
-        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator" width="100%" height="232" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-      </div>
-    </div>
-  </section>
-
-  <footer class="footer">
-    <div class="container footer__inner">
-      <span class="muted">© 2025 Bitácora Digital</span>
-      <div class="footer__links">
-        <a href="https://bitacoradigital.io" target="_blank" rel="noopener">Sitio</a>
-        <a href="#podcast">Podcast</a>
-        <a href="#servicios">Servicios</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- ========== SCRIPTS: solo comparativos, LOG + SYNC ========== -->
+  <!-- === Scripts === -->
   <script>
   (function(){
-    // ===== Paleta / helpers =====
-    const COLORS = ["#63b3ed","#a4d1c5","#f6ad55","#ff6585","#97a7ea","#66e4a6","#fbd38d","#b794f4"];
-    const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
-    const isoMonth = d => { const y=d.getUTCFullYear(), m=String(d.getUTCMonth()+1).padStart(2,"0"); return `${y}-${m}-01`; };
-    const fmt = v => (v==null ? '—' : (Math.round(v*10)/10).toFixed(1));
+    // ===== Paleta fija =====
+    const COLORS = {
+      uf:      "#63b3ed", // celeste
+      usdclp:  "#f6ad55", // naranja
+      ipsa:    "#97a7ea"  // lavanda
+    };
 
+    // ===== Utilidades =====
+    const isoMonth = d => {
+      const y = d.getUTCFullYear(), m = String(d.getUTCMonth()+1).padStart(2,"0");
+      return `${y}-${m}-01`;
+    };
+
+    // Normaliza a Base 100 desde primer dato válido
     function base100(arr){
-      if(!arr?.length) return arr;
-      const i = arr.findIndex(p=>Number.isFinite(p.value));
+      if(!arr || !arr.length) return arr;
+      const i = arr.findIndex(p => Number.isFinite(p.value));
       if(i<0) return arr;
       const b = arr[i].value;
-      return arr.map(p=>({ time:p.time, value:(p.value/b)*100 }));
-    }
-    function intersectDates(seriesArray){
-      if(!seriesArray.length) return seriesArray;
-      const sets = seriesArray.map(s=> new Set(s.map(p=>p.time)));
-      const common = [...sets[0]].filter(t=> sets.every(S => S.has(t))).sort((a,b)=> a.localeCompare(b));
-      return seriesArray.map(s => s.filter(p=> common.includes(p.time)));
-    }
-    function toMonthlyLast(points){
-      const by = {}; for(const p of points){ by[p.time]=p.value }
-      return Object.entries(by).map(([time,value])=>({time,value})).sort((a,b)=> a.time.localeCompare(b.time));
+      return arr.map(p => ({ time:p.time, value:(p.value/b)*100 }));
     }
 
-    // ===== Fetchers =====
+    // Intersección de fechas (para comparar mismo rango)
+    function intersectDates(seriesArray){
+      const sets = seriesArray.map(s => new Set(s.map(p=>p.time)));
+      const common = [...sets[0]].filter(t => sets.every(S => S.has(t))).sort((a,b)=>a.localeCompare(b));
+      return seriesArray.map(s => s.filter(p => common.includes(p.time)));
+    }
+
+    // mindicador.cl (uf / dolar) — diario → mensual (último del mes)
     async function fetchMindicador(tipo){
       const r = await fetch(`https://mindicador.cl/api/${tipo}`, { cache:'no-store' });
       if(!r.ok) throw new Error(`mindicador ${tipo} ${r.status}`);
-      const j = await r.json();
+      const j = await r.json(); // j.serie: [{fecha, valor}]
       const pts = j.serie.map(x=>{
         const d = new Date(x.fecha);
-        return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: x.valor };
+        return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: Number(x.valor) };
       });
-      return toMonthlyLast(pts);
+      // compacta a último de mes
+      const by = {};
+      for(const p of pts) by[p.time] = p.value;
+      return Object.entries(by).map(([time,value])=>({time,value})).sort((a,b)=> a.time.localeCompare(b.time));
     }
+
+    // Stooq mensual CSV (ech.us)
     async function fetchStooqMonthly(ticker){
       const url = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
       const r = await fetch(url, { cache:'no-store' });
       if(!r.ok) throw new Error(`stooq ${ticker} ${r.status}`);
       const csv = await r.text();
+      const lines = csv.trim().split(/\r?\n/).slice(1); // header fuera
       const out = [];
-      csv.trim().split(/\r?\n/).slice(1).forEach(ln=>{
-        const [date,, , , close] = ln.split(',');
-        if(date && close) out.push({ time:date, value:Number(close) });
-      });
+      for(const ln of lines){
+        const [date,, , ,close] = ln.split(',');
+        if(date && close) out.push({ time: date, value: Number(close) });
+      }
       return out;
     }
-    async function fetchCoinGeckoMonthly(coin, days=1825){
-      const r = await fetch(`https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=${days}`, { cache:'no-store' });
-      if(!r.ok) throw new Error(`cg ${coin} ${r.status}`);
-      const j = await r.json();
-      const pts = j.prices.map(([ts,price])=>{
-        const d = new Date(ts);
-        return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: price };
-      });
-      return toMonthlyLast(pts);
-    }
 
-    // ===== Charts (LOG + leyenda) =====
-    const { PriceScaleMode } = LightweightCharts;
-
+    // ===== CHART CORE =====
     function makeChart(el){
+      const { PriceScaleMode } = LightweightCharts;
       const chart = LightweightCharts.createChart(el, {
-        layout:{ background:{type:'solid', color:'transparent'}, textColor:'#cbd5e0' },
-        rightPriceScale:{ borderColor:'#2d3748', mode: PriceScaleMode.Logarithmic },
-        timeScale:{ borderColor:'#2d3748' },
-        grid:{ vertLines:{ color:'#1a202c' }, horzLines:{ color:'#1a202c' } },
+        layout: { background:{type:'solid', color:'transparent'}, textColor:'#cbd5e0' },
+        rightPriceScale:{ borderColor:'#1f2937', mode: PriceScaleMode.Logarithmic },
+        timeScale:{ borderColor:'#1f2937' },
+        grid:{ vertLines:{ color:'#111827' }, horzLines:{ color:'#111827' } },
         localization:{ locale:'es-CL' }
       });
       return chart;
     }
-    function addLine(chart, label, color){
-      return chart.addLineSeries({ title:label, color, lineWidth:2 });
-    }
-    function setLegend(el, dateISO, labels, values, colors){
-      const dateTxt = dateISO ? dateISO : '—';
-      el.innerHTML =
-        `<span class="k">${dateTxt}</span>` +
-        values.map((v,i)=> `<span><span class="dot" style="background:${colors[i%colors.length]}"></span>${labels[i]}: ${fmt(v)}</span>`).join(' ');
-    }
+    const addLine = (chart, label, color) => chart.addLineSeries({ title:label, color, lineWidth:2 });
 
-    // ==== Sync (crosshair + zoom/pan) ====
-    const registry = []; // { chart, series: [{s,label}], legendEl, labels, colors }
-    let isSyncing = false;
-
-    function syncCrosshair(origin, param){
-      if(isSyncing) return;
-      isSyncing = true;
-      registry.forEach(({chart, series, legendEl, labels, colors})=>{
-        if(chart === origin.chart) return;
-        chart.setCrosshairPosition(param?.point?.x ?? -1, param?.point?.y ?? -1, chart);
-        if(param && param.time){
-          const t = param.time;
-          const vals = series.map(s=>{
-            const dp = s.seriesData.get(t);
-            return dp?.value ?? null;
-          });
-          setLegend(legendEl, t, labels, vals, colors);
-        } else {
-          setLegend(legendEl, null, labels, series.map(()=>null), colors);
-        }
-      });
-      isSyncing = false;
-    }
-
-    function syncVisibleRange(origin, range){
-      if(isSyncing || !range) return;
-      isSyncing = true;
-      registry.forEach(({chart})=>{
-        if(chart === origin.chart) return;
-        chart.timeScale().setVisibleRange(range);
-      });
-      isSyncing = false;
-    }
-
-    // Utilidad para mapear datos por tiempo para leyenda rápida
-    function attachSeriesData(series, data){
-      const map = new Map();
-      data.forEach(p=> map.set(p.time, p));
-      series.seriesData = new Map([...map.entries()].map(([k,v])=>[k, {value:v.value}]));
-    }
-
-    // ===== Dibujo por bloque =====
+    // ===== TradFi · Chile (UF / USDCLP / IPSA-ECH) =====
     async function drawChile(){
-      const root = document.getElementById('c-chile'); if(!root) return;
-      const legendEl = document.getElementById('lg-chile');
-      const labels = ['UF','USD/CLP','IPSA (ECH)']; const colors=[COLORS[0],COLORS[2],COLORS[4]];
+      const root = document.getElementById('c-chile');
+      const tip = document.getElementById('tip-chile');
+      if(!root || !tip) return;
+
       try{
-        const [uf, usd, ech] = await Promise.all([ fetchMindicador('uf'), fetchMindicador('dolar'), fetchStooqMonthly('ech.us') ]);
-        let [a,b,c] = intersectDates([uf, usd, ech]); a=base100(a); b=base100(b); c=base100(c);
+        const [uf, usd, ech] = await Promise.all([
+          fetchMindicador('uf'),
+          fetchMindicador('dolar'),
+          fetchStooqMonthly('ech.us')
+        ]);
+
+        // Alinea por intersección y normaliza a Base 100
+        let [sUF, sUSD, sECH] = intersectDates([uf, usd, ech]);
+        sUF = base100(sUF); sUSD = base100(sUSD); sECH = base100(sECH);
+
+        // Render
         const chart = makeChart(root);
-        const s1 = addLine(chart,labels[0],colors[0]); s1.setData(a); attachSeriesData(s1,a);
-        const s2 = addLine(chart,labels[1],colors[1]); s2.setData(b); attachSeriesData(s2,b);
-        const s3 = addLine(chart,labels[2],colors[2]); s3.setData(c); attachSeriesData(s3,c);
-        setLegend(legendEl, a.at(-1)?.time, labels, [a.at(-1)?.value,b.at(-1)?.value,c.at(-1)?.value], colors);
-        hookSync(chart, legendEl, [s1,s2,s3], labels, colors);
-      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Chile).</div>`; }
+        const lUF  = addLine(chart, 'UF', COLORS.uf);       lUF.setData(sUF);
+        const lUSD = addLine(chart, 'USD/CLP', COLORS.usdclp); lUSD.setData(sUSD);
+        const lECH = addLine(chart, 'IPSA (ECH)', COLORS.ipsa); lECH.setData(sECH);
+
+        // Tooltip crosshair
+        chart.subscribeCrosshairMove(param => {
+          if(!param.time || !param.seriesData) { tip.classList.remove('show'); return; }
+
+          const t = param.time; // YYYY-MM-DD
+          const dUF  = param.seriesData.get(lUF);
+          const dUSD = param.seriesData.get(lUSD);
+          const dECH = param.seriesData.get(lECH);
+          if(!dUF || !dUSD || !dECH){ tip.classList.remove('show'); return; }
+
+          tip.innerHTML = `
+            <span class="k">${t}</span>
+            <div class="row"><span class="dot" style="background:${COLORS.uf}"></span>UF: <strong>${dUF.value.toFixed(1)}</strong></div>
+            <div class="row"><span class="dot" style="background:${COLORS.usdclp}"></span>USD/CLP: <strong>${dUSD.value.toFixed(1)}</strong></div>
+            <div class="row"><span class="dot" style="background:${COLORS.ipsa}"></span>IPSA (ECH): <strong>${dECH.value.toFixed(1)}</strong></div>
+          `;
+          tip.classList.add('show');
+        });
+      }catch(e){
+        console.warn(e);
+        document.getElementById('c-chile-note').style.display='block';
+        document.getElementById('c-chile-note').textContent = 'No se pudo cargar (Chile).';
+      }
     }
 
-    async function drawIndices(){
-      const root = document.getElementById('c-indices'); if(!root) return;
-      const legendEl = document.getElementById('lg-indices');
-      const labels = ['SPY','EWG','EWJ']; const colors=[COLORS[0],COLORS[1],COLORS[2]];
-      try{
-        const [spy, ewg, ewj] = await Promise.all([ fetchStooqMonthly('spy.us'), fetchStooqMonthly('ewg.us'), fetchStooqMonthly('ewj.us') ]);
-        let [a,b,c] = intersectDates([spy, ewg, ewj]); a=base100(a); b=base100(b); c=base100(c);
-        const chart = makeChart(root);
-        const s1 = addLine(chart,labels[0],colors[0]); s1.setData(a); attachSeriesData(s1,a);
-        const s2 = addLine(chart,labels[1],colors[1]); s2.setData(b); attachSeriesData(s2,b);
-        const s3 = addLine(chart,labels[2],colors[2]); s3.setData(c); attachSeriesData(s3,c);
-        setLegend(legendEl, a.at(-1)?.time, labels, [a.at(-1)?.value,b.at(-1)?.value,c.at(-1)?.value], colors);
-        hookSync(chart, legendEl, [s1,s2,s3], labels, colors);
-      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Índices).</div>`; }
-    }
-
-    async function drawTech(){
-      const root = document.getElementById('c-tech'); if(!root) return;
-      const legendEl = document.getElementById('lg-tech');
-      const labels = ['AAPL','MSFT','NVDA']; const colors=[COLORS[3],COLORS[4],COLORS[5]];
-      try{
-        const [aapl, msft, nvda] = await Promise.all([ fetchStooqMonthly('aapl.us'), fetchStooqMonthly('msft.us'), fetchStooqMonthly('nvda.us') ]);
-        let [a,b,c] = intersectDates([aapl, msft, nvda]); a=base100(a); b=base100(b); c=base100(c);
-        const chart = makeChart(root);
-        const s1 = addLine(chart,labels[0],colors[0]); s1.setData(a); attachSeriesData(s1,a);
-        const s2 = addLine(chart,labels[1],colors[1]); s2.setData(b); attachSeriesData(s2,b);
-        const s3 = addLine(chart,labels[2],colors[2]); s3.setData(c); attachSeriesData(s3,c);
-        setLegend(legendEl, a.at(-1)?.time, labels, [a.at(-1)?.value,b.at(-1)?.value,c.at(-1)?.value], colors);
-        hookSync(chart, legendEl, [s1,s2,s3], labels, colors);
-      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Tech).</div>`; }
-    }
-
-    async function drawCrypto(){
-      const root = document.getElementById('c-crypto'); if(!root) return;
-      const legendEl = document.getElementById('lg-crypto');
-      const coins = [['bitcoin','BTC'],['ethereum','ETH'],['solana','SOL'],['binancecoin','BNB'],['ripple','XRP'],['cardano','ADA'],['chainlink','LINK'],['polkadot','DOT']];
-      const labels = coins.map(c=>c[1]); const colors = labels.map((_,i)=>COLORS[i%COLORS.length]);
-      try{
-        const data = [];
-        for(const [id] of coins){ data.push(await fetchCoinGeckoMonthly(id,1825)); await sleep(300); }
-        const aligned = intersectDates(data).map(base100);
-        const chart = makeChart(root);
-        const seriesObjs = aligned.map((ser,i)=>{ const s=addLine(chart,labels[i],colors[i]); s.setData(ser); attachSeriesData(s,ser); return s; });
-        const last = aligned.map(s => s.at(-1)?.value ?? null);
-        setLegend(legendEl, aligned[0]?.at(-1)?.time ?? null, labels, last, colors);
-        hookSync(chart, legendEl, seriesObjs, labels, colors);
-      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Crypto). Intenta Ctrl+F5.</div>`; }
-    }
-
-    async function drawCommod(){
-      const root = document.getElementById('c-commod'); if(!root) return;
-      const legendEl = document.getElementById('lg-commod');
-      const labels = ['IAU (Oro)','SLV (Plata)','BNO (Brent)']; const colors=[COLORS[6],COLORS[7],COLORS[1]];
-      try{
-        const [iau, slv, bno] = await Promise.all([ fetchStooqMonthly('iau.us'), fetchStooqMonthly('slv.us'), fetchStooqMonthly('bno.us') ]);
-        let [a,b,c] = intersectDates([iau, slv, bno]); a=base100(a); b=base100(b); c=base100(c);
-        const chart = makeChart(root);
-        const s1 = addLine(chart,labels[0],colors[0]); s1.setData(a); attachSeriesData(s1,a);
-        const s2 = addLine(chart,labels[1],colors[1]); s2.setData(b); attachSeriesData(s2,b);
-        const s3 = addLine(chart,labels[2],colors[2]); s3.setData(c); attachSeriesData(s3,c);
-        setLegend(legendEl, a.at(-1)?.time, labels, [a.at(-1)?.value,b.at(-1)?.value,c.at(-1)?.value], colors);
-        hookSync(chart, legendEl, [s1,s2,s3], labels, colors);
-      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Commodities).</div>`; }
-    }
-
-    // hook sincronización para un chart
-    function hookSync(chart, legendEl, seriesList, labels, colors){
-      const entry = { chart, legendEl, labels, colors, series: seriesList };
-      registry.push(entry);
-
-      chart.subscribeCrosshairMove(param=>{
-        // arma valores de este chart para su propia leyenda
-        if(param?.time){
-          const vals = seriesList.map(s=>{
-            const dp = s.seriesData.get(param.time);
-            return dp?.value ?? null;
-          });
-          setLegend(legendEl, param.time, labels, vals, colors);
-        } else {
-          setLegend(legendEl, null, labels, seriesList.map(()=>null), colors);
-        }
-        syncCrosshair(entry, param);
-      });
-
-      chart.timeScale().subscribeVisibleTimeRangeChange(range=>{
-        syncVisibleRange(entry, range);
-      });
-    }
-
-    // Bootstrap
-    window.addEventListener('DOMContentLoaded', ()=>{
-      drawChile();
-      drawIndices();
-      drawTech();
-      drawCrypto();
-      drawCommod();
-    });
+    // Bootstrap solo el primer cuadrante ahora
+    window.addEventListener('DOMContentLoaded', drawChile);
   })();
   </script>
 </body>
