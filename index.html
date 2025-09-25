@@ -3,15 +3,66 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bitácora Digital — Dashboards + Podcast</title>
-  <meta name="description" content="Dashboards limpios con datos de mercados (TradFi, Commodities, Crypto) y podcast de educación financiera y tecnología." />
+  <title>Bitácora Digital: Decisiones en tiempo real para negocios reales</title>
+  <meta name="description" content="Comparativos de mercado (TradFi, Índices, Tech, Crypto y Commodities) con escala logarítmica y series normalizadas a Base 100." />
   <link rel="icon" href="assets/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/main.css" />
+
+  <!-- Lightweight Charts -->
+  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+
+  <style>
+    /* Base mínimo oscuro */
+    body{ background:#0b1220; color:#e2e8f0; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial }
+    a{ color:#c7d2fe; text-decoration:none }
+    .container{ max-width:1200px; margin:0 auto; padding:0 16px }
+    .muted{ color:#9aa4af }
+
+    /* Nav/Hero (igual que antes) */
+    .nav{ position:sticky;top:0;z-index:20;background:rgba(11,18,32,.85);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid rgba(255,255,255,.06) }
+    .nav__inner{ display:flex;align-items:center;justify-content:space-between;height:56px }
+    .brand{ display:flex;gap:10px;align-items:center;font-weight:600 }
+    .brand__logo{ width:22px;height:22px }
+    .nav__links a{ margin-left:18px;color:#cbd5e0 }
+    .hero{ padding:40px 0 24px }
+    .hero__inner{ display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:center }
+    .hero__copy h1{ font-size:34px;line-height:1.2;margin:0 0 8px }
+    .accent{ color:#5eead4 }
+    .hero__cta{ margin-top:14px }
+    .btn{ display:inline-block;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12);color:#cbd5e0 }
+    .btn--primary{ background:#2563eb;border-color:#2563eb;color:#fff }
+    .bd-cta-grid{ display:grid;grid-template-columns:repeat(3,auto);gap:10px 12px }
+    .btn--ghost{ background:transparent }
+    .hero__snapshot{ display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap }
+    .chip{ border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 10px;font-size:.9rem;color:#cbd5e0 }
+    @media (max-width:900px){ .hero__inner{grid-template-columns:1fr} .bd-cta-grid{grid-template-columns:repeat(2,auto)} }
+    @media (max-width:520px){ .bd-cta-grid{grid-template-columns:1fr} .bd-cta-grid .btn{width:100%;text-align:center} }
+
+    /* ====== Comparativos (2×3) ====== */
+    #bd-analytic{ padding:8px 0 6px }
+    .bd-grid{ display:grid; gap:20px; grid-template-columns:repeat(3,1fr) }
+    @media (max-width:1024px){ .bd-grid{ grid-template-columns:repeat(2,1fr) } }
+    @media (max-width:680px){ .bd-grid{ grid-template-columns:1fr } }
+    .bd-card{ background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; cursor:pointer; transition:.15s }
+    .bd-card:hover{ border-color:rgba(255,255,255,.2) }
+    .bd-title{ font-weight:600; margin:2px 0 4px 6px }
+    .bd-sub{ color:#9aa4af; font-size:.9rem; margin:0 0 8px 6px }
+    .bd-chart{ width:100%; height:300px }
+    .bd-note{ color:#9aa4af; font-size:.9rem; padding:6px }
+    /* leyenda “telográfica” */
+    .legend{ display:flex; gap:10px; flex-wrap:wrap; font-size:.88rem; padding:6px 6px 0 6px; color:#cbd5e0 }
+    .legend .k{ opacity:.8 }
+    .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px }
+
+    /* Oculta tarjetas antiguas por ahora */
+    #dashboards{ display:none !important }
+  </style>
 </head>
 <body>
+
   <!-- NAV -->
   <header class="nav">
     <div class="container nav__inner">
@@ -29,470 +80,105 @@
   </header>
 
   <!-- HERO -->
-<!-- === BD ANALYTIC (comparativos) =============================== -->
-<link rel="preconnect" href="https://stooq.com">
-<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-
-<style>
-  /* Grilla responsiva 2×3 */
-  #bd-analytic { padding: 28px 0 8px }
-  .bd-wrap { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
-  .bd-grid { display:grid; gap:20px; grid-template-columns: repeat(3,1fr); }
-  @media (max-width: 1024px){ .bd-grid{ grid-template-columns: repeat(2,1fr) } }
-  @media (max-width: 680px){ .bd-grid{ grid-template-columns: 1fr } }
-
-  .bd-card { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
-             border-radius:14px; padding:12px; cursor:pointer; transition:.15s }
-  .bd-card:hover { border-color: rgba(255,255,255,.2) }
-  .bd-title { font-weight:600; margin:2px 0 4px 6px }
-  .bd-sub { color:#9aa4af; font-size:.9rem; margin:0 0 8px 6px }
-  .bd-chart { width:100%; height:300px }
-  .bd-note { color:#9aa4af; font-size:.9rem; padding:6px }
-</style>
-
-<section id="bd-analytic">
-  <div class="bd-wrap">
-    <h2 class="section__title">Dashboards comparativos</h2>
-    <p class="section__subtitle">Series mensuales, normalizadas a <strong>Base 100</strong>, para comparar tendencias.</p>
-
-    <div class="bd-grid">
-
-      <!-- 1) TradFi Chile -->
-      <article class="bd-card" onclick="location.href='/detail/tradfi-cl'">
-        <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
-        <p class="bd-sub">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
-        <div id="c-chile" class="bd-chart"></div>
-        <div id="c-chile-note" class="bd-note" style="display:none"></div>
-      </article>
-
-      <!-- 2) Índices -->
-      <article class="bd-card" onclick="location.href='/detail/indices'">
-        <h3 class="bd-title">Índices — SPY (S&P500) vs EWG (DAX) vs EWJ (Nikkei)</h3>
-        <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
-        <div id="c-indices" class="bd-chart"></div>
-        <div id="c-indices-note" class="bd-note" style="display:none"></div>
-      </article>
-
-      <!-- 3) Big Tech -->
-      <article class="bd-card" onclick="location.href='/detail/tech'">
-        <h3 class="bd-title">Big Tech / IA — AAPL vs MSFT vs NVDA</h3>
-        <p class="bd-sub">Precios USD vía Stooq (mensual)</p>
-        <div id="c-tech" class="bd-chart"></div>
-        <div id="c-tech-note" class="bd-note" style="display:none"></div>
-      </article>
-
-      <!-- 4) Crypto Top 8 -->
-      <article class="bd-card" onclick="location.href='/detail/crypto'">
-        <h3 class="bd-title">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
-        <p class="bd-sub">BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT — CoinGecko (USD)</p>
-        <div id="c-crypto" class="bd-chart"></div>
-        <div id="c-crypto-note" class="bd-note" style="display:none"></div>
-      </article>
-
-      <!-- 5) Commodities -->
-      <article class="bd-card" onclick="location.href='/detail/commodities'">
-        <h3 class="bd-title">Commodities (ETF) — IAU (Oro) vs SLV (Plata) vs BNO (Brent)</h3>
-        <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
-        <div id="c-commod" class="bd-chart"></div>
-        <div id="c-commod-note" class="bd-note" style="display:none"></div>
-      </article>
-
-      <!-- 6) Slot libre -->
-      <article class="bd-card">
-        <h3 class="bd-title">Próximamente</h3>
-        <p class="bd-sub">Otro comparativo que elijas</p>
-        <div class="bd-note">Sugerencias: LatAm, Small Caps, o BTC vs Oro vs SPY.</div>
-      </article>
-
-    </div>
-  </div>
-</section>
-
-<script>
-(function(){
-  // ===== Paleta consistente =====
-  const COLORS = ["#63b3ed","#a4d1c5","#f6ad55","#ff6585","#97a7ea","#66e4a6","#fbd38d","#b794f4"];
-
-  // ===== Utilidades =====
-  const isoMonth = (d) => {
-    const y=d.getUTCFullYear(), m=String(d.getUTCMonth()+1).padStart(2,"0");
-    return `${y}-${m}-01`;
-  };
-
-  // Normaliza Base 100 desde primer dato válido
-  function base100(arr){
-    if(!arr || !arr.length) return arr;
-    const i = arr.findIndex(p=>Number.isFinite(p.value));
-    if(i<0) return arr;
-    const b = arr[i].value;
-    return arr.map(p=>({ time:p.time, value:(p.value/b)*100 }));
-  }
-
-  // Intersección de fechas (para que comparen mismo rango)
-  function intersectDates(seriesArray){
-    const sets = seriesArray.map(s=> new Set(s.map(p=>p.time)));
-    const common = [...sets[0]].filter(t=> sets.every(S => S.has(t)));
-    const sorted = common.sort((a,b)=>a.localeCompare(b));
-    return seriesArray.map(s => s.filter(p=> sorted.includes(p.time)));
-  }
-
-  // Agrega a mensual (tomar el último valor del mes)
-  function toMonthlyLast(points){
-    const by = {};
-    for(const p of points) by[p.time]=p.value;
-    return Object.entries(by).map(([time,value])=>({time,value}))
-      .sort((a,b)=> a.time.localeCompare(b.time));
-  }
-
-  // ===== Fetchers =====
-
-  // mindicador.cl (uf / dolar) — diario → “YYYY-MM-DD” keys
-  async function fetchMindicador(tipo){
-    const r = await fetch(`https://mindicador.cl/api/${tipo}`, { cache:'no-store' });
-    if(!r.ok) throw new Error(`mindicador ${tipo} ${r.status}`);
-    const j = await r.json();
-    // j.serie: [{fecha, valor}]
-    const pts = j.serie.map(x=>{
-      const d = new Date(x.fecha);
-      return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: x.valor };
-    });
-    return toMonthlyLast(pts);
-  }
-
-  // Stooq mensual CSV (spy.us, ewg.us, ewj.us, ech.us, aapl.us, msft.us, nvda.us, iau.us, slv.us, bno.us)
-  async function fetchStooqMonthly(ticker){
-    const url = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
-    const r = await fetch(url, { cache:'no-store' });
-    if(!r.ok) throw new Error(`stooq ${ticker} ${r.status}`);
-    const csv = await r.text();
-    const lines = csv.trim().split(/\r?\n/).slice(1); // skip header
-    const out = [];
-    for(const ln of lines){
-      const [date,open,high,low,close,vol] = ln.split(',');
-      if(!date || !close) continue;
-      // date = YYYY-MM-DD
-      out.push({ time: date, value: Number(close) });
-    }
-    return out;
-  }
-
-  // CoinGecko: market_chart diario → mensual (último del mes)
-  async function fetchCoinGeckoMonthly(coin, days=1825){ // 5 años aprox
-    const url = `https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=${days}`;
-    const r = await fetch(url, { cache:'no-store' });
-    if(!r.ok) throw new Error(`cg ${coin} ${r.status}`);
-    const j = await r.json();
-    const pts = j.prices.map(([ts,price])=>{
-      const d = new Date(ts);
-      return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: price };
-    });
-    return toMonthlyLast(pts);
-  }
-
-  // ===== Charts =====
-  function makeChart(el){
-    return LightweightCharts.createChart(el, {
-      layout: { background:{type:'solid', color:'transparent'}, textColor:'#cbd5e0' },
-      rightPriceScale:{ borderColor:'#2d3748' },
-      timeScale:{ borderColor:'#2d3748' },
-      grid:{ vertLines:{ color:'#1a202c' }, horzLines:{ color:'#1a202c' } },
-      localization:{ locale:'es-CL' }
-    });
-  }
-  function addLine(chart, label, color){
-    return chart.addLineSeries({ title:label, color, lineWidth:2 });
-  }
-
-  // = 1) Chile
-  async function drawChile(){
-    const root = document.getElementById('c-chile');
-    if(!root) return;
-    try{
-      const [uf, usd, ech] = await Promise.all([
-        fetchMindicador('uf'),
-        fetchMindicador('dolar'),
-        fetchStooqMonthly('ech.us')
-      ]);
-      // A mensual/ordenar/normalizar
-      let [a,b,c] = intersectDates([uf, usd, ech]);
-      a = base100(a); b = base100(b); c = base100(c);
-
-      const chart = makeChart(root);
-      const s1 = addLine(chart,'UF',COLORS[0]);    s1.setData(a);
-      const s2 = addLine(chart,'USD/CLP',COLORS[2]); s2.setData(b);
-      const s3 = addLine(chart,'IPSA (ECH)',COLORS[4]); s3.setData(c);
-    }catch(e){
-      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Chile).</div>`;
-      document.getElementById('c-chile-note').style.display='block';
-    }
-  }
-
-  // = 2) Índices
-  async function drawIndices(){
-    const root = document.getElementById('c-indices');
-    if(!root) return;
-    try{
-      const [spy, ewg, ewj] = await Promise.all([
-        fetchStooqMonthly('spy.us'),
-        fetchStooqMonthly('ewg.us'),
-        fetchStooqMonthly('ewj.us')
-      ]);
-      let [a,b,c] = intersectDates([spy, ewg, ewj]);
-      a = base100(a); b = base100(b); c = base100(c);
-
-      const chart = makeChart(root);
-      addLine(chart,'SPY',COLORS[0]).setData(a);
-      addLine(chart,'EWG',COLORS[1]).setData(b);
-      addLine(chart,'EWJ',COLORS[2]).setData(c);
-    }catch(e){
-      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Índices).</div>`;
-      document.getElementById('c-indices-note').style.display='block';
-    }
-  }
-
-  // = 3) Tech
-  async function drawTech(){
-    const root = document.getElementById('c-tech');
-    if(!root) return;
-    try{
-      const [aapl, msft, nvda] = await Promise.all([
-        fetchStooqMonthly('aapl.us'),
-        fetchStooqMonthly('msft.us'),
-        fetchStooqMonthly('nvda.us')
-      ]);
-      let [a,b,c] = intersectDates([aapl, msft, nvda]);
-      a = base100(a); b = base100(b); c = base100(c);
-
-      const chart = makeChart(root);
-      addLine(chart,'AAPL',COLORS[3]).setData(a);
-      addLine(chart,'MSFT',COLORS[4]).setData(b);
-      addLine(chart,'NVDA',COLORS[5]).setData(c);
-    }catch(e){
-      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Tech).</div>`;
-      document.getElementById('c-tech-note').style.display='block';
-    }
-  }
-
-  // = 4) Crypto top 8
-  async function drawCrypto(){
-    const root = document.getElementById('c-crypto');
-    if(!root) return;
-    const coins = [
-      ['bitcoin','BTC'],['ethereum','ETH'],['solana','SOL'],['binancecoin','BNB'],
-      ['ripple','XRP'],['cardano','ADA'],['chainlink','LINK'],['polkadot','DOT']
-    ];
-    try{
-      const data = [];
-      for(const [id,label] of coins){
-        const series = await fetchCoinGeckoMonthly(id,1825);
-        data.push({ label, series });
-        await new Promise(r=>setTimeout(r,300)); // respiro simple para rate-limit
-      }
-      // Interseca todas por fechas comunes
-      const aligned = intersectDates(data.map(d=>d.series)).map(base100);
-      const chart = makeChart(root);
-      aligned.forEach((ser,i)=>{
-        addLine(chart, coins[i][1], COLORS[i%COLORS.length]).setData(ser);
-      });
-    }catch(e){
-      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Crypto). Intenta Ctrl+F5.</div>`;
-      document.getElementById('c-crypto-note').style.display='block';
-    }
-  }
-
-  // = 5) Commodities IAU/SLV/BNO
-  async function drawCommod(){
-    const root = document.getElementById('c-commod');
-    if(!root) return;
-    try{
-      const [iau, slv, bno] = await Promise.all([
-        fetchStooqMonthly('iau.us'),
-        fetchStooqMonthly('slv.us'),
-        fetchStooqMonthly('bno.us')
-      ]);
-      let [a,b,c] = intersectDates([iau, slv, bno]);
-      a = base100(a); b = base100(b); c = base100(c);
-
-      const chart = makeChart(root);
-      addLine(chart,'IAU (Oro)',COLORS[6]).setData(a);
-      addLine(chart,'SLV (Plata)',COLORS[7]).setData(b);
-      addLine(chart,'BNO (Brent)',COLORS[1]).setData(c);
-    }catch(e){
-      console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Commodities).</div>`;
-      document.getElementById('c-commod-note').style.display='block';
-    }
-  }
-
-  // Bootstrap
-  window.addEventListener('DOMContentLoaded', ()=>{
-    drawChile();
-    drawIndices();
-    drawTech();
-    drawCrypto();
-    drawCommod();
-  });
-})();
-</script>
-<!-- === /BD ANALYTIC ============================================ -->
-
-  
   <section class="hero">
     <div class="container hero__inner">
       <div class="hero__copy">
-        <h1>Decisiones en <span class="accent">tiempo real</span> para negocios reales</h1>
-        <p class="muted">Web3, DeFi, analítica y TradFi — educación aplicada, sin humo. Dashboards claros que se entienden y se usan.</p>
-        <div class="hero__cta">
-          <a class="btn btn--primary" href="#dashboards">Ver dashboards</a>
+        <h1>Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
+        <p class="muted" style="max-width:72ch">
+          Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>.
+          Visión: individuos capacitados para integrar finanzas y tecnología.
+        </p>
+        <div class="hero__cta bd-cta-grid">
+          <a class="btn btn--primary" href="#bd-analytic">Ver comparativos</a>
           <a class="btn" href="#podcast">Escuchar podcast</a>
+          <a class="btn btn--ghost" href="#servicios">Servicios</a>
+          <a class="btn btn--ghost" href="/labs">BD Labs</a>
+          <a class="btn btn--ghost" href="/merch">BD Merchandising</a>
+          <a class="btn btn--ghost" href="/contacto">Contacto</a>
         </div>
       </div>
       <div class="hero__snapshot">
-        <div class="chip">CLP</div>
-        <div class="chip">BTC</div>
-        <div class="chip">ETH</div>
-        <div class="chip">UF</div>
+        <div class="chip">CLP</div><div class="chip">BTC</div><div class="chip">ETH</div><div class="chip">UF</div>
       </div>
     </div>
   </section>
 
-  <!-- DASHBOARDS -->
-<section class="section" id="charts-crypto">
-  <div class="container">
-    <h3 class="group__title">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
-    <p class="muted">Fuente directa: CoinCap (precios en USD). Serie normalizada a Base 100 en la primera fecha.</p>
-
-    <div class="card soft" style="padding:1rem">
-      <canvas id="chart-crypto" height="120"></canvas>
-    </div>
-  </div>
-</section>
-
-  
-  <section id="dashboards" class="section">
+  <!-- COMPARATIVOS: SOLO GRÁFICOS (LOG) + SINCRONIZADOS -->
+  <section id="bd-analytic">
     <div class="container">
-      <h2 class="section__title">Dashboards</h2>
-      <p class="section__subtitle">Vista compacta. Si hay APIs, se actualiza solo. Si no, verás “—” (sin romper nada).</p>
+      <h2 class="section__title">Dashboards comparativos</h2>
+      <p class="section__subtitle">Series mensuales, <strong>logarítmicas</strong> y normalizadas a <strong>Base 100</strong>. Todos los gráficos están sincronizados.</p>
 
-      <!-- FILA: TRADFI CHILE -->
-      <h3 class="group__title">TradFi · Chile</h3>
-      <div class="grid">
-        <article class="card" data-key="UF">
-          <header class="card__head">
-            <span class="pill">UF</span>
-            <span class="muted">Unidad de Fomento</span>
-          </header>
-          <div class="card__value" data-field="price">—</div>
-          <div class="card__delta" data-field="delta">—</div>
+      <div class="bd-grid">
+
+        <!-- 1) TradFi Chile -->
+        <article class="bd-card" onclick="location.href='/detail/tradfi-cl'">
+          <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
+          <p class="bd-sub">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
+          <div class="legend" id="lg-chile"></div>
+          <div id="c-chile" class="bd-chart"></div>
+          <div id="c-chile-note" class="bd-note" style="display:none"></div>
         </article>
 
-        <article class="card" data-key="USDCLP">
-          <header class="card__head">
-            <span class="pill">USD/CLP</span>
-            <span class="muted">Dólar observado</span>
-          </header>
-          <div class="card__value" data-field="price">—</div>
-          <div class="card__delta" data-field="delta">—</div>
+        <!-- 2) Índices -->
+        <article class="bd-card" onclick="location.href='/detail/indices'">
+          <h3 class="bd-title">Índices — SPY (S&amp;P500) vs EWG (DAX) vs EWJ (Nikkei)</h3>
+          <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
+          <div class="legend" id="lg-indices"></div>
+          <div id="c-indices" class="bd-chart"></div>
+          <div id="c-indices-note" class="bd-note" style="display:none"></div>
         </article>
 
-        <article class="card disabled" data-key="IPSA">
-          <header class="card__head">
-            <span class="pill">IPSA</span>
-            <span class="muted">Bolsa de Santiago</span>
-          </header>
-          <div class="card__value" data-field="price">—</div>
-          <div class="card__delta" data-field="delta">—</div>
-          <div class="hint">Actívalo con clave gratuita (finnhub / alpha vantage).</div>
+        <!-- 3) Big Tech -->
+        <article class="bd-card" onclick="location.href='/detail/tech'">
+          <h3 class="bd-title">Big Tech / IA — AAPL vs MSFT vs NVDA</h3>
+          <p class="bd-sub">Precios USD vía Stooq (mensual)</p>
+          <div class="legend" id="lg-tech"></div>
+          <div id="c-tech" class="bd-chart"></div>
+          <div id="c-tech-note" class="bd-note" style="display:none"></div>
         </article>
-      </div>
 
-      <!-- FILA: ÍNDICES USA/EU -->
-      <h3 class="group__title">Índices · USA / Europa</h3>
-      <div class="grid">
-        <article class="card disabled" data-key="SP500">
-          <header class="card__head"><span class="pill">S&P 500</span><span class="muted">EE.UU.</span></header>
-          <div class="card__value" data-field="price">—</div>
-          <div class="card__delta" data-field="delta">—</div>
-          <div class="hint">Usa tu API KEY para habilitar.</div>
+        <!-- 4) Crypto -->
+        <article class="bd-card" onclick="location.href='/detail/crypto'">
+          <h3 class="bd-title">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
+          <p class="bd-sub">BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT — CoinGecko (USD)</p>
+          <div class="legend" id="lg-crypto"></div>
+          <div id="c-crypto" class="bd-chart"></div>
+          <div id="c-crypto-note" class="bd-note" style="display:none"></div>
         </article>
-        <article class="card disabled" data-key="DAX">
-          <header class="card__head"><span class="pill">DAX</span><span class="muted">Alemania</span></header>
-          <div class="card__value" data-field="price">—</div>
-          <div class="card__delta" data-field="delta">—</div>
-          <div class="hint">Usa tu API KEY para habilitar.</div>
+
+        <!-- 5) Commodities -->
+        <article class="bd-card" onclick="location.href='/detail/commodities'">
+          <h3 class="bd-title">Commodities (ETF) — IAU (Oro) vs SLV (Plata) vs BNO (Brent)</h3>
+          <p class="bd-sub">ETF proxies vía Stooq (mensual)</p>
+          <div class="legend" id="lg-commod"></div>
+          <div id="c-commod" class="bd-chart"></div>
+          <div id="c-commod-note" class="bd-note" style="display:none"></div>
         </article>
-        <article class="card disabled" data-key="NIKKEI">
-          <header class="card__head"><span class="pill">Nikkei 225</span><span class="muted">Japón</span></header>
-          <div class="card__value" data-field="price">—</div>
-          <div class="card__delta" data-field="delta">—</div>
-          <div class="hint">Usa tu API KEY para habilitar.</div>
+
+        <!-- 6) Próximamente -->
+        <article class="bd-card">
+          <h3 class="bd-title">Próximamente</h3>
+          <p class="bd-sub">Otro comparativo que elijas</p>
+          <div class="bd-note">Sugerencias: LatAm, Small Caps, o BTC vs Oro vs SPY.</div>
         </article>
-      </div>
 
-      <!-- FILA: TECH STOCKS -->
-      <h3 class="group__title">Acciones · Big Tech / IA / Chips</h3>
-      <div class="grid">
-        <article class="card disabled" data-key="AAPL"><header class="card__head"><span class="pill">AAPL</span><span class="muted">Apple</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card disabled" data-key="MSFT"><header class="card__head"><span class="pill">MSFT</span><span class="muted">Microsoft</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card disabled" data-key="NVDA"><header class="card__head"><span class="pill">NVDA</span><span class="muted">NVIDIA</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card disabled" data-key="TSM"><header class="card__head"><span class="pill">TSM</span><span class="muted">TSMC</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-      </div>
-
-      <!-- FILA: CRYPTO (LIVE) -->
-      <h3 class="group__title">Crypto · Top 8 (live)</h3>
-      <div class="grid">
-        <article class="card" data-coin="bitcoin"><header class="card__head"><span class="pill">BTC</span><span class="muted">Bitcoin</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card" data-coin="ethereum"><header class="card__head"><span class="pill">ETH</span><span class="muted">Ethereum</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card" data-coin="solana"><header class="card__head"><span class="pill">SOL</span><span class="muted">Solana</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card" data-coin="ripple"><header class="card__head"><span class="pill">XRP</span><span class="muted">XRP</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card" data-coin="binancecoin"><header class="card__head"><span class="pill">BNB</span><span class="muted">BNB</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card" data-coin="cardano"><header class="card__head"><span class="pill">ADA</span><span class="muted">Cardano</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card" data-coin="chainlink"><header class="card__head"><span class="pill">LINK</span><span class="muted">Chainlink</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card" data-coin="polkadot"><header class="card__head"><span class="pill">DOT</span><span class="muted">Polkadot</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-      </div>
-
-      <!-- FILA: COMMODITIES -->
-      <h3 class="group__title">Commodities · Metales / Energía</h3>
-      <div class="grid">
-        <article class="card disabled" data-key="GOLD"><header class="card__head"><span class="pill">Oro</span><span class="muted">XAU</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div><div class="hint">Habilita con MetalsAPI/AlphaVantage.</div></article>
-        <article class="card disabled" data-key="SILVER"><header class="card__head"><span class="pill">Plata</span><span class="muted">XAG</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
-        <article class="card disabled" data-key="BRENT"><header class="card__head"><span class="pill">Brent</span><span class="muted">Crudo</span></header><div class="card__value" data-field="price">—</div><div class="card__delta" data-field="delta">—</div></article>
       </div>
     </div>
   </section>
 
-<section class="section" id="charts-crypto">
-  <div class="container">
-    <h3 class="group__title">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
-    <p class="muted">Fuente: CoinGecko (USD, normalizado a Base 100). Si no ves nada, recarga (Ctrl+F5).</p>
-    <div class="card soft" style="padding:1rem">
-      <div id="chart-crypto" style="height:320px"></div>
-    </div>
-  </div>
-</section>
-
-  
-  <!-- MISIÓN / SERVICIOS -->
+  <!-- Lo que hacemos / Podcast / Footer (igual que antes) -->
   <section class="section alt" id="servicios">
     <div class="container">
       <h2 class="section__title">Lo que hacemos</h2>
       <div class="cards-3">
-        <article class="card soft">
-          <h4>Educación primero</h4>
-          <p>Somos un medio educativo: finanzas, IA, blockchain y analítica — sin “shilling” ni promesas mágicas.</p>
-        </article>
-        <article class="card soft">
-          <h4>Dashboards a medida</h4>
-          <p>Discovery → Integración → Despliegue → Mantenimiento. Datos que se entienden y toman decisiones.</p>
-        </article>
-        <article class="card soft">
-          <h4>IA / DeFi / Pagos</h4>
-          <p>Agentes de IA para tu negocio, consultoría DeFi y pasarelas fiat↔crypto con buenas prácticas.</p>
-        </article>
+        <article class="card soft"><h4>Educación primero</h4><p>Finanzas, IA, blockchain y analítica — sin “shilling”.</p></article>
+        <article class="card soft"><h4>Dashboards a medida</h4><p>Discovery → Integración → Despliegue → Mantenimiento.</p></article>
+        <article class="card soft"><h4>IA / DeFi / Pagos</h4><p>Agentes de IA, consultoría DeFi y pasarelas fiat↔crypto.</p></article>
       </div>
     </div>
   </section>
 
-  <!-- PODCAST -->
   <section id="podcast" class="section">
     <div class="container">
       <h2 class="section__title">Podcast</h2>
@@ -503,20 +189,6 @@
     </div>
   </section>
 
-  <!-- ROADMAP -->
-  <section id="roadmap" class="section alt">
-    <div class="container">
-      <h2 class="section__title">Roadmap</h2>
-      <ol class="roadmap">
-        <li><strong>v0.1</strong> · Maqueta con dashboard en vivo (Crypto + CLP/UF). ✅</li>
-        <li><strong>v0.2</strong> · Conectar índices y acciones con API gratuita (Finnhub/Alpha Vantage). 🔜</li>
-        <li><strong>v0.3</strong> · Commodities y alertas simples. 🔜</li>
-        <li><strong>v0.4</strong> · Email digests + panel admin para noticias. 🔜</li>
-      </ol>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer__inner">
       <span class="muted">© 2025 Bitácora Digital</span>
@@ -528,184 +200,246 @@
     </div>
   </footer>
 
+  <!-- ========== SCRIPTS: solo comparativos, LOG + SYNC ========== -->
+  <script>
+  (function(){
+    // ===== Paleta / helpers =====
+    const COLORS = ["#63b3ed","#a4d1c5","#f6ad55","#ff6585","#97a7ea","#66e4a6","#fbd38d","#b794f4"];
+    const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+    const isoMonth = d => { const y=d.getUTCFullYear(), m=String(d.getUTCMonth()+1).padStart(2,"0"); return `${y}-${m}-01`; };
+    const fmt = v => (v==null ? '—' : (Math.round(v*10)/10).toFixed(1));
 
-<!-- Lightweight Charts (gráficos livianos) -->
-<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
-
-<style>
-  .bd-grid { display:grid; gap:24px; margin-top:32px }
-  .bd-2 { grid-template-columns: 1fr 1fr }
-  .bd-1 { grid-template-columns: 1fr }
-  .bd-card { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px }
-  .bd-title { font-weight:600; margin:4px 0 10px 6px; opacity:.9 }
-  .bd-chart { width:100%; height:360px }
-  @media (max-width:1000px){ .bd-2{grid-template-columns:1fr} }
-</style>
-
-<section class="container">
-  <h2 class="section__title">Dashboards comparativos</h2>
-  <p class="section__subtitle">Series normalizadas (Índice = 100 al inicio del rango) para comparar movimientos.</p>
-
-  <div class="bd-grid bd-2">
-    <div class="bd-card">
-      <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
-      <div id="chart-chile" class="bd-chart"></div>
-      <p class="muted" style="margin:8px 4px 0">UF/US$ desde mindicador.cl · IPSA proxy vía ECH (Yahoo). Rango: 10 años mensuales.</p>
-    </div>
-
-    <div class="bd-card">
-      <h3 class="bd-title">Índices · S&P500 (SPY) vs DAX (EWG) vs Nikkei (EWJ)</h3>
-      <div id="chart-indices" class="bd-chart"></div>
-      <p class="muted" style="margin:8px 4px 0">Yahoo Finance, rango 10 años mensuales.</p>
-    </div>
-
-    <div class="bd-card">
-      <h3 class="bd-title">Big Tech · AAPL vs MSFT vs NVDA</h3>
-      <div id="chart-tech" class="bd-chart"></div>
-      <p class="muted" style="margin:8px 4px 0">Yahoo Finance, rango 10 años mensuales.</p>
-    </div>
-
-    <div class="bd-card">
-      <h3 class="bd-title">Commodities (ETF) · Oro (IAU) vs Plata (SLV) vs Brent (BNO)</h3>
-      <div id="chart-commod" class="bd-chart"></div>
-      <p class="muted" style="margin:8px 4px 0">Yahoo Finance (ETF proxies), rango 10 años mensuales.</p>
-    </div>
-  </div>
-</section>
-
-<!-- Lightweight Charts (gráficos livianos) -->
-<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-
-<style>
-  .bd-dash { margin: 36px auto; max-width: 1100px; padding: 0 16px; }
-  .bd-card { background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; margin-bottom:24px; }
-  .bd-title { font-weight:600; margin:4px 0 10px 6px; opacity:.9 }
-  .bd-muted { color:#a0aec0; font-size: 0.9rem; margin:6px 4px 0 }
-  .bd-chart { width:100%; height:380px }
-  .bd-note { color:#cbd5e0; font-size: .85rem; margin: 6px 4px 0 }
-</style>
-
-<section class="bd-dash">
-  <div class="bd-card">
-    <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
-    <div id="chart-chile" class="bd-chart"></div>
-    <p class="bd-muted">UF y USD/CLP desde mindicador.cl · IPSA se intenta vía ECH (Yahoo). Rango: 10 años, mensual. Base 100.</p>
-    <p id="chart-hint" class="bd-note" style="display:none"></p>
-  </div>
-</section>
-
-<script>
-(function () {
-  // ===== Utilidades comunes =====
-  const COLORS = ["#63b3ed","#a4d1c5","#f6ad55","#f56565","#9f7aea","#48bb78","#ed64a6","#4299e1"];
-  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-  // Normaliza a Base 100 tomando el primer valor válido de cada serie
-  function toBase100(series) {
-    if (!series.length) return series;
-    const baseIdx = series.findIndex(p => Number.isFinite(p.value));
-    if (baseIdx < 0) return series;
-    const base = series[baseIdx].value;
-    return series.map(p => ({ time: p.time, value: (p.value / base) * 100 }));
-  }
-
-  function makeChart(el, dark = true) {
-    return LightweightCharts.createChart(el, {
-      layout: {
-        background: { type: 'solid', color: 'transparent' },
-        textColor: dark ? '#cbd5e0' : '#1a202c'
-      },
-      rightPriceScale: { borderColor: '#2d3748' },
-      timeScale:      { borderColor: '#2d3748' },
-      grid: { vertLines: { color: '#1a202c' }, horzLines: { color: '#1a202c' } },
-      localization: { locale: 'es-CL' }
-    });
-  }
-
-  function addLineSeries(chart, title, color) {
-    const s = chart.addLineSeries({ title, color, lineWidth: 2 });
-    return s;
-  }
-
-  function monthISO(d) {
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-    return `${y}-${m}-01`;
-  }
-
-  // ====== CRYPTO TOP 8 (CoinGecko) ======
-  /**
-   * Obtiene histórico diario de N días para un coin (CoinGecko) y lo lleva a formato:
-   * [ {time: 'YYYY-MM-DD', value: <precio>} ]
-   */
-  async function cgHistory(coin, days = 1825) { // ~5 años
-    // Nota: CoinGecko está rate-limited. Si pegas 8 queries en paralelo puede tardar;
-    // por eso ponemos un pequeño sleep entre requests.
-    const url = `https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=${days}`;
-    const r = await fetch(url, { cache: 'no-store' });
-    if (!r.ok) throw new Error(`CG ${coin} ${r.status}`);
-    const data = await r.json();
-    // data.prices = [ [ts_ms, price], ... ]
-    const out = data.prices.map(([ts, price]) => {
-      const d = new Date(ts);
-      return { time: monthISO(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: price };
-    });
-    // Compacta a 1 punto por mes (último valor del mes)
-    const byMonth = {};
-    for (const p of out) byMonth[p.time] = p.value;
-    return Object.entries(byMonth).map(([time, value]) => ({ time, value })).sort((a,b)=> a.time.localeCompare(b.time));
-  }
-
-  async function drawCryptoTop8() {
-    const el = document.getElementById('chart-crypto');
-    if (!el) return;
-
-    // COINS: BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT
-    const coins = [
-      { id: 'bitcoin',     label: 'BTC'  },
-      { id: 'ethereum',    label: 'ETH'  },
-      { id: 'solana',      label: 'SOL'  },
-      { id: 'binancecoin', label: 'BNB'  },
-      { id: 'ripple',      label: 'XRP'  },
-      { id: 'cardano',     label: 'ADA'  },
-      { id: 'chainlink',   label: 'LINK' },
-      { id: 'polkadot',    label: 'DOT'  },
-    ];
-
-    // Crea chart
-    const chart = makeChart(el, true);
-
-    // Trae cada serie con un pequeño delay para no chocar rate-limit
-    const series = [];
-    for (let i = 0; i < coins.length; i++) {
-      const c = coins[i];
-      try {
-        const raw = await cgHistory(c.id, 1825);
-        const norm = toBase100(raw);
-        series.push({ label: c.label, data: norm });
-      } catch (e) {
-        console.error('CG fail', c.id, e);
-      }
-      await sleep(300); // respiro para el rate-limit
+    function base100(arr){
+      if(!arr?.length) return arr;
+      const i = arr.findIndex(p=>Number.isFinite(p.value));
+      if(i<0) return arr;
+      const b = arr[i].value;
+      return arr.map(p=>({ time:p.time, value:(p.value/b)*100 }));
+    }
+    function intersectDates(seriesArray){
+      if(!seriesArray.length) return seriesArray;
+      const sets = seriesArray.map(s=> new Set(s.map(p=>p.time)));
+      const common = [...sets[0]].filter(t=> sets.every(S => S.has(t))).sort((a,b)=> a.localeCompare(b));
+      return seriesArray.map(s => s.filter(p=> common.includes(p.time)));
+    }
+    function toMonthlyLast(points){
+      const by = {}; for(const p of points){ by[p.time]=p.value }
+      return Object.entries(by).map(([time,value])=>({time,value})).sort((a,b)=> a.time.localeCompare(b.time));
     }
 
-    // Sin datos? aviso
-    if (!series.length) {
-      el.innerHTML = '<div style="padding:1rem;color:#a0aec0">No se pudo cargar el comparativo (CoinGecko limit). Intenta recargar.</div>';
-      return;
+    // ===== Fetchers =====
+    async function fetchMindicador(tipo){
+      const r = await fetch(`https://mindicador.cl/api/${tipo}`, { cache:'no-store' });
+      if(!r.ok) throw new Error(`mindicador ${tipo} ${r.status}`);
+      const j = await r.json();
+      const pts = j.serie.map(x=>{
+        const d = new Date(x.fecha);
+        return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: x.valor };
+      });
+      return toMonthlyLast(pts);
+    }
+    async function fetchStooqMonthly(ticker){
+      const url = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
+      const r = await fetch(url, { cache:'no-store' });
+      if(!r.ok) throw new Error(`stooq ${ticker} ${r.status}`);
+      const csv = await r.text();
+      const out = [];
+      csv.trim().split(/\r?\n/).slice(1).forEach(ln=>{
+        const [date,, , , close] = ln.split(',');
+        if(date && close) out.push({ time:date, value:Number(close) });
+      });
+      return out;
+    }
+    async function fetchCoinGeckoMonthly(coin, days=1825){
+      const r = await fetch(`https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=${days}`, { cache:'no-store' });
+      if(!r.ok) throw new Error(`cg ${coin} ${r.status}`);
+      const j = await r.json();
+      const pts = j.prices.map(([ts,price])=>{
+        const d = new Date(ts);
+        return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: price };
+      });
+      return toMonthlyLast(pts);
     }
 
-    // Dibuja cada línea
-    series.forEach((s, i) => {
-      const color = COLORS[i % COLORS.length];
-      const line = addLineSeries(chart, s.label, color);
-      line.setData(s.data);
-    });
-  }
+    // ===== Charts (LOG + leyenda) =====
+    const { PriceScaleMode } = LightweightCharts;
 
-  // === Bootstrap ===
-  window.addEventListener('load', () => {
-    drawCryptoTop8();  // ← ya deja el primer comparativo funcionando
-  });
-})();
-</script>
+    function makeChart(el){
+      const chart = LightweightCharts.createChart(el, {
+        layout:{ background:{type:'solid', color:'transparent'}, textColor:'#cbd5e0' },
+        rightPriceScale:{ borderColor:'#2d3748', mode: PriceScaleMode.Logarithmic },
+        timeScale:{ borderColor:'#2d3748' },
+        grid:{ vertLines:{ color:'#1a202c' }, horzLines:{ color:'#1a202c' } },
+        localization:{ locale:'es-CL' }
+      });
+      return chart;
+    }
+    function addLine(chart, label, color){
+      return chart.addLineSeries({ title:label, color, lineWidth:2 });
+    }
+    function setLegend(el, dateISO, labels, values, colors){
+      const dateTxt = dateISO ? dateISO : '—';
+      el.innerHTML =
+        `<span class="k">${dateTxt}</span>` +
+        values.map((v,i)=> `<span><span class="dot" style="background:${colors[i%colors.length]}"></span>${labels[i]}: ${fmt(v)}</span>`).join(' ');
+    }
+
+    // ==== Sync (crosshair + zoom/pan) ====
+    const registry = []; // { chart, series: [{s,label}], legendEl, labels, colors }
+    let isSyncing = false;
+
+    function syncCrosshair(origin, param){
+      if(isSyncing) return;
+      isSyncing = true;
+      registry.forEach(({chart, series, legendEl, labels, colors})=>{
+        if(chart === origin.chart) return;
+        chart.setCrosshairPosition(param?.point?.x ?? -1, param?.point?.y ?? -1, chart);
+        if(param && param.time){
+          const t = param.time;
+          const vals = series.map(s=>{
+            const dp = s.seriesData.get(t);
+            return dp?.value ?? null;
+          });
+          setLegend(legendEl, t, labels, vals, colors);
+        } else {
+          setLegend(legendEl, null, labels, series.map(()=>null), colors);
+        }
+      });
+      isSyncing = false;
+    }
+
+    function syncVisibleRange(origin, range){
+      if(isSyncing || !range) return;
+      isSyncing = true;
+      registry.forEach(({chart})=>{
+        if(chart === origin.chart) return;
+        chart.timeScale().setVisibleRange(range);
+      });
+      isSyncing = false;
+    }
+
+    // Utilidad para mapear datos por tiempo para leyenda rápida
+    function attachSeriesData(series, data){
+      const map = new Map();
+      data.forEach(p=> map.set(p.time, p));
+      series.seriesData = new Map([...map.entries()].map(([k,v])=>[k, {value:v.value}]));
+    }
+
+    // ===== Dibujo por bloque =====
+    async function drawChile(){
+      const root = document.getElementById('c-chile'); if(!root) return;
+      const legendEl = document.getElementById('lg-chile');
+      const labels = ['UF','USD/CLP','IPSA (ECH)']; const colors=[COLORS[0],COLORS[2],COLORS[4]];
+      try{
+        const [uf, usd, ech] = await Promise.all([ fetchMindicador('uf'), fetchMindicador('dolar'), fetchStooqMonthly('ech.us') ]);
+        let [a,b,c] = intersectDates([uf, usd, ech]); a=base100(a); b=base100(b); c=base100(c);
+        const chart = makeChart(root);
+        const s1 = addLine(chart,labels[0],colors[0]); s1.setData(a); attachSeriesData(s1,a);
+        const s2 = addLine(chart,labels[1],colors[1]); s2.setData(b); attachSeriesData(s2,b);
+        const s3 = addLine(chart,labels[2],colors[2]); s3.setData(c); attachSeriesData(s3,c);
+        setLegend(legendEl, a.at(-1)?.time, labels, [a.at(-1)?.value,b.at(-1)?.value,c.at(-1)?.value], colors);
+        hookSync(chart, legendEl, [s1,s2,s3], labels, colors);
+      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Chile).</div>`; }
+    }
+
+    async function drawIndices(){
+      const root = document.getElementById('c-indices'); if(!root) return;
+      const legendEl = document.getElementById('lg-indices');
+      const labels = ['SPY','EWG','EWJ']; const colors=[COLORS[0],COLORS[1],COLORS[2]];
+      try{
+        const [spy, ewg, ewj] = await Promise.all([ fetchStooqMonthly('spy.us'), fetchStooqMonthly('ewg.us'), fetchStooqMonthly('ewj.us') ]);
+        let [a,b,c] = intersectDates([spy, ewg, ewj]); a=base100(a); b=base100(b); c=base100(c);
+        const chart = makeChart(root);
+        const s1 = addLine(chart,labels[0],colors[0]); s1.setData(a); attachSeriesData(s1,a);
+        const s2 = addLine(chart,labels[1],colors[1]); s2.setData(b); attachSeriesData(s2,b);
+        const s3 = addLine(chart,labels[2],colors[2]); s3.setData(c); attachSeriesData(s3,c);
+        setLegend(legendEl, a.at(-1)?.time, labels, [a.at(-1)?.value,b.at(-1)?.value,c.at(-1)?.value], colors);
+        hookSync(chart, legendEl, [s1,s2,s3], labels, colors);
+      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Índices).</div>`; }
+    }
+
+    async function drawTech(){
+      const root = document.getElementById('c-tech'); if(!root) return;
+      const legendEl = document.getElementById('lg-tech');
+      const labels = ['AAPL','MSFT','NVDA']; const colors=[COLORS[3],COLORS[4],COLORS[5]];
+      try{
+        const [aapl, msft, nvda] = await Promise.all([ fetchStooqMonthly('aapl.us'), fetchStooqMonthly('msft.us'), fetchStooqMonthly('nvda.us') ]);
+        let [a,b,c] = intersectDates([aapl, msft, nvda]); a=base100(a); b=base100(b); c=base100(c);
+        const chart = makeChart(root);
+        const s1 = addLine(chart,labels[0],colors[0]); s1.setData(a); attachSeriesData(s1,a);
+        const s2 = addLine(chart,labels[1],colors[1]); s2.setData(b); attachSeriesData(s2,b);
+        const s3 = addLine(chart,labels[2],colors[2]); s3.setData(c); attachSeriesData(s3,c);
+        setLegend(legendEl, a.at(-1)?.time, labels, [a.at(-1)?.value,b.at(-1)?.value,c.at(-1)?.value], colors);
+        hookSync(chart, legendEl, [s1,s2,s3], labels, colors);
+      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Tech).</div>`; }
+    }
+
+    async function drawCrypto(){
+      const root = document.getElementById('c-crypto'); if(!root) return;
+      const legendEl = document.getElementById('lg-crypto');
+      const coins = [['bitcoin','BTC'],['ethereum','ETH'],['solana','SOL'],['binancecoin','BNB'],['ripple','XRP'],['cardano','ADA'],['chainlink','LINK'],['polkadot','DOT']];
+      const labels = coins.map(c=>c[1]); const colors = labels.map((_,i)=>COLORS[i%COLORS.length]);
+      try{
+        const data = [];
+        for(const [id] of coins){ data.push(await fetchCoinGeckoMonthly(id,1825)); await sleep(300); }
+        const aligned = intersectDates(data).map(base100);
+        const chart = makeChart(root);
+        const seriesObjs = aligned.map((ser,i)=>{ const s=addLine(chart,labels[i],colors[i]); s.setData(ser); attachSeriesData(s,ser); return s; });
+        const last = aligned.map(s => s.at(-1)?.value ?? null);
+        setLegend(legendEl, aligned[0]?.at(-1)?.time ?? null, labels, last, colors);
+        hookSync(chart, legendEl, seriesObjs, labels, colors);
+      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Crypto). Intenta Ctrl+F5.</div>`; }
+    }
+
+    async function drawCommod(){
+      const root = document.getElementById('c-commod'); if(!root) return;
+      const legendEl = document.getElementById('lg-commod');
+      const labels = ['IAU (Oro)','SLV (Plata)','BNO (Brent)']; const colors=[COLORS[6],COLORS[7],COLORS[1]];
+      try{
+        const [iau, slv, bno] = await Promise.all([ fetchStooqMonthly('iau.us'), fetchStooqMonthly('slv.us'), fetchStooqMonthly('bno.us') ]);
+        let [a,b,c] = intersectDates([iau, slv, bno]); a=base100(a); b=base100(b); c=base100(c);
+        const chart = makeChart(root);
+        const s1 = addLine(chart,labels[0],colors[0]); s1.setData(a); attachSeriesData(s1,a);
+        const s2 = addLine(chart,labels[1],colors[1]); s2.setData(b); attachSeriesData(s2,b);
+        const s3 = addLine(chart,labels[2],colors[2]); s3.setData(c); attachSeriesData(s3,c);
+        setLegend(legendEl, a.at(-1)?.time, labels, [a.at(-1)?.value,b.at(-1)?.value,c.at(-1)?.value], colors);
+        hookSync(chart, legendEl, [s1,s2,s3], labels, colors);
+      }catch(e){ console.warn(e); root.innerHTML = `<div class="bd-note">No se pudo cargar (Commodities).</div>`; }
+    }
+
+    // hook sincronización para un chart
+    function hookSync(chart, legendEl, seriesList, labels, colors){
+      const entry = { chart, legendEl, labels, colors, series: seriesList };
+      registry.push(entry);
+
+      chart.subscribeCrosshairMove(param=>{
+        // arma valores de este chart para su propia leyenda
+        if(param?.time){
+          const vals = seriesList.map(s=>{
+            const dp = s.seriesData.get(param.time);
+            return dp?.value ?? null;
+          });
+          setLegend(legendEl, param.time, labels, vals, colors);
+        } else {
+          setLegend(legendEl, null, labels, seriesList.map(()=>null), colors);
+        }
+        syncCrosshair(entry, param);
+      });
+
+      chart.timeScale().subscribeVisibleTimeRangeChange(range=>{
+        syncVisibleRange(entry, range);
+      });
+    }
+
+    // Bootstrap
+    window.addEventListener('DOMContentLoaded', ()=>{
+      drawChile();
+      drawIndices();
+      drawTech();
+      drawCrypto();
+      drawCommod();
+    });
+  })();
+  </script>
+</body>
+</html>
