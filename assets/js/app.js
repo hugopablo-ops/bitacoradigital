@@ -1,3 +1,5 @@
+const STOOQ_PROXY = 'https://tradfi.hugopablo.workers.dev/?url=';
+
 /* ========================================================================
    Bitácora Digital — app.js (TradFi · Chile)
    - Escala logarítmica
