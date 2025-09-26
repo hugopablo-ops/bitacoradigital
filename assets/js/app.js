@@ -1,18 +1,17 @@
 /* ========================================================================
-   Bitácora Digital — app.js (solo TradFi · Chile)
+   Bitácora Digital — app.js (TradFi · Chile)
    - Escala logarítmica
-   - Tooltip nativo (crosshair)
+   - Crosshair/tooltip nativo
    - Click → /detail/tradfi-cl
    ======================================================================== */
 
-/* ---------- Config ---------- */
-// Proxy Cloudflare Worker para Stooq (ajústalo si cambias el nombre del worker)
+// 1) Ajusta aquí tu Worker (del paso 1)
 const STOOQ_PROXY = 'https://tradfi.hugopablo.workers.dev/?url=';
 
-// Paleta fija (UF, USD/CLP, IPSA(ECH))
-const COLORS = ["#63b3ed", "#f6ad55", "#9f7aea"]; 
+// Paleta (UF, USD/CLP, IPSA(ECH))
+const COLORS = ["#63b3ed", "#f6ad55", "#9f7aea"];
 
-/* ---------- Utilidades ---------- */
+// ---------- Utilidades ----------
 const isoMonth = (d) => {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
@@ -20,7 +19,6 @@ const isoMonth = (d) => {
 };
 
 function toMonthlyLast(points) {
-  // Compacta a 1 punto por mes (último valor observado ese mes)
   const by = {};
   for (const p of points) by[p.time] = p.value;
   return Object.entries(by)
@@ -37,14 +35,12 @@ function base100(arr) {
 }
 
 function intersectDates(seriesArray) {
-  // Devuelve cada serie filtrada al conjunto de fechas comunes y ordenadas
   const sets = seriesArray.map(s => new Set(s.map(p => p.time)));
   const common = [...sets[0]].filter(t => sets.every(S => S.has(t))).sort();
   return seriesArray.map(s => s.filter(p => common.includes(p.time)));
 }
 
-/* ---------- Fetchers ---------- */
-// mindicador.cl (uf / dolar) — diario → mensual (último del mes)
+// ---------- Fetchers ----------
 async function fetchMindicador(tipo) {
   const r = await fetch(`https://mindicador.cl/api/${tipo}`, { cache: 'no-store' });
   if (!r.ok) throw new Error(`mindicador ${tipo} ${r.status}`);
@@ -59,7 +55,6 @@ async function fetchMindicador(tipo) {
   return toMonthlyLast(pts);
 }
 
-// Stooq mensual CSV (spy.us / ewg.us / ewj.us / ech.us / etc.) vía Worker proxy
 async function fetchStooqMonthly(ticker) {
   const real = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
   const url  = STOOQ_PROXY + encodeURIComponent(real);
@@ -78,7 +73,7 @@ async function fetchStooqMonthly(ticker) {
   return out;
 }
 
-/* ---------- Charts (Lightweight-Charts) ---------- */
+// ---------- Chart ----------
 function makeChart(el) {
   return LightweightCharts.createChart(el, {
     layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#cfe0ff' },
@@ -94,35 +89,28 @@ function addLine(chart, label, color) {
   return chart.addLineSeries({ title: label, color, lineWidth: 2 });
 }
 
-/* ---------- Dibujo: TradFi · Chile ---------- */
+// ---------- Dibujo ----------
 async function drawChile() {
   const root = document.getElementById('c-chile');
   const note = document.getElementById('c-chile-note');
   if (!root) return;
 
   try {
-    // 1) UF y USD/CLP (diario -> mensual último)
     const [uf, usd] = await Promise.all([
       fetchMindicador('uf'),
       fetchMindicador('dolar')
     ]);
 
-    // 2) IPSA vía proxy ECH (mensual CSV)
     const ech = await fetchStooqMonthly('ech.us');
 
-    // 3) Intersección de fechas y normalización Base 100
     let [a, b, c] = intersectDates([uf, usd, ech]);
-    a = base100(a);
-    b = base100(b);
-    c = base100(c);
+    a = base100(a); b = base100(b); c = base100(c);
 
-    // 4) Pintar (escala logarítmica + tooltip nativo)
     const chart = makeChart(root);
     addLine(chart, 'UF', COLORS[0]).setData(a);
     addLine(chart, 'USD/CLP', COLORS[1]).setData(b);
     addLine(chart, 'IPSA (ECH)', COLORS[2]).setData(c);
 
-    // 5) Click → detalle
     root.onclick = () => { window.location.href = '/detail/tradfi-cl'; };
 
     if (note) note.style.display = 'none';
@@ -133,5 +121,4 @@ async function drawChile() {
   }
 }
 
-/* ---------- Bootstrap ---------- */
 window.addEventListener('DOMContentLoaded', drawChile);
