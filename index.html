@@ -10,10 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Estilos base (tema oscuro, compactos) -->
   <style>
     :root{
-      --bg:#0f1620; --card:#141c27; --line:#243143; --text:#dbe4f3; --muted:#96a3b7; 
+      --bg:#0f1620; --card:#141c27; --line:#243143; --text:#dbe4f3; --muted:#96a3b7;
       --accent:#2dde9b; --accent2:#4dd3ff; --radius:14px;
     }
     *{box-sizing:border-box}
@@ -43,20 +42,19 @@
     .chip{background:#192234;border:1px solid #273347;padding:10px 8px;border-radius:12px;color:#b3c1d9;min-width:48px;text-align:center}
 
     /* GRID COMPARATIVOS */
-    #analytic.section{padding:36px 0}
-    .bd-title{font-size:22px;margin:0 0 4px}
+    .section{padding:36px 0}
+    #analytic .bd-title{font-size:22px;margin:0 0 4px}
     .bd-subtitle{color:var(--muted);margin:0 0 18px}
     .bd-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
     @media (max-width:1024px){ .bd-grid{grid-template-columns:repeat(2,1fr)}}
     @media (max-width:680px){ .bd-grid{grid-template-columns:1fr}}
     .bd-card{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius); padding:12px; cursor:pointer; min-height:320px}
-    .bd-card:hover{border-color:#2e3e55}
     .bd-card.disabled{cursor:default}
+    .bd-card:hover{border-color:#2e3e55}
     .bd-chart{width:100%;height:300px}
     .bd-note{color:var(--muted);font-size:.92rem;margin-top:6px}
 
-    /* SECCIONES */
-    .section{padding:36px 0}
+    /* “Lo que hacemos”, podcast y footer */
     .cards-3{display:grid;gap:16px;grid-template-columns:repeat(3,1fr)}
     @media (max-width:900px){.cards-3{grid-template-columns:1fr}}
     .card-soft{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius);padding:16px}
@@ -65,7 +63,7 @@
     .footer__inner{display:flex;justify-content:space-between;align-items:center}
   </style>
 
-  <!-- Lightweight Charts (cargar UNA sola vez) -->
+  <!-- Lightweight Charts (solo una vez) -->
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
@@ -102,10 +100,7 @@
         </div>
       </div>
       <div class="chips">
-        <div class="chip">CLP</div>
-        <div class="chip">BTC</div>
-        <div class="chip">ETH</div>
-        <div class="chip">UF</div>
+        <div class="chip">CLP</div><div class="chip">BTC</div><div class="chip">ETH</div><div class="chip">UF</div>
       </div>
     </div>
   </section>
@@ -117,7 +112,7 @@
       <p class="bd-subtitle">Series mensuales, <em>logarítmicas</em> y normalizadas a <strong>Base 100</strong>. Todos los gráficos sincronizados.</p>
 
       <div class="bd-grid">
-        <!-- 1) TradFi Chile (Interactivo) -->
+        <!-- 1) TradFi · Chile (Interactivo) -->
         <article class="bd-card">
           <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
           <p class="bd-subtitle">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
@@ -125,44 +120,12 @@
           <div id="c-chile-note" class="bd-note" style="display:none">No se pudo cargar (Chile).</div>
         </article>
 
-        <!-- 2) Índices (placeholder listo para conectar a futuro) -->
-        <article class="bd-card disabled" id="card-indices" onclick="window.location.href='/detail/indices'">
-          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Índices — SPY (S&amp;P500) vs EWG (DAX) vs EWJ (Nikkei)</h3>
-          <p class="bd-note" style="margin-top:0">ETF proxies vía Stooq (mensual)</p>
-          <div id="c-indices" class="bd-chart"></div>
-          <div class="bd-note">Próximamente.</div>
-        </article>
-
-        <!-- 3) Tech (placeholder) -->
-        <article class="bd-card disabled" id="card-tech" onclick="window.location.href='/detail/tech'">
-          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Big Tech / IA — AAPL vs MSFT vs NVDA</h3>
-          <p class="bd-note" style="margin-top:0">Precios USD vía Stooq (mensual)</p>
-          <div id="c-tech" class="bd-chart"></div>
-          <div class="bd-note">Próximamente.</div>
-        </article>
-
-        <!-- 4) Crypto (placeholder) -->
-        <article class="bd-card disabled" id="card-crypto" onclick="window.location.href='/detail/crypto'">
-          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
-          <p class="bd-note" style="margin-top:0">BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT — CoinGecko (USD)</p>
-          <div id="c-crypto" class="bd-chart"></div>
-          <div class="bd-note">Próximamente.</div>
-        </article>
-
-        <!-- 5) Commodities (placeholder) -->
-        <article class="bd-card disabled" id="card-commod" onclick="window.location.href='/detail/commodities'">
-          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Commodities (ETF) — IAU (Oro) vs SLV (Plata) vs BNO (Brent)</h3>
-          <p class="bd-note" style="margin-top:0">ETF proxies vía Stooq (mensual)</p>
-          <div id="c-commod" class="bd-chart"></div>
-          <div class="bd-note">Próximamente.</div>
-        </article>
-
-        <!-- 6) Libre -->
-        <article class="bd-card disabled">
-          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Próximamente</h3>
-          <p class="bd-note">Otro comparativo que elijas. Sugerencias: LatAm, Small Caps o BTC vs Oro vs SPY.</p>
-          <div class="bd-chart"></div>
-        </article>
+        <!-- 2) Placeholders (para futuro) -->
+        <article class="bd-card disabled"><h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Índices — SPY vs EWG vs EWJ</h3><div class="bd-chart"></div><div class="bd-note">Próximamente.</div></article>
+        <article class="bd-card disabled"><h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Big Tech — AAPL vs MSFT vs NVDA</h3><div class="bd-chart"></div><div class="bd-note">Próximamente.</div></article>
+        <article class="bd-card disabled"><h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Crypto Top 8</h3><div class="bd-chart"></div><div class="bd-note">Próximamente.</div></article>
+        <article class="bd-card disabled"><h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Commodities (ETF)</h3><div class="bd-chart"></div><div class="bd-note">Próximamente.</div></article>
+        <article class="bd-card disabled"><h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Próximamente</h3><div class="bd-chart"></div></article>
       </div>
     </div>
   </section>
@@ -172,18 +135,9 @@
     <div class="container">
       <h2 class="bd-title">Lo que hacemos</h2>
       <div class="cards-3">
-        <article class="card-soft">
-          <h4>Educación primero</h4>
-          <p>Somos un medio educativo: finanzas, IA, blockchain y analítica — sin “shilling” ni promesas mágicas.</p>
-        </article>
-        <article class="card-soft">
-          <h4>Dashboards a medida</h4>
-          <p>Discovery → Integración → Despliegue → Mantenimiento. Datos que se entienden y toman decisiones.</p>
-        </article>
-        <article class="card-soft">
-          <h4>IA / DeFi / Pagos</h4>
-          <p>Agentes de IA para tu negocio, consultoría DeFi y pasarelas fiat↔crypto con buenas prácticas.</p>
-        </article>
+        <article class="card-soft"><h4>Educación primero</h4><p>Somos un medio educativo: finanzas, IA, blockchain y analítica — sin “shilling” ni promesas mágicas.</p></article>
+        <article class="card-soft"><h4>Dashboards a medida</h4><p>Discovery → Integración → Despliegue → Mantenimiento. Datos que se entienden y toman decisiones.</p></article>
+        <article class="card-soft"><h4>IA / DeFi / Pagos</h4><p>Agentes de IA para tu negocio, consultoría DeFi y pasarelas fiat↔crypto con buenas prácticas.</p></article>
       </div>
     </div>
   </section>
@@ -224,7 +178,7 @@
     </div>
   </footer>
 
-  <!-- Tu script de la app (dibuja el gráfico TradFi · Chile) -->
+  <!-- Tu app -->
   <script src="assets/js/app.js"></script>
 </body>
 </html>
