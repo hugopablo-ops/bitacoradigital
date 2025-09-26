@@ -266,7 +266,12 @@ function toMonthlyLast(points){
   return Object.entries(by).map(([time,value])=>({time,value}))
     .sort((a,b)=> a.time.localeCompare(b.time));
 }
+<script>
+  // === Proxy para Stooq (ajusta a tu dominio del Worker) ===
+  const STOOQ_PROXY = 'https://tradfi.hugopablo.workers.dev/?url=';
 
+
+  
 /* ===========================================================
    Fetchers
    =========================================================== */
@@ -281,20 +286,25 @@ async function fetchMindicador(tipo){
   });
   return toMonthlyLast(pts);
 }
-// Stooq mensual (close)
-async function fetchStooqMonthly(ticker){
-  const r = await fetch(`https://stooq.com/q/d/l/?s=${ticker}&i=m`, { cache:'no-store' });
-  if(!r.ok) throw new Error(`stooq ${ticker} ${r.status}`);
-  const csv = await r.text();
-  const lines = csv.trim().split(/\r?\n/).slice(1);
-  const out=[];
-  for(const ln of lines){
-    const [date,open,high,low,close,vol] = ln.split(',');
-    if(!date || !close) continue;
-    out.push({ time: date, value: Number(close) });
+  // Stooq mensual CSV vía PROXY
+  async function fetchStooqMonthly(ticker){
+    const real = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
+    const url  = STOOQ_PROXY + encodeURIComponent(real);
+
+    const r = await fetch(url, { cache:'no-store' });
+    if(!r.ok) throw new Error(`stooq ${ticker} ${r.status}`);
+    const csv = await r.text();
+
+    const out = [];
+    const lines = csv.trim().split(/\r?\n/).slice(1); // quita header
+    for (const ln of lines){
+      const [date,open,high,low,close,vol] = ln.split(',');
+      if (!date || !close) continue;
+      out.push({ time: date, value: Number(close) });
+    }
+    return out;
   }
-  return out;
-}
+
 
 /* ===========================================================
    Chart helpers
@@ -315,79 +325,94 @@ function addLine(chart, label, color){
 /* ===========================================================
    TradFi · Chile (UF vs USD/CLP vs IPSA proxy ECH)
    =========================================================== */
-async function drawChile(){
-  const root = document.getElementById('c-chile');
-  const tip  = document.getElementById('tip-chile');
-  const note = document.getElementById('note-chile');
-  if(!root) return;
-
-  try{
-    // 1) Traer las 3 series
-    const [uf, usd, ech] = await Promise.all([
-      fetchMindicador('uf'),
-      fetchMindicador('dolar'),
-      fetchStooqMonthly('ech.us')
-    ]);
-
-    // 2) Alinear fechas y normalizar a Base 100
-    let [S1,S2,S3] = intersectDates([uf, usd, ech]);
-    S1 = base100(S1); S2 = base100(S2); S3 = base100(S3);
-
-    // 3) Chart
-    const chart = makeChart(root);
-    const L1 = addLine(chart,'UF',COLORS[0]); L1.setData(S1);
-    const L2 = addLine(chart,'USD/CLP',COLORS[1]); L2.setData(S2);
-    const L3 = addLine(chart,'IPSA (ECH)',COLORS[2]); L3.setData(S3);
-
-    // 4) Tooltip sincronizado
-    const series = [
-      { label:'UF',       color:COLORS[0], line:L1, data:S1 },
-      { label:'USD/CLP',  color:COLORS[1], line:L2, data:S2 },
-      { label:'IPSA (ECH)', color:COLORS[2], line:L3, data:S3 },
-    ];
-
-    function fmt(n){ return (Math.round(n*100)/100).toLocaleString('es-CL') }
-    function htmlTip(dateISO, points){
-      const d = new Date(dateISO+'T00:00:00Z');
-      const head = d.toLocaleDateString('es-CL', {year:'numeric', month:'short'});
-      const rows = points.map(p=>(
-        `<div class="row"><span class="dot" style="background:${p.color}"></span>
-           <span class="k">${p.label}</span><strong>${fmt(p.value)}</strong>
-         </div>`
-      )).join('');
-      return `<div style="margin-bottom:6px;opacity:.9">${head}</div>${rows}`;
-    }
-
-    chart.subscribeCrosshairMove(param=>{
-      if(!param?.time){ tip.classList.remove('show'); return; }
-      const t = param.time; // formato YYYY-MM-DD
-      const pts = [];
-      for(const s of series){
-        const hit = s.data.find(p=>p.time===t);
-        if(hit) pts.push({ label:s.label, color:s.color, value:hit.value });
-      }
-      if(!pts.length){ tip.classList.remove('show'); return; }
-      tip.innerHTML = htmlTip(t, pts);
-      tip.style.left = (param.point.x + 12) + 'px';
-      tip.style.top  = (param.point.y + 12) + 'px';
-      tip.classList.add('show');
-    });
-    root.addEventListener('mouseleave', ()=> tip.classList.remove('show'));
-
-  }catch(e){
-    console.warn(e);
-    note.textContent = "No se pudo cargar (Chile).";
-    note.style.display = 'block';
+  // Utilidades
+  const COLORS = ["#63b3ed","#f6ad55","#9f7aea"]; // UF, USD/CLP, IPSA(ECH)
+  const isoMonth = (d) => {
+    const y=d.getUTCFullYear(), m=String(d.getUTCMonth()+1).padStart(2,"0");
+    return `${y}-${m}-01`;
+  };
+  function toMonthlyLast(points){
+    const by = {};
+    for (const p of points) by[p.time] = p.value;
+    return Object.entries(by).map(([time,value])=>({time,value}))
+      .sort((a,b)=> a.time.localeCompare(b.time));
   }
-}
+  function base100(arr){
+    if(!arr.length) return arr;
+    const base = arr.find(p=>Number.isFinite(p.value))?.value ?? 1;
+    return arr.map(p => ({ time:p.time, value:(p.value/base)*100 }));
+  }
+  function intersectDates(seriesArray){
+    const sets = seriesArray.map(s=> new Set(s.map(p=>p.time)));
+    const common = [...sets[0]].filter(t=> sets.every(S => S.has(t))).sort();
+    return seriesArray.map(s => s.filter(p=> common.includes(p.time)));
+  }
 
-/* ===========================================================
-   Bootstrap
-   =========================================================== */
-window.addEventListener('DOMContentLoaded', ()=>{
-  drawChile(); // Primer cuadrante activo
-});
+  // NOTE: asegúrate de tener la librería cargada una sola vez en <head>:
+  // <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
+  function makeChart(el){
+    return LightweightCharts.createChart(el, {
+      layout: { background:{type:'solid', color:'transparent'}, textColor:'#cbd5e0' },
+      grid:{ vertLines:{color:'#1a202c'}, horzLines:{color:'#1a202c'} },
+      rightPriceScale:{ borderColor:'#2d3748', mode: 2 }, // 2 = Logarithmic
+      timeScale:{ borderColor:'#2d3748' },
+      localization:{ locale:'es-CL' },
+      crosshair: { mode: 1 } // normal
+    });
+  }
+
+  function addLine(chart, label, color){
+    return chart.addLineSeries({ title:label, color, lineWidth:2 });
+  }
+
+  // === Dibujo del primer comparativo (TradFi Chile) ===
+  async function drawChile(){
+    const root = document.getElementById('c-chile');
+    const note = document.getElementById('c-chile-note');
+    if (!root) return;
+
+    try{
+      // 1) Trae UF + USD/CLP (diario -> mensual último) desde mindicador
+      const ufRaw = await (await fetch('https://mindicador.cl/api/uf', {cache:'no-store'})).json();
+      const usdRaw= await (await fetch('https://mindicador.cl/api/dolar', {cache:'no-store'})).json();
+
+      const uf = toMonthlyLast(ufRaw.serie.map(x=>{
+        const d = new Date(x.fecha);
+        return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: x.valor };
+      }));
+      const usd = toMonthlyLast(usdRaw.serie.map(x=>{
+        const d = new Date(x.fecha);
+        return { time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), value: x.valor };
+      }));
+
+      // 2) IPSA via proxy (ETF ECH mensual CSV)
+      const ech = await fetchStooqMonthly('ech.us');
+
+      // 3) Alinea por fechas comunes y normaliza Base 100
+      let [a,b,c] = intersectDates([uf, usd, ech]); // mismo rango
+      a = base100(a); b = base100(b); c = base100(c);
+
+      // 4) Pinta (logarítmico + tooltip nativo de la lib)
+      const chart = makeChart(root);
+      addLine(chart,'UF',COLORS[0]).setData(a);
+      addLine(chart,'USD/CLP',COLORS[1]).setData(b);
+      addLine(chart,'IPSA (ECH)',COLORS[2]).setData(c);
+
+      // 5) Click → detalle
+      root.onclick = () => { window.location.href = '/detail/tradfi-cl'; };
+      if (note) note.style.display = 'none';
+    }catch(e){
+      console.warn(e);
+      root.innerHTML = '<div style="padding:1rem;color:#a0aec0">No se pudo cargar (Chile).</div>';
+      if (note) note.style.display = 'block';
+    }
+  }
+
+  // Bootstrap: pinta al cargar
+  window.addEventListener('DOMContentLoaded', drawChile);
 </script>
+
 
 </body>
 </html>
