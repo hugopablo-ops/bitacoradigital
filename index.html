@@ -10,16 +10,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Estilos base -->
+  <!-- Estilos base (tema oscuro, compactos) -->
   <style>
     :root{
-      --bg:#0f1620; --card:#141c27; --line:#243143; --text:#dbe4f3; --muted:#96a3b7; --accent:#2dde9b; --accent2:#4dd3ff;
-      --radius:14px;
+      --bg:#0f1620; --card:#141c27; --line:#243143; --text:#dbe4f3; --muted:#96a3b7; 
+      --accent:#2dde9b; --accent2:#4dd3ff; --radius:14px;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif; line-height:1.55}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; line-height:1.55}
     a{color:inherit;text-decoration:none}
     .container{max-width:1200px;margin:0 auto;padding:0 16px}
+
+    /* NAV */
     .nav{position:sticky;top:0;z-index:20;background:rgba(8,12,18,.7);backdrop-filter: blur(6px); border-bottom:1px solid #0b1119}
     .nav__inner{display:flex;align-items:center;justify-content:space-between;height:56px}
     .brand{display:flex;align-items:center;gap:10px;font-weight:600}
@@ -27,6 +29,7 @@
     .nav__links a{margin-left:20px;color:#b7c3d9}
     .nav__links a:hover{color:#fff}
 
+    /* HERO */
     .hero{padding:56px 0 26px;border-bottom:1px solid #0b1119}
     .hero__inner{display:grid;grid-template-columns:1.2fr .8fr; gap:20px}
     .hero__copy h1{font-size:40px;margin:.2rem 0 10px}
@@ -39,20 +42,20 @@
     .chips{display:flex;gap:10px;justify-content:flex-end;align-items:flex-end}
     .chip{background:#192234;border:1px solid #273347;padding:10px 8px;border-radius:12px;color:#b3c1d9;min-width:48px;text-align:center}
 
-    /* Grid comparativos */
-    #bd-analytic{padding:28px 0 10px}
+    /* GRID COMPARATIVOS */
+    #analytic.section{padding:36px 0}
     .bd-title{font-size:22px;margin:0 0 4px}
     .bd-subtitle{color:var(--muted);margin:0 0 18px}
     .bd-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
     @media (max-width:1024px){ .bd-grid{grid-template-columns:repeat(2,1fr)}}
     @media (max-width:680px){ .bd-grid{grid-template-columns:1fr}}
-    .bd-card{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius); padding:12px; cursor:pointer}
+    .bd-card{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius); padding:12px; cursor:pointer; min-height:320px}
     .bd-card:hover{border-color:#2e3e55}
     .bd-card.disabled{cursor:default}
     .bd-chart{width:100%;height:300px}
     .bd-note{color:var(--muted);font-size:.92rem;margin-top:6px}
 
-    /* Secciones */
+    /* SECCIONES */
     .section{padding:36px 0}
     .cards-3{display:grid;gap:16px;grid-template-columns:repeat(3,1fr)}
     @media (max-width:900px){.cards-3{grid-template-columns:1fr}}
@@ -62,9 +65,8 @@
     .footer__inner{display:flex;justify-content:space-between;align-items:center}
   </style>
 
-  <!-- Lightweight Charts -->
+  <!-- Lightweight Charts (cargar UNA sola vez) -->
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="assets/js/app.js" defer></script>
 </head>
 <body>
 
@@ -89,11 +91,14 @@
     <div class="container hero__inner">
       <div class="hero__copy">
         <h1>Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
-        <p class="muted">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>.</p>
+        <p class="muted">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: individuos capacitados para integrar finanzas y tecnología.</p>
         <div class="hero__cta">
           <a class="btn btn--primary" href="#analytic">Ver comparativos</a>
           <a class="btn" href="#podcast">Escuchar podcast</a>
           <a class="btn" href="#servicios">Servicios</a>
+          <a class="btn" href="#bd-labs">BD Labs</a>
+          <a class="btn" href="#bd-merch">BD Merchandising</a>
+          <a class="btn" href="#contacto">Contacto</a>
         </div>
       </div>
       <div class="chips">
@@ -105,26 +110,59 @@
     </div>
   </section>
 
-  <!-- DASHBOARDS -->
+  <!-- DASHBOARDS COMPARATIVOS -->
   <section id="analytic" class="section">
     <div class="container">
       <h2 class="bd-title">Dashboards comparativos</h2>
-      <p class="bd-subtitle">Series mensuales, logarítmicas y normalizadas a <strong>Base 100</strong>.</p>
+      <p class="bd-subtitle">Series mensuales, <em>logarítmicas</em> y normalizadas a <strong>Base 100</strong>. Todos los gráficos sincronizados.</p>
 
       <div class="bd-grid">
-        <!-- TradFi Chile -->
+        <!-- 1) TradFi Chile (Interactivo) -->
         <article class="bd-card">
           <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
-          <p class="bd-sub">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
+          <p class="bd-subtitle">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
           <div id="c-chile" class="bd-chart"></div>
-          <div id="c-chile-note" class="bd-note" style="display:none"></div>
+          <div id="c-chile-note" class="bd-note" style="display:none">No se pudo cargar (Chile).</div>
         </article>
 
-        <!-- Placeholders para otros -->
-        <article class="bd-card disabled"><h3 class="bd-title">Índices — SPY vs DAX vs Nikkei</h3><div class="bd-chart"></div></article>
-        <article class="bd-card disabled"><h3 class="bd-title">Big Tech — AAPL vs MSFT vs NVDA</h3><div class="bd-chart"></div></article>
-        <article class="bd-card disabled"><h3 class="bd-title">Crypto · Top 8</h3><div class="bd-chart"></div></article>
-        <article class="bd-card disabled"><h3 class="bd-title">Commodities — Oro vs Plata vs Brent</h3><div class="bd-chart"></div></article>
+        <!-- 2) Índices (placeholder listo para conectar a futuro) -->
+        <article class="bd-card disabled" id="card-indices" onclick="window.location.href='/detail/indices'">
+          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Índices — SPY (S&amp;P500) vs EWG (DAX) vs EWJ (Nikkei)</h3>
+          <p class="bd-note" style="margin-top:0">ETF proxies vía Stooq (mensual)</p>
+          <div id="c-indices" class="bd-chart"></div>
+          <div class="bd-note">Próximamente.</div>
+        </article>
+
+        <!-- 3) Tech (placeholder) -->
+        <article class="bd-card disabled" id="card-tech" onclick="window.location.href='/detail/tech'">
+          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Big Tech / IA — AAPL vs MSFT vs NVDA</h3>
+          <p class="bd-note" style="margin-top:0">Precios USD vía Stooq (mensual)</p>
+          <div id="c-tech" class="bd-chart"></div>
+          <div class="bd-note">Próximamente.</div>
+        </article>
+
+        <!-- 4) Crypto (placeholder) -->
+        <article class="bd-card disabled" id="card-crypto" onclick="window.location.href='/detail/crypto'">
+          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Crypto · Top 8 (Base 100, últimos 5 años)</h3>
+          <p class="bd-note" style="margin-top:0">BTC, ETH, SOL, BNB, XRP, ADA, LINK, DOT — CoinGecko (USD)</p>
+          <div id="c-crypto" class="bd-chart"></div>
+          <div class="bd-note">Próximamente.</div>
+        </article>
+
+        <!-- 5) Commodities (placeholder) -->
+        <article class="bd-card disabled" id="card-commod" onclick="window.location.href='/detail/commodities'">
+          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Commodities (ETF) — IAU (Oro) vs SLV (Plata) vs BNO (Brent)</h3>
+          <p class="bd-note" style="margin-top:0">ETF proxies vía Stooq (mensual)</p>
+          <div id="c-commod" class="bd-chart"></div>
+          <div class="bd-note">Próximamente.</div>
+        </article>
+
+        <!-- 6) Libre -->
+        <article class="bd-card disabled">
+          <h3 class="bd-title" style="font-size:18px;margin:4px 0 6px">Próximamente</h3>
+          <p class="bd-note">Otro comparativo que elijas. Sugerencias: LatAm, Small Caps o BTC vs Oro vs SPY.</p>
+          <div class="bd-chart"></div>
+        </article>
       </div>
     </div>
   </section>
@@ -134,9 +172,18 @@
     <div class="container">
       <h2 class="bd-title">Lo que hacemos</h2>
       <div class="cards-3">
-        <article class="card-soft"><h4>Educación primero</h4><p>Somos un medio educativo: finanzas, IA, blockchain y analítica — sin humo.</p></article>
-        <article class="card-soft"><h4>Dashboards a medida</h4><p>Discovery → Integración → Despliegue → Mantenimiento.</p></article>
-        <article class="card-soft"><h4>IA / DeFi / Pagos</h4><p>Agentes de IA, consultoría DeFi y pasarelas fiat↔crypto.</p></article>
+        <article class="card-soft">
+          <h4>Educación primero</h4>
+          <p>Somos un medio educativo: finanzas, IA, blockchain y analítica — sin “shilling” ni promesas mágicas.</p>
+        </article>
+        <article class="card-soft">
+          <h4>Dashboards a medida</h4>
+          <p>Discovery → Integración → Despliegue → Mantenimiento. Datos que se entienden y toman decisiones.</p>
+        </article>
+        <article class="card-soft">
+          <h4>IA / DeFi / Pagos</h4>
+          <p>Agentes de IA para tu negocio, consultoría DeFi y pasarelas fiat↔crypto con buenas prácticas.</p>
+        </article>
       </div>
     </div>
   </section>
@@ -147,8 +194,21 @@
       <h2 class="bd-title">Podcast</h2>
       <p class="bd-subtitle">Escucha los últimos episodios sin salir de la web.</p>
       <div class="embed">
-        <iframe src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+        <iframe src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
       </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap" class="section">
+    <div class="container">
+      <h2 class="bd-title">Roadmap</h2>
+      <ol class="bd-note" style="line-height:1.9">
+        <li><strong>v0.1</strong> · Maqueta con dashboard en vivo (Crypto + CLP/UF). ✅</li>
+        <li><strong>v0.2</strong> · Comparativos interactivos + detalle por gráfico. ✅</li>
+        <li><strong>v0.3</strong> · Commodities e índices extra. 🔜</li>
+        <li><strong>v0.4</strong> · Alertas / Email digests. 🔜</li>
+      </ol>
     </div>
   </section>
 
@@ -163,5 +223,8 @@
       </div>
     </div>
   </footer>
+
+  <!-- Tu script de la app (dibuja el gráfico TradFi · Chile) -->
+  <script src="assets/js/app.js"></script>
 </body>
 </html>
