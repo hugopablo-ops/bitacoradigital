@@ -1,15 +1,17 @@
 (() => {
-/* Bitácora Digital - app.js (Home) - VERSION DEBUG FECHAS
-   - TradFi Chile (UF, USD/CLP, IPSA proxy ECH)
-   - Debugging detallado de formatos de fecha
+/* Bitácora Digital - app.js (Home) - VERSION LIMPIA Y FUNCIONAL
+   TradFi Chile: UF vs USD/CLP vs IPSA (proxy ECH)
+   - Datos históricos por año desde Mindicador
+   - Stooq via proxy para ECH
+   - Base 100 + Log scale
 */
 
-// === URL del Worker (Cloudflare) para proxy Stooq ===
+// === CONFIGURACIÓN ===
 const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
+const COLORS = ["#63b3ed", "#f6ad55", "#9f7aea"];
+const YEARS_TO_FETCH = 10;
 
-// Paleta y utilidades
-const COLORS = ["#63b3ed","#f6ad55","#9f7aea"]; // UF, USD/CLP, IPSA(ECH)
-
+// === UTILIDADES ===
 const isoMonth = (d) => {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
@@ -28,38 +30,29 @@ function toMonthlyLast(points) {
 
 function base100(arr) {
   if (!arr?.length) return arr;
-  const firstValidIndex = arr.findIndex(p => Number.isFinite(p.value));
-  if (firstValidIndex < 0) return arr;
-  const baseValue = arr[firstValidIndex].value;
-  return arr.map(p => ({ 
-    time: p.time, 
-    value: (p.value / baseValue) * 100 
-  }));
+  const firstValid = arr.findIndex(p => Number.isFinite(p.value));
+  if (firstValid < 0) return arr;
+  const base = arr[firstValid].value;
+  return arr.map(p => ({ time: p.time, value: (p.value / base) * 100 }));
 }
 
 function intersectDates(seriesArray) {
-  console.log('\n🔍 ANÁLISIS DE INTERSECCIÓN:');
+  console.log('\n🔍 INTERSECCIÓN DE FECHAS:');
   
   seriesArray.forEach((series, idx) => {
     const dates = series.map(p => p.time);
-    console.log(`   Serie ${idx}: ${dates.length} fechas`);
-    console.log(`     Primera: ${dates[0]}`);
-    console.log(`     Última: ${dates[dates.length - 1]}`);
-    console.log(`     Ejemplo primeras 3: ${dates.slice(0, 3).join(', ')}`);
+    console.log(`   Serie ${idx}: ${dates.length} fechas (${dates[0]} → ${dates[dates.length-1]})`);
   });
   
   const sets = seriesArray.map(s => new Set(s.map(p => p.time)));
-  const commonDates = [...sets[0]]
-    .filter(t => sets.every(S => S.has(t)))
-    .sort();
+  const common = [...sets[0]].filter(t => sets.every(S => S.has(t))).sort();
   
-  console.log(`   ✓ Fechas comunes encontradas: ${commonDates.length}`);
-  if (commonDates.length > 0) {
-    console.log(`     Primera común: ${commonDates[0]}`);
-    console.log(`     Última común: ${commonDates[commonDates.length - 1]}`);
+  console.log(`   ✅ Fechas comunes: ${common.length}`);
+  if (common.length > 0) {
+    console.log(`   Rango común: ${common[0]} → ${common[common.length-1]}`);
   }
   
-  return seriesArray.map(s => s.filter(p => commonDates.includes(p.time)));
+  return seriesArray.map(s => s.filter(p => common.includes(p.time)));
 }
 
 // Fetch con timeout
@@ -77,67 +70,64 @@ async function fetchWithTimeout(url, options = {}, timeout = 15000) {
   } catch (error) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
-      throw new Error(`Timeout después de ${timeout}ms`);
+      throw new Error(`Timeout (${timeout}ms)`);
     }
     throw error;
   }
 }
 
-// Fetchers - OBTENER DATOS HISTÓRICOS POR AÑO
+// === MINDICADOR: OBTENER DATOS POR AÑO ===
 async function fetchMindicador(tipo) {
-  console.log(`\n📡 Mindicador: ${tipo} (últimos 10 años)`);
+  console.log(`\n📡 Mindicador: ${tipo} (últimos ${YEARS_TO_FETCH} años)`);
   
   const currentYear = new Date().getFullYear();
-  const yearsToFetch = [];
-  
-  // Obtener los últimos 10 años
-  for (let i = 0; i < 10; i++) {
-    yearsToFetch.push(currentYear - i);
-  }
+  const years = Array.from({ length: YEARS_TO_FETCH }, (_, i) => currentYear - i);
   
   try {
-    // Hacer requests en paralelo para todos los años
-    const yearlyPromises = yearsToFetch.map(async (year) => {
-      const url = `https://mindicador.cl/api/${tipo}/${year}`;
-      console.log(`   Obteniendo datos de ${year}...`);
-      
-      const response = await fetchWithTimeout(url, { cache: 'no-store' });
-      
-      if (!response.ok) {
-        console.warn(`   ⚠️ Error año ${year}: HTTP ${response.status}`);
-        return [];
-      }
-      
-      const json = await response.json();
-      
-      if (!json.serie || !Array.isArray(json.serie)) {
-        console.warn(`   ⚠️ Error año ${year}: formato inválido`);
-        return [];
-      }
-      
-      return json.serie.map(x => {
-        const d = new Date(x.fecha);
-        return { 
-          time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), 
-          value: Number(x.valor) 
-        };
-      });
-    });
+    const yearlyData = await Promise.all(
+      years.map(async (year) => {
+        const url = `https://mindicador.cl/api/${tipo}/${year}`;
+        
+        try {
+          const response = await fetchWithTimeout(url, { cache: 'no-store' });
+          
+          if (!response.ok) {
+            console.warn(`   ⚠️ Año ${year}: HTTP ${response.status}`);
+            return [];
+          }
+          
+          const json = await response.json();
+          
+          if (!json.serie || !Array.isArray(json.serie)) {
+            console.warn(`   ⚠️ Año ${year}: sin datos`);
+            return [];
+          }
+          
+          console.log(`   ✓ Año ${year}: ${json.serie.length} registros`);
+          
+          return json.serie.map(x => {
+            const d = new Date(x.fecha);
+            return {
+              time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))),
+              value: Number(x.valor)
+            };
+          });
+          
+        } catch (err) {
+          console.warn(`   ⚠️ Año ${year}: ${err.message}`);
+          return [];
+        }
+      })
+    );
     
-    // Esperar todas las respuestas
-    const yearlyResults = await Promise.all(yearlyPromises);
-    
-    // Combinar todos los puntos
-    const allPoints = yearlyResults.flat();
+    const allPoints = yearlyData.flat();
     
     if (allPoints.length === 0) {
-      throw new Error('No se obtuvieron datos históricos');
+      throw new Error('No se obtuvieron datos');
     }
     
-    // Agrupar por mes (tomar último valor del mes)
     const monthly = toMonthlyLast(allPoints);
-    
-    console.log(`   ✅ ${monthly.length} puntos mensuales`);
+    console.log(`   ✅ Total: ${monthly.length} puntos mensuales`);
     console.log(`   Rango: ${monthly[0]?.time} → ${monthly[monthly.length-1]?.time}`);
     
     return monthly;
@@ -148,66 +138,61 @@ async function fetchMindicador(tipo) {
   }
 }
 
-// Stooq - CONVERTIR FECHAS A FORMATO YYYY-MM-01
+// === STOOQ: OBTENER ETF ECH VIA PROXY ===
 async function fetchStooqMonthly(ticker) {
+  console.log(`\n📡 Stooq: ${ticker}`);
+  
   const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
-  console.log(`\n📡 Stooq: ${ticker}`);
-  console.log(`   Proxy: ${STOOQ_PROXY}`);
+  console.log(`   Proxy: ${proxyUrl}`);
   
   try {
     const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' });
     
     if (!response.ok) {
-      const errorText = await response.text().catch(() => '');
-      throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
+      const text = await response.text().catch(() => '');
+      throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
     }
     
     const csv = await response.text();
+    console.log(`   CSV: ${csv.length} caracteres`);
     
-    if (!csv || csv.length < 50) {
+    if (csv.length < 50) {
       throw new Error('CSV vacío');
     }
-    
-    console.log(`   CSV: ${csv.length} caracteres`);
     
     const lines = csv.trim().split(/\r?\n/);
     const header = lines[0];
     
-    console.log(`   Header: ${header}`);
-    
     if (!header.includes('Date') || !header.includes('Close')) {
-      throw new Error('CSV sin Date/Close');
+      throw new Error('CSV sin columnas Date/Close');
     }
     
-    const out = [];
+    const points = [];
     
     for (const line of lines.slice(1)) {
-      const [date, open, high, low, close, vol] = line.split(',');
+      const [date, , , , close] = line.split(',');
       if (!date || !close) continue;
       
-      const closeValue = Number(close);
-      if (!Number.isFinite(closeValue)) continue;
+      const value = Number(close);
+      if (!Number.isFinite(value)) continue;
       
-      // CONVERTIR FECHA STOOQ (YYYY-MM-DD) A PRIMER DÍA DEL MES
+      // Normalizar a primer día del mes: YYYY-MM-DD → YYYY-MM-01
       const parts = date.split('-');
       if (parts.length === 3) {
-        const normalizedDate = `${parts[0]}-${parts[1]}-01`;
-        out.push({ time: normalizedDate, value: closeValue });
+        const normalized = `${parts[0]}-${parts[1]}-01`;
+        points.push({ time: normalized, value });
       }
     }
     
-    if (out.length === 0) {
-      throw new Error('No se parsearon datos');
+    if (points.length === 0) {
+      throw new Error('No se parsearon datos del CSV');
     }
     
-    // Agrupar por mes (tomar último del mes)
-    const monthly = toMonthlyLast(out);
-    
-    console.log(`   ✅ ${monthly.length} puntos mensuales`);
+    const monthly = toMonthlyLast(points);
+    console.log(`   ✅ Total: ${monthly.length} puntos mensuales`);
     console.log(`   Rango: ${monthly[0]?.time} → ${monthly[monthly.length-1]?.time}`);
-    console.log(`   Ejemplos: ${monthly.slice(0, 3).map(p => p.time).join(', ')}`);
     
     return monthly;
     
@@ -217,24 +202,24 @@ async function fetchStooqMonthly(ticker) {
   }
 }
 
-// Chart helpers
-function makeChart(el) {
-  return LightweightCharts.createChart(el, {
-    layout: { 
-      background: { type: 'solid', color: 'transparent' }, 
-      textColor: '#cfe0ff' 
+// === GRÁFICO ===
+function createChart(container) {
+  return LightweightCharts.createChart(container, {
+    layout: {
+      background: { type: 'solid', color: 'transparent' },
+      textColor: '#cfe0ff'
     },
-    rightPriceScale: { 
-      borderColor: '#233048', 
+    rightPriceScale: {
+      borderColor: '#233048',
       mode: 2  // logarithmic
     },
-    timeScale: { 
-      borderColor: '#233048', 
-      rightOffset: 2 
+    timeScale: {
+      borderColor: '#233048',
+      rightOffset: 2
     },
-    grid: { 
-      vertLines: { color: '#1a2434' }, 
-      horzLines: { color: '#1a2434' } 
+    grid: {
+      vertLines: { color: '#1a2434' },
+      horzLines: { color: '#1a2434' }
     },
     localization: { locale: 'es-CL' },
     crosshair: {
@@ -243,92 +228,100 @@ function makeChart(el) {
   });
 }
 
-function addLine(chart, label, color) {
-  return chart.addLineSeries({ 
-    title: label, 
-    color, 
-    lineWidth: 2 
+function addLineSeries(chart, label, color) {
+  return chart.addLineSeries({
+    title: label,
+    color,
+    lineWidth: 2
   });
 }
 
-// Dibujo del comparativo TradFi Chile
+// === DIBUJA EL GRÁFICO TRADFI CHILE ===
 async function drawChile() {
-  const root = document.getElementById('c-chile');
-  const note = document.getElementById('c-chile-note');
+  const container = document.getElementById('c-chile');
+  const noteEl = document.getElementById('c-chile-note');
   
-  if (!root) {
-    console.warn('❌ Container #c-chile no encontrado');
+  if (!container) {
+    console.warn('❌ Contenedor #c-chile no encontrado');
     return;
   }
-
+  
   try {
-    console.log('\n🚀 === INICIANDO CARGA TRADFI CHILE ===');
+    console.log('\n🚀 === INICIANDO TRADFI CHILE ===');
     
-    // Fetch en paralelo
+    // Cargar las 3 fuentes en paralelo
     const [uf, usd, ech] = await Promise.all([
       fetchMindicador('uf'),
       fetchMindicador('dolar'),
       fetchStooqMonthly('ech.us')
     ]);
-
+    
     console.log('\n✅ Todas las fuentes cargadas');
-
-    // Intersectar fechas
+    
+    // Intersectar fechas comunes
     let [ufAligned, usdAligned, echAligned] = intersectDates([uf, usd, ech]);
     
     if (ufAligned.length === 0) {
       throw new Error('No hay fechas comunes entre las series');
     }
-
+    
     // Normalizar a Base 100
     ufAligned = base100(ufAligned);
     usdAligned = base100(usdAligned);
     echAligned = base100(echAligned);
-
-    console.log('\n📊 Creando gráfico...');
-
-    // Limpiar loading
-    root.innerHTML = '';
-
-    // Crear chart
-    const chart = makeChart(root);
+    
+    console.log('\n📊 Renderizando gráfico...');
+    
+    // Limpiar mensaje de carga
+    container.innerHTML = '';
+    
+    // Crear gráfico
+    const chart = createChart(container);
     
     // Agregar series
-    addLine(chart, 'UF', COLORS[0]).setData(ufAligned);
-    addLine(chart, 'USD/CLP', COLORS[1]).setData(usdAligned);
-    addLine(chart, 'IPSA (ECH)', COLORS[2]).setData(echAligned);
-
-    console.log('✅ Gráfico renderizado exitosamente\n');
-
-    // Click → detalle
-    root.style.cursor = 'pointer';
-    root.onclick = () => { 
-      window.location.href = '/detail/tradfi-cl'; 
+    addLineSeries(chart, 'UF', COLORS[0]).setData(ufAligned);
+    addLineSeries(chart, 'USD/CLP', COLORS[1]).setData(usdAligned);
+    addLineSeries(chart, 'IPSA (ECH)', COLORS[2]).setData(echAligned);
+    
+    console.log('✅ ¡Gráfico renderizado exitosamente!\n');
+    
+    // Hacer clickeable
+    container.style.cursor = 'pointer';
+    container.onclick = () => {
+      window.location.href = '/detail/tradfi-cl';
     };
     
-    if (note) {
-      note.style.display = 'none';
+    if (noteEl) {
+      noteEl.style.display = 'none';
     }
-
+    
   } catch (error) {
     console.error('\n❌ ERROR FATAL:', error);
     
-    root.innerHTML = `<div style="padding:1rem;color:#f56565;text-align:center">
-      Error al cargar datos: ${error.message}
-    </div>`;
+    container.innerHTML = `
+      <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
+        <strong>Error al cargar datos</strong><br>
+        <small style="color:#cbd5e0">${error.message}</small>
+      </div>
+    `;
     
-    if (note) {
-      note.textContent = `Error: ${error.message}`;
-      note.style.display = 'block';
-      note.style.color = '#f56565';
+    if (noteEl) {
+      noteEl.textContent = `Error: ${error.message}`;
+      noteEl.style.display = 'block';
+      noteEl.style.color = '#f56565';
     }
   }
 }
 
-// Initialize
-window.addEventListener('DOMContentLoaded', () => {
-  console.log('🎬 DOM cargado, inicializando...');
+// === INICIALIZACIÓN ===
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎬 DOM cargado, inicializando...');
+    drawChile();
+  });
+} else {
+  console.log('🎬 DOM ya cargado, inicializando...');
   drawChile();
-});
+}
 
 })();
