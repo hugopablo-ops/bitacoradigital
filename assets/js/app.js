@@ -83,45 +83,59 @@ async function fetchWithTimeout(url, options = {}, timeout = 15000) {
   }
 }
 
-// Fetchers - OBTENER DATOS HISTÓRICOS COMPLETOS
+// Fetchers - OBTENER DATOS HISTÓRICOS POR AÑO
 async function fetchMindicador(tipo) {
-  // Calcular fechas: desde 10 años atrás hasta hoy
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setFullYear(startDate.getFullYear() - 10);
-  
-  const formatDate = (d) => {
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
-  
-  const url = `https://mindicador.cl/api/${tipo}/${formatDate(startDate)}/${formatDate(endDate)}`;
   console.log(`\n📡 Mindicador: ${tipo} (últimos 10 años)`);
   
+  const currentYear = new Date().getFullYear();
+  const yearsToFetch = [];
+  
+  // Obtener los últimos 10 años
+  for (let i = 0; i < 10; i++) {
+    yearsToFetch.push(currentYear - i);
+  }
+  
   try {
-    const response = await fetchWithTimeout(url, { cache: 'no-store' });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    const json = await response.json();
-    
-    if (!json.serie || !Array.isArray(json.serie)) {
-      throw new Error('Formato inválido');
-    }
-    
-    const points = json.serie.map(x => {
-      const d = new Date(x.fecha);
-      return { 
-        time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), 
-        value: Number(x.valor) 
-      };
+    // Hacer requests en paralelo para todos los años
+    const yearlyPromises = yearsToFetch.map(async (year) => {
+      const url = `https://mindicador.cl/api/${tipo}/${year}`;
+      console.log(`   Obteniendo datos de ${year}...`);
+      
+      const response = await fetchWithTimeout(url, { cache: 'no-store' });
+      
+      if (!response.ok) {
+        console.warn(`   ⚠️ Error año ${year}: HTTP ${response.status}`);
+        return [];
+      }
+      
+      const json = await response.json();
+      
+      if (!json.serie || !Array.isArray(json.serie)) {
+        console.warn(`   ⚠️ Error año ${year}: formato inválido`);
+        return [];
+      }
+      
+      return json.serie.map(x => {
+        const d = new Date(x.fecha);
+        return { 
+          time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))), 
+          value: Number(x.valor) 
+        };
+      });
     });
     
-    const monthly = toMonthlyLast(points);
+    // Esperar todas las respuestas
+    const yearlyResults = await Promise.all(yearlyPromises);
+    
+    // Combinar todos los puntos
+    const allPoints = yearlyResults.flat();
+    
+    if (allPoints.length === 0) {
+      throw new Error('No se obtuvieron datos históricos');
+    }
+    
+    // Agrupar por mes (tomar último valor del mes)
+    const monthly = toMonthlyLast(allPoints);
     
     console.log(`   ✅ ${monthly.length} puntos mensuales`);
     console.log(`   Rango: ${monthly[0]?.time} → ${monthly[monthly.length-1]?.time}`);
