@@ -6,17 +6,17 @@
   <title>Bitácora Digital: Decisiones en tiempo real para negocios reales</title>
   <meta name="description" content="Dashboards comparativos (TradFi, Índices, Tech, Crypto, Commodities) + Podcast. Educación aplicada en Web3, IA, Analítica, DeFi, TradFi y Fintech." />
   <link rel="icon" href="assets/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
+  <!-- UI base -->
   <style>
     :root{
       --bg:#0f1620; --card:#141c27; --line:#243143; --text:#dbe4f3; --muted:#96a3b7;
       --accent:#2dde9b; --accent2:#4dd3ff; --radius:14px;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"; line-height:1.55}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      line-height:1.55}
     a{color:inherit;text-decoration:none}
     .container{max-width:1200px;margin:0 auto;padding:0 16px}
     .nav{position:sticky;top:0;z-index:20;background:rgba(8,12,18,.7);backdrop-filter: blur(6px); border-bottom:1px solid #0b1119}
@@ -38,36 +38,30 @@
     .chips{display:flex;gap:10px;justify-content:flex-end;align-items:flex-end}
     .chip{background:#192234;border:1px solid #273347;padding:10px 8px;border-radius:12px;color:#b3c1d9;min-width:48px;text-align:center}
 
-    #analytic{padding:28px 0 10px}
+    .section{padding:28px 0 10px}
     .bd-title{font-size:22px;margin:0 0 4px}
     .bd-subtitle{color:var(--muted);margin:0 0 18px}
     .bd-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
     @media (max-width:1024px){ .bd-grid{grid-template-columns:repeat(2,1fr)}}
     @media (max-width:680px){ .bd-grid{grid-template-columns:1fr}}
-    .bd-card{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius); padding:12px; cursor:pointer}
+    .bd-card{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius); padding:12px; cursor:pointer; position:relative}
     .bd-card:hover{border-color:#2e3e55}
-    .bd-card.disabled{cursor:default}
+    .bd-card.disabled{cursor:default;opacity:0.6}
     .bd-chart{width:100%;height:300px}
     .bd-note{color:var(--muted);font-size:.92rem;margin-top:6px}
+    .bd-loading{padding:1rem;color:#96a3b7;text-align:center}
+    .bd-error{padding:1rem;color:#f56565;text-align:center}
 
-    .section{padding:36px 0}
-    .cards-3{display:grid;gap:16px;grid-template-columns:repeat(3,1fr)}
-    @media (max-width:900px){.cards-3{grid-template-columns:1fr}}
-    .card-soft{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius);padding:16px}
-    .embed iframe{border-radius:12px;border:0;width:100%;height:232px}
-    .footer{border-top:1px solid #0b1119;padding:18px 0;color:#9fb0c9}
+    .footer{border-top:1px solid #0b1119;padding:18px 0;color:#9fb0c9;margin-top:40px}
     .footer__inner{display:flex;justify-content:space-between;align-items:center}
   </style>
 
   <!-- Lightweight Charts (UNA sola vez) -->
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-
-  <!-- Proxy del Worker: define UNA sola vez -->
-  <script>
-    window.__BD_PROXY = 'https://tradfi.hugopablo.workers.dev/?url=';
-  </script>
 </head>
 <body>
+
+  <!-- NAV -->
   <header class="nav">
     <div class="container nav__inner">
       <div class="brand">
@@ -83,11 +77,12 @@
     </div>
   </header>
 
+  <!-- HERO -->
   <section class="hero">
     <div class="container hero__inner">
       <div class="hero__copy">
         <h1>Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
-        <p class="muted">Educación aplicada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: integrar finanzas y tecnología.</p>
+        <p class="muted">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: individuos capacitados para integrar finanzas y tecnología.</p>
         <div class="hero__cta">
           <a class="btn btn--primary" href="#analytic">Ver comparativos</a>
           <a class="btn" href="#podcast">Escuchar podcast</a>
@@ -98,22 +93,28 @@
         </div>
       </div>
       <div class="chips">
-        <div class="chip">CLP</div><div class="chip">BTC</div><div class="chip">ETH</div><div class="chip">UF</div>
+        <div class="chip">CLP</div>
+        <div class="chip">BTC</div>
+        <div class="chip">ETH</div>
+        <div class="chip">UF</div>
       </div>
     </div>
   </section>
 
+  <!-- DASHBOARDS -->
   <section id="analytic" class="section">
     <div class="container">
       <h2 class="bd-title">Dashboards comparativos</h2>
-      <p class="bd-subtitle">Series mensuales, <em>logarítmicas</em> y normalizadas a <strong>Base 100</strong>. Todos sincronizados.</p>
+      <p class="bd-subtitle">Series mensuales, <em>logarítmicas</em> y Base 100, sincronizadas.</p>
 
       <div class="bd-grid">
-        <!-- 1) TradFi Chile (Interactivo) -->
+        <!-- TradFi Chile (Interactivo) -->
         <article class="bd-card" id="card-chile">
           <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
-          <p class="bd-note">UF / US$ desde mindicador.cl · IPSA vía ETF ECH (Stooq)</p>
-          <div id="c-chile" class="bd-chart"></div>
+          <p class="bd-subtitle">UF / US$: mindicador.cl · IPSA: ETF ECH (Stooq vía proxy)</p>
+          <div id="c-chile" class="bd-chart">
+            <div class="bd-loading">Cargando datos...</div>
+          </div>
           <div id="c-chile-note" class="bd-note" style="display:none"></div>
         </article>
 
@@ -133,48 +134,31 @@
     </div>
   </section>
 
-  <section class="section" id="servicios">
-    <div class="container">
-      <h2 class="bd-title">Lo que hacemos</h2>
-      <div class="cards-3">
-        <article class="card-soft"><h4>Educación primero</h4><p>Finanzas, IA, blockchain y analítica—sin humo.</p></article>
-        <article class="card-soft"><h4>Dashboards a medida</h4><p>Discovery → Integración → Despliegue.</p></article>
-        <article class="card-soft"><h4>IA / DeFi / Pagos</h4><p>Agentes de IA, consultoría DeFi y pagos.</p></article>
-      </div>
-    </div>
-  </section>
-
+  <!-- PODCAST -->
   <section id="podcast" class="section">
     <div class="container">
       <h2 class="bd-title">Podcast</h2>
-      <p class="bd-subtitle">Escucha los últimos episodios sin salir de la web.</p>
-      <div class="embed">
-        <iframe src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      <div style="background:#101827;border:1px solid #1c2636;border-radius:12px;padding:10px">
+        <iframe style="border:0;width:100%;height:232px;border-radius:10px" loading="lazy"
+          src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
       </div>
     </div>
   </section>
 
-  <section id="roadmap" class="section">
-    <div class="container">
-      <h2 class="bd-title">Roadmap</h2>
-      <ol class="bd-note" style="line-height:1.9">
-        <li><strong>v0.2</strong> · Comparativos interactivos + detalle. ✅</li>
-        <li><strong>v0.3</strong> · Commodities/Índices extra. 🔜</li>
-        <li><strong>v0.4</strong> · Alertas / Email digests. 🔜</li>
-      </ol>
-    </div>
-  </section>
-
+  <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer__inner">
       <span class="muted">© 2025 Bitácora Digital</span>
       <div class="footer__links">
-        <a href="/">Inicio</a><a href="#podcast">Podcast</a><a href="#servicios">Servicios</a>
+        <a href="/">Inicio</a>
+        <a href="#podcast">Podcast</a>
+        <a href="#servicios">Servicios</a>
       </div>
     </div>
   </footer>
 
-  <!-- Tu app (UNA sola vez) -->
+  <!-- App (UNA sola vez) -->
   <script src="assets/js/app.js"></script>
 </body>
 </html>
