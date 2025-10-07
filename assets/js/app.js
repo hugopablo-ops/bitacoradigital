@@ -5,7 +5,7 @@
 */
 
 // === URL del Worker (Cloudflare) para proxy Stooq ===
-const STOOQ_PROXY = 'https://tradfi.hugopablo.workers.dev/?url=';
+const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
 
 // Paleta y utilidades
 const COLORS = ["#63b3ed","#f6ad55","#9f7aea"]; // UF, USD/CLP, IPSA(ECH)
