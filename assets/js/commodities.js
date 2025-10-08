@@ -2,6 +2,7 @@
 /* Bitácora Digital - Commodities YTD
    Oro (GLD), Plata (SLV), Cobre (COPX), Litio (ALB)
    - Usando ETFs para mejor disponibilidad de datos
+   - Timeout aumentado a 30s
 */
 
 // === CONFIGURACIÓN ===
@@ -94,7 +95,7 @@ function toDeltaPct(arr) {
   return arr.map(p => ({ time: p.time, value: ((p.value - t0) / t0) * 100 }));
 }
 
-async function fetchWithTimeout(url, options = {}, timeout = 15000) {
+async function fetchWithTimeout(url, options = {}, timeout = 30000) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
   
@@ -120,20 +121,15 @@ async function fetchCommodityYTD(ticker, name) {
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
   try {
-    const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' });
+    const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' }, 30000);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const csv = await response.text();
-    
-    console.log(`   CSV recibido: ${csv.length} caracteres`);
-    console.log(`   Primeras líneas: ${csv.split('\n').slice(0, 3).join(' | ')}`);
     
     if (csv.length < 50) throw new Error('CSV muy corto');
     
     const lines = csv.trim().split(/\r?\n/);
     const header = lines[0];
-    
-    console.log(`   Header: ${header}`);
     
     if (!header.includes('Date') || !header.includes('Close')) {
       throw new Error('CSV sin Date/Close');
@@ -346,7 +342,8 @@ function addControls(container) {
     background: rgba(15, 22, 32, 0.9);
     padding: 6px;
     border-radius: 8px;
-    border: 1px solid #1a2434;
+    border
+    : 1px solid #1a2434;
   `;
   
   const modes = [
