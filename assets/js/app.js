@@ -1,8 +1,7 @@
 (() => {
 /* Bitácora Digital - app.js (TradFi Chile)
-   UF, USD/CLP, IPSA (proxy ECH)
-   - MEJORADO: Selector de periodo (1M, 3M, 6M, YTD, 1Y, All)
-   - Botones Real/% con mejor visibilidad
+   VERSIÓN MEJORADA: Controles externos al gráfico
+   Layout limpio sin superposiciones
 */
 
 // === CONFIGURACIÓN ===
@@ -18,7 +17,7 @@ let chartInstance = null;
 let seriesInstances = {};
 let rawData = { uf: [], usd: [], ipsa: [] };
 let currentMode = 'base100';
-let currentPeriod = 'YTD'; // NUEVO: periodo actual
+let currentPeriod = 'YTD';
 let seriesVisibility = { uf: true, usd: true, ipsa: true };
 
 // === UTILIDADES ===
@@ -188,7 +187,7 @@ async function fetchMindicador(tipo, period) {
     filteredPoints.forEach(p => { byDate[p.time] = p.value; });
     const uniquePoints = Object.entries(byDate).map(([time, value]) => ({ time, value }));
     
-    console.log(`   ✅ ${uniquePoints.length} puntos (${uniquePoints[0]?.time} → ${uniquePoints[uniquePoints.length-1]?.time})`);
+    console.log(`   ✅ ${uniquePoints.length} puntos`);
     return forwardFill(uniquePoints);
     
   } catch (error) {
@@ -413,142 +412,30 @@ function setupTooltip(container, chart, mode) {
   });
 }
 
-// === CONTROLES MEJORADOS ===
-function addControls(container) {
-  // Contenedor principal de controles
-  const controlsWrapper = document.createElement('div');
-  controlsWrapper.style.cssText = `
-    position: absolute;
-    top: 12px;
-    right: 12px;
+// === CONTROLES EXTERNOS - LAYOUT LIMPIO ===
+function addControlsBar(containerParent) {
+  // Crear barra de controles ANTES del gráfico
+  const controlsBar = document.createElement('div');
+  controlsBar.id = 'controls-bar-chile';
+  controlsBar.style.cssText = `
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 100;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(15, 22, 32, 0.6);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    gap: 16px;
+    flex-wrap: wrap;
+    border: 1px solid #1a2434;
   `;
   
-  // FILA 1: Selector de Periodo
-  const periodSelector = document.createElement('div');
-  periodSelector.style.cssText = `
+  // === LADO IZQUIERDO: Leyenda de series ===
+  const leftSide = document.createElement('div');
+  leftSide.style.cssText = `
     display: flex;
-    gap: 4px;
-    background: rgba(15, 22, 32, 0.95);
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid #1a2434;
-    backdrop-filter: blur(8px);
-  `;
-  
-  const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
-  
-  periods.forEach(p => {
-    const btn = document.createElement('button');
-    const isActive = currentPeriod === p;
-    btn.style.cssText = `
-      padding: 6px 10px;
-      background: ${isActive ? '#1f9df2' : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#96a3b7'};
-      border: 1px solid ${isActive ? '#1f9df2' : 'transparent'};
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-width: 42px;
-      text-align: center;
-    `;
-    btn.textContent = p;
-    btn.onmouseover = () => {
-      if (currentPeriod !== p) {
-        btn.style.background = 'rgba(31, 157, 242, 0.15)';
-        btn.style.borderColor = '#1f9df2';
-        btn.style.color = '#1f9df2';
-      }
-    };
-    btn.onmouseout = () => {
-      if (currentPeriod !== p) {
-        btn.style.background = 'transparent';
-        btn.style.borderColor = 'transparent';
-        btn.style.color = '#96a3b7';
-      }
-    };
-    btn.onclick = () => switchPeriod(p);
-    periodSelector.appendChild(btn);
-  });
-  
-  controlsWrapper.appendChild(periodSelector);
-  
-  // FILA 2: Selector de Modo (Real, Base 100, Delta %)
-  const modeSelector = document.createElement('div');
-  modeSelector.style.cssText = `
-    display: flex;
-    gap: 4px;
-    background: rgba(15, 22, 32, 0.95);
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid #1a2434;
-    backdrop-filter: blur(8px);
-  `;
-  
-  const modes = [
-    { id: 'real', label: 'Real', color: '#10b981' },
-    { id: 'base100', label: 'Base100', color: '#3b82f6' },
-    { id: 'deltapct', label: '%', color: '#8b5cf6' }
-  ];
-  
-  modes.forEach(m => {
-    const btn = document.createElement('button');
-    const isActive = currentMode === m.id;
-    btn.style.cssText = `
-      padding: 6px 10px;
-      background: ${isActive ? m.color : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#96a3b7'};
-      border: 1px solid ${isActive ? m.color : 'transparent'};
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      flex: 1;
-      text-align: center;
-      white-space: nowrap;
-    `;
-    btn.textContent = m.label;
-    btn.onmouseover = () => {
-      if (currentMode !== m.id) {
-        btn.style.background = `${m.color}20`;
-        btn.style.borderColor = m.color;
-        btn.style.color = m.color;
-      }
-    };
-    btn.onmouseout = () => {
-      if (currentMode !== m.id) {
-        btn.style.background = 'transparent';
-        btn.style.borderColor = 'transparent';
-        btn.style.color = '#96a3b7';
-      }
-    };
-    btn.onclick = () => switchMode(m.id);
-    modeSelector.appendChild(btn);
-  });
-  
-  controlsWrapper.appendChild(modeSelector);
-  container.appendChild(controlsWrapper);
-  
-  // Leyenda de series (izquierda)
-  const legend = document.createElement('div');
-  legend.style.cssText = `
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    display: flex;
-    gap: 8px;
-    z-index: 100;
-    background: rgba(15, 22, 32, 0.85);
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #1a2434;
-    backdrop-filter: blur(8px);
+    gap: 12px;
+    align-items: center;
   `;
   
   const items = [
@@ -563,16 +450,16 @@ function addControls(container) {
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 8px;
+      padding: 6px 12px;
       background: transparent;
       border: 1px solid ${item.color};
       border-radius: 6px;
       color: ${item.color};
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      opacity: ${seriesVisibility[item.key] ? '1' : '0.4'};
+      opacity: ${seriesVisibility[item.key] ? '1' : '0.35'};
     `;
     
     const dot = document.createElement('span');
@@ -581,6 +468,7 @@ function addControls(container) {
       height: 8px;
       border-radius: 50%;
       background: ${item.color};
+      display: block;
     `;
     
     btn.appendChild(dot);
@@ -591,13 +479,140 @@ function addControls(container) {
       seriesInstances[item.key].applyOptions({
         visible: seriesVisibility[item.key]
       });
-      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.4';
+      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.35';
     };
     
-    legend.appendChild(btn);
+    leftSide.appendChild(btn);
   });
   
-  container.appendChild(legend);
+  // === LADO DERECHO: Controles de periodo y modo ===
+  const rightSide = document.createElement('div');
+  rightSide.style.cssText = `
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  `;
+  
+  // Selector de Periodo
+  const periodGroup = document.createElement('div');
+  periodGroup.style.cssText = `
+    display: flex;
+    gap: 4px;
+    background: rgba(10, 15, 25, 0.8);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #233048;
+  `;
+  
+  const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
+  
+  periods.forEach(p => {
+    const btn = document.createElement('button');
+    const isActive = currentPeriod === p;
+    btn.style.cssText = `
+      padding: 8px 14px;
+      background: ${isActive ? '#1f9df2' : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#8a99b3'};
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 48px;
+      text-align: center;
+    `;
+    btn.textContent = p;
+    
+    btn.onmouseover = () => {
+      if (currentPeriod !== p) {
+        btn.style.background = 'rgba(31, 157, 242, 0.2)';
+        btn.style.color = '#1f9df2';
+      }
+    };
+    btn.onmouseout = () => {
+      if (currentPeriod !== p) {
+        btn.style.background = 'transparent';
+        btn.style.color = '#8a99b3';
+      }
+    };
+    btn.onclick = () => switchPeriod(p);
+    
+    periodGroup.appendChild(btn);
+  });
+  
+  rightSide.appendChild(periodGroup);
+  
+  // Separador visual
+  const separator = document.createElement('div');
+  separator.style.cssText = `
+    width: 1px;
+    height: 32px;
+    background: #233048;
+  `;
+  rightSide.appendChild(separator);
+  
+  // Selector de Modo
+  const modeGroup = document.createElement('div');
+  modeGroup.style.cssText = `
+    display: flex;
+    gap: 4px;
+    background: rgba(10, 15, 25, 0.8);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #233048;
+  `;
+  
+  const modes = [
+    { id: 'real', label: 'Real', color: '#10b981' },
+    { id: 'base100', label: 'Base100', color: '#3b82f6' },
+    { id: 'deltapct', label: '%', color: '#8b5cf6' }
+  ];
+  
+  modes.forEach(m => {
+    const btn = document.createElement('button');
+    const isActive = currentMode === m.id;
+    btn.style.cssText = `
+      padding: 8px 14px;
+      background: ${isActive ? m.color : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#8a99b3'};
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 68px;
+      text-align: center;
+    `;
+    btn.textContent = m.label;
+    
+    btn.onmouseover = () => {
+      if (currentMode !== m.id) {
+        btn.style.background = `${m.color}30`;
+        btn.style.color = m.color;
+      }
+    };
+    btn.onmouseout = () => {
+      if (currentMode !== m.id) {
+        btn.style.background = 'transparent';
+        btn.style.color = '#8a99b3';
+      }
+    };
+    btn.onclick = () => switchMode(m.id);
+    
+    modeGroup.appendChild(btn);
+  });
+  
+  rightSide.appendChild(modeGroup);
+  
+  // Ensamblar barra completa
+  controlsBar.appendChild(leftSide);
+  controlsBar.appendChild(rightSide);
+  
+  // Insertar ANTES del contenedor del gráfico
+  containerParent.insertBefore(controlsBar, containerParent.firstChild);
 }
 
 function switchMode(newMode) {
@@ -609,15 +624,24 @@ function switchMode(newMode) {
 function switchPeriod(newPeriod) {
   if (newPeriod === currentPeriod) return;
   currentPeriod = newPeriod;
-  loadData(); // Recargar datos con nuevo periodo
+  loadData();
 }
 
 // === RENDERIZAR ===
 function renderChart() {
+  const containerParent = document.getElementById('c-chile').parentElement;
   const container = document.getElementById('c-chile');
+  
   if (!container || !rawData.uf.length) return;
   
+  // Limpiar controles anteriores si existen
+  const oldControls = document.getElementById('controls-bar-chile');
+  if (oldControls) oldControls.remove();
+  
+  // Limpiar gráfico
   container.innerHTML = '';
+  
+  // Crear gráfico
   chartInstance = createChart(container, currentMode);
   
   let ufData, usdData, ipsaData;
@@ -659,7 +683,10 @@ function renderChart() {
   });
   
   setupTooltip(container, chartInstance, currentMode);
-  addControls(container);
+  
+  // Agregar barra de controles EXTERNA
+  addControlsBar(containerParent);
+  
   chartInstance.timeScale().fitContent();
   
   container.onclick = (e) => {
