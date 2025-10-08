@@ -1,64 +1,109 @@
 (() => {
-/* Bitácora Digital - app.js (Home) - VERSION VALORES REALES
-   TradFi Chile: UF vs USD/CLP vs IPSA (proxy ECH)
-   - Valores reales con múltiples escalas
-   - Tooltip comparativo multi-serie
-   - Toggle Base 100 / Valores Reales
-   - Click → página de detalle
+/* Bitácora Digital - TradFi Chile YTD
+   UF, USD/CLP e IPSA — Valores reales superpuestos
+   - YTD (01-ene hasta hoy)
+   - 3 ejes Y independientes
+   - Tooltip con valores reales
+   - Toggle visibilidad por serie
 */
 
 // === CONFIGURACIÓN ===
 const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
-const COLORS = ["#63b3ed", "#f6ad55", "#9f7aea"];
-const YEARS_TO_FETCH = 15; // 15 años de historia
-
-// Estado global
-let currentMode = 'real'; // 'real' o 'base100'
-let chartInstance = null;
-let seriesData = { uf: [], usd: [], ech: [] };
-
-// === UTILIDADES ===
-const isoMonth = (d) => {
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  return `${y}-${m}-01`;
+const COLORS = {
+  uf: '#63b3ed',
+  usd: '#f6ad55', 
+  ipsa: '#9f7aea'
 };
 
-function toMonthlyLast(points) {
-  const byMonth = {};
-  for (const p of points) {
-    byMonth[p.time] = p.value;
-  }
-  return Object.entries(byMonth)
-    .map(([time, value]) => ({ time, value }))
-    .sort((a, b) => a.time.localeCompare(b.time));
-}
+// Estado global
+let chartInstance = null;
+let seriesInstances = {};
+let seriesData = { uf: [], usd: [], ipsa: [] };
+let seriesVisibility = { uf: true, usd: true, ipsa: true };
 
-function base100(arr) {
-  if (!arr?.length) return arr;
-  const firstValid = arr.findIndex(p => Number.isFinite(p.value));
-  if (firstValid < 0) return arr;
-  const base = arr[firstValid].value;
-  return arr.map(p => ({ time: p.time, value: (p.value / base) * 100 }));
-}
-
-function intersectDates(seriesArray) {
-  console.log('\n🔍 INTERSECCIÓN DE FECHAS:');
+// === UTILIDADES DE FECHA ===
+function getYTDRange() {
+  const now = new Date();
+  const yearStart = new Date(now.getFullYear(), 0, 1); // 01-ene
   
-  seriesArray.forEach((series, idx) => {
-    const dates = series.map(p => p.time);
-    console.log(`   Serie ${idx}: ${dates.length} fechas (${dates[0]} → ${dates[dates.length-1]})`);
+  return {
+    start: yearStart.toISOString().split('T')[0],
+    end: now.toISOString().split('T')[0]
+  };
+}
+
+function parseDate(dateStr) {
+  const d = new Date(dateStr);
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
+function formatDateForAPI(date) {
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+// Forward-fill: rellenar máximo 2 días faltantes
+function forwardFill(data, maxGap = 2) {
+  if (!data.length) return data;
+  
+  const filled = [data[0]];
+  
+  for (let i = 1; i < data.length; i++) {
+    const prev = filled[filled.length - 1];
+    const curr = data[i];
+    
+    const prevDate = new Date(prev.time);
+    const currDate = new Date(curr.time);
+    const daysDiff = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24));
+    
+    // Si hay gap de 2-3 días, rellenar con valor anterior
+    if (daysDiff > 1 && daysDiff <= maxGap + 1) {
+      for (let j = 1; j < daysDiff; j++) {
+        const fillDate = new Date(prevDate);
+        fillDate.setDate(fillDate.getDate() + j);
+        filled.push({
+          time: fillDate.toISOString().split('T')[0],
+          value: prev.value
+        });
+      }
+    }
+    
+    filled.push(curr);
+  }
+  
+  return filled;
+}
+
+// Merge series por fecha común
+function mergeSeries(uf, usd, ipsa) {
+  const allDates = new Set([
+    ...uf.map(p => p.time),
+    ...usd.map(p => p.time),
+    ...ipsa.map(p => p.time)
+  ]);
+  
+  const dates = Array.from(allDates).sort();
+  
+  const ufMap = new Map(uf.map(p => [p.time, p.value]));
+  const usdMap = new Map(usd.map(p => [p.time, p.value]));
+  const ipsaMap = new Map(ipsa.map(p => [p.time, p.value]));
+  
+  const merged = {
+    uf: [],
+    usd: [],
+    ipsa: []
+  };
+  
+  dates.forEach(date => {
+    if (ufMap.has(date)) merged.uf.push({ time: date, value: ufMap.get(date) });
+    if (usdMap.has(date)) merged.usd.push({ time: date, value: usdMap.get(date) });
+    if (ipsaMap.has(date)) merged.ipsa.push({ time: date, value: ipsaMap.get(date) });
   });
   
-  const sets = seriesArray.map(s => new Set(s.map(p => p.time)));
-  const common = [...sets[0]].filter(t => sets.every(S => S.has(t))).sort();
-  
-  console.log(`   ✅ Fechas comunes: ${common.length}`);
-  if (common.length > 0) {
-    console.log(`   Rango común: ${common[0]} → ${common[common.length-1]}`);
-  }
-  
-  return seriesArray.map(s => s.filter(p => common.includes(p.time)));
+  return merged;
 }
 
 // Fetch con timeout
@@ -82,59 +127,41 @@ async function fetchWithTimeout(url, options = {}, timeout = 15000) {
   }
 }
 
-// === MINDICADOR: OBTENER DATOS POR AÑO ===
-async function fetchMindicador(tipo) {
-  console.log(`\n📡 Mindicador: ${tipo} (últimos ${YEARS_TO_FETCH} años)`);
+// === OBTENER DATOS YTD ===
+async function fetchMindicadorYTD(tipo) {
+  console.log(`\n📡 Mindicador YTD: ${tipo}`);
   
+  const { start, end } = getYTDRange();
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: YEARS_TO_FETCH }, (_, i) => currentYear - i);
   
   try {
-    const yearlyData = await Promise.all(
-      years.map(async (year) => {
-        const url = `https://mindicador.cl/api/${tipo}/${year}`;
-        
-        try {
-          const response = await fetchWithTimeout(url, { cache: 'no-store' });
-          
-          if (!response.ok) {
-            console.warn(`   ⚠️ Año ${year}: HTTP ${response.status}`);
-            return [];
-          }
-          
-          const json = await response.json();
-          
-          if (!json.serie || !Array.isArray(json.serie)) {
-            console.warn(`   ⚠️ Año ${year}: sin datos`);
-            return [];
-          }
-          
-          return json.serie.map(x => {
-            const d = new Date(x.fecha);
-            return {
-              time: isoMonth(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))),
-              value: Number(x.valor)
-            };
-          });
-          
-        } catch (err) {
-          console.warn(`   ⚠️ Año ${year}: ${err.message}`);
-          return [];
-        }
-      })
-    );
+    const url = `https://mindicador.cl/api/${tipo}/${currentYear}`;
+    const response = await fetchWithTimeout(url, { cache: 'no-store' });
     
-    const allPoints = yearlyData.flat();
-    
-    if (allPoints.length === 0) {
-      throw new Error('No se obtuvieron datos');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
     
-    const monthly = toMonthlyLast(allPoints);
-    console.log(`   ✅ Total: ${monthly.length} puntos mensuales`);
-    console.log(`   Rango: ${monthly[0]?.time} → ${monthly[monthly.length-1]?.time}`);
+    const json = await response.json();
     
-    return monthly;
+    if (!json.serie || !Array.isArray(json.serie)) {
+      throw new Error('Formato inválido');
+    }
+    
+    const points = json.serie
+      .map(x => {
+        const d = parseDate(x.fecha);
+        return {
+          time: d.toISOString().split('T')[0],
+          value: Number(x.valor)
+        };
+      })
+      .filter(p => p.time >= start && p.time <= end)
+      .sort((a, b) => a.time.localeCompare(b.time));
+    
+    console.log(`   ✅ ${points.length} puntos YTD (${points[0]?.time} → ${points[points.length-1]?.time})`);
+    
+    return forwardFill(points);
     
   } catch (error) {
     console.error(`   ❌ Error: ${error.message}`);
@@ -142,18 +169,17 @@ async function fetchMindicador(tipo) {
   }
 }
 
-// === STOOQ: OBTENER ETF ECH VIA PROXY ===
-async function fetchStooqMonthly(ticker) {
-  console.log(`\n📡 Stooq: ${ticker}`);
+async function fetchStooqYTD(ticker) {
+  console.log(`\n📡 Stooq YTD: ${ticker}`);
   
-  const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
+  const { start, end } = getYTDRange();
+  const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`; // Diario
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
   try {
     const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' });
     
     if (!response.ok) {
-      const text = await response.text().catch(() => '');
       throw new Error(`HTTP ${response.status}`);
     }
     
@@ -179,22 +205,16 @@ async function fetchStooqMonthly(ticker) {
       const value = Number(close);
       if (!Number.isFinite(value)) continue;
       
-      const parts = date.split('-');
-      if (parts.length === 3) {
-        const normalized = `${parts[0]}-${parts[1]}-01`;
-        points.push({ time: normalized, value });
+      if (date >= start && date <= end) {
+        points.push({ time: date, value });
       }
     }
     
-    if (points.length === 0) {
-      throw new Error('No se parsearon datos del CSV');
-    }
+    const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
     
-    const monthly = toMonthlyLast(points);
-    console.log(`   ✅ Total: ${monthly.length} puntos mensuales`);
-    console.log(`   Rango: ${monthly[0]?.time} → ${monthly[monthly.length-1]?.time}`);
+    console.log(`   ✅ ${sorted.length} puntos YTD (${sorted[0]?.time} → ${sorted[sorted.length-1]?.time})`);
     
-    return monthly;
+    return forwardFill(sorted);
     
   } catch (error) {
     console.error(`   ❌ Error: ${error.message}`);
@@ -202,10 +222,8 @@ async function fetchStooqMonthly(ticker) {
   }
 }
 
-// === CREAR GRÁFICO CON MÚLTIPLES ESCALAS ===
-function createChart(container, mode = 'real') {
-  const isLog = mode === 'base100';
-  
+// === CREAR GRÁFICO CON 3 EJES Y ===
+function createChart(container) {
   const chart = LightweightCharts.createChart(container, {
     layout: {
       background: { type: 'solid', color: 'transparent' },
@@ -213,41 +231,49 @@ function createChart(container, mode = 'real') {
     },
     rightPriceScale: {
       borderColor: '#233048',
-      mode: isLog ? 2 : 0, // 2 = log, 0 = normal
-      visible: true
+      visible: true,
+      scaleMargins: { top: 0.1, bottom: 0.1 }
     },
     leftPriceScale: {
       borderColor: '#233048',
-      visible: mode === 'real'
+      visible: true,
+      scaleMargins: { top: 0.1, bottom: 0.1 }
     },
     timeScale: {
       borderColor: '#233048',
-      rightOffset: 5,
-      timeVisible: true
+      rightOffset: 3,
+      timeVisible: true,
+      secondsVisible: false
     },
     grid: {
       vertLines: { color: '#1a2434' },
       horzLines: { color: '#1a2434' }
     },
-    localization: { locale: 'es-CL' },
+    localization: { 
+      locale: 'es-CL',
+      timeFormatter: (timestamp) => {
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleDateString('es-CL', { 
+          day: '2-digit', 
+          month: 'short' 
+        });
+      }
+    },
     crosshair: {
       mode: LightweightCharts.CrosshairMode.Normal,
       vertLine: {
         width: 1,
         color: '#4a5568',
-        style: LightweightCharts.LineStyle.Dashed
+        style: LightweightCharts.LineStyle.Solid,
+        labelBackgroundColor: '#1a2434'
       },
       horzLine: {
-        width: 1,
-        color: '#4a5568',
-        style: LightweightCharts.LineStyle.Dashed
+        visible: false
       }
     },
     handleScroll: {
       mouseWheel: true,
-      pressedMouseMove: true,
-      horzTouchDrag: true,
-      vertTouchDrag: false
+      pressedMouseMove: true
     },
     handleScale: {
       axisPressedMouseMove: true,
@@ -259,85 +285,85 @@ function createChart(container, mode = 'real') {
   return chart;
 }
 
-function addLineSeries(chart, label, color, priceScale = 'right') {
+function createSeries(chart, id, label, color, priceScaleId) {
   return chart.addLineSeries({
-    title: label,
     color,
-    lineWidth: 2,
-    priceScaleId: priceScale,
+    lineWidth: 2.5,
+    priceScaleId,
+    title: label,
     crosshairMarkerVisible: true,
     crosshairMarkerRadius: 4,
     lastValueVisible: true,
-    priceLineVisible: false
+    priceLineVisible: false,
+    lineStyle: 0 // Solid
   });
 }
 
 // === TOOLTIP PERSONALIZADO ===
-function setupTooltip(container, chart, series) {
+function setupTooltip(container, chart) {
   const tooltip = document.createElement('div');
   tooltip.style.cssText = `
     position: absolute;
     display: none;
-    padding: 12px;
-    background: rgba(20, 28, 39, 0.95);
+    padding: 14px 16px;
+    background: rgba(15, 22, 32, 0.98);
     border: 1px solid #2a3f5f;
-    border-radius: 8px;
+    border-radius: 10px;
     color: #dbe4f3;
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.7;
     pointer-events: none;
     z-index: 1000;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    min-width: 200px;
   `;
   container.appendChild(tooltip);
   
+  const formatter = new Intl.NumberFormat('es-CL', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
+  
   chart.subscribeCrosshairMove(param => {
-    if (
-      !param.time ||
-      param.point.x < 0 ||
-      param.point.y < 0
-    ) {
+    if (!param.time || param.point.x < 0 || param.point.y < 0) {
       tooltip.style.display = 'none';
       return;
     }
     
     const dateStr = new Date(param.time).toLocaleDateString('es-CL', {
-      year: 'numeric',
-      month: 'long'
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     });
     
-    let tooltipHtml = `<div style="font-weight:600;margin-bottom:6px;color:#fff">${dateStr}</div>`;
+    let html = `<div style="font-weight:600;margin-bottom:10px;color:#fff;border-bottom:1px solid #2a3f5f;padding-bottom:6px">${dateStr}</div>`;
     
-    series.forEach((s, idx) => {
-      const data = param.seriesData.get(s.series);
-      if (data) {
-        const value = data.value;
-        let formattedValue = '';
-        
-        if (currentMode === 'base100') {
-          formattedValue = `${value.toFixed(2)}`;
-        } else {
-          if (idx === 0) { // UF
-            formattedValue = `$${value.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          } else if (idx === 1) { // USD/CLP
-            formattedValue = `$${value.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          } else { // IPSA
-            formattedValue = `${value.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pts`;
-          }
-        }
-        
-        tooltipHtml += `
-          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-            <span style="width:10px;height:10px;border-radius:50%;background:${s.color}"></span>
-            <span style="font-weight:500">${s.label}:</span>
-            <span style="margin-left:auto;font-weight:600;color:${s.color}">${formattedValue}</span>
+    const series = [
+      { key: 'uf', label: 'UF', color: COLORS.uf, prefix: '$', suffix: '' },
+      { key: 'usd', label: 'USD/CLP', color: COLORS.usd, prefix: '$', suffix: '' },
+      { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa, prefix: '', suffix: ' pts' }
+    ];
+    
+    series.forEach(s => {
+      if (!seriesVisibility[s.key]) return;
+      
+      const data = param.seriesData.get(seriesInstances[s.key]);
+      if (data && data.value !== undefined) {
+        const formatted = formatter.format(data.value);
+        html += `
+          <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+            <span style="width:12px;height:12px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
+            <span style="font-weight:500;color:#96a3b7">${s.label}:</span>
+            <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
+              ${s.prefix}${formatted}${s.suffix}
+            </span>
           </div>
         `;
       }
     });
     
-    tooltip.innerHTML = tooltipHtml;
+    tooltip.innerHTML = html;
     tooltip.style.display = 'block';
     
     const x = Math.min(param.point.x + 20, container.clientWidth - tooltip.offsetWidth - 20);
@@ -348,67 +374,70 @@ function setupTooltip(container, chart, series) {
   });
 }
 
-// === CONTROLES DE VISUALIZACIÓN ===
-function addControls(container) {
-  const controls = document.createElement('div');
-  controls.style.cssText = `
+// === CONTROLES DE VISIBILIDAD ===
+function addLegendControls(container) {
+  const legend = document.createElement('div');
+  legend.style.cssText = `
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 12px;
+    left: 12px;
     display: flex;
-    gap: 8px;
+    gap: 12px;
     z-index: 100;
+    background: rgba(15, 22, 32, 0.8);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #1a2434;
+    backdrop-filter: blur(4px);
   `;
   
-  const btnBase100 = createButton('Base 100', currentMode === 'base100');
-  const btnReal = createButton('Valores Reales', currentMode === 'real');
+  const items = [
+    { key: 'uf', label: 'UF', color: COLORS.uf },
+    { key: 'usd', label: 'USD/CLP', color: COLORS.usd },
+    { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa }
+  ];
   
-  btnBase100.onclick = () => switchMode('base100');
-  btnReal.onclick = () => switchMode('real');
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: transparent;
+      border: 1px solid ${item.color};
+      border-radius: 6px;
+      color: ${item.color};
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      opacity: ${seriesVisibility[item.key] ? '1' : '0.4'};
+    `;
+    
+    const dot = document.createElement('span');
+    dot.style.cssText = `
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: ${item.color};
+    `;
+    
+    btn.appendChild(dot);
+    btn.appendChild(document.createTextNode(item.label));
+    
+    btn.onclick = () => {
+      seriesVisibility[item.key] = !seriesVisibility[item.key];
+      seriesInstances[item.key].applyOptions({
+        visible: seriesVisibility[item.key]
+      });
+      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.4';
+    };
+    
+    legend.appendChild(btn);
+  });
   
-  controls.appendChild(btnReal);
-  controls.appendChild(btnBase100);
-  container.appendChild(controls);
-  
-  return { btnBase100, btnReal };
-}
-
-function createButton(text, active = false) {
-  const btn = document.createElement('button');
-  btn.textContent = text;
-  btn.style.cssText = `
-    padding: 6px 12px;
-    background: ${active ? '#1f9df2' : 'rgba(26, 36, 52, 0.8)'};
-    color: ${active ? '#fff' : '#96a3b7'};
-    border: 1px solid ${active ? '#1f9df2' : '#2a3f5f'};
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  `;
-  
-  btn.onmouseenter = () => {
-    if (!active) {
-      btn.style.background = 'rgba(31, 157, 242, 0.1)';
-      btn.style.borderColor = '#1f9df2';
-    }
-  };
-  
-  btn.onmouseleave = () => {
-    if (!active) {
-      btn.style.background = 'rgba(26, 36, 52, 0.8)';
-      btn.style.borderColor = '#2a3f5f';
-    }
-  };
-  
-  return btn;
-}
-
-function switchMode(newMode) {
-  if (newMode === currentMode) return;
-  currentMode = newMode;
-  renderChart();
+  container.appendChild(legend);
 }
 
 // === RENDERIZAR GRÁFICO ===
@@ -416,74 +445,46 @@ function renderChart() {
   const container = document.getElementById('c-chile');
   if (!container || !seriesData.uf.length) return;
   
-  // Limpiar contenedor
   container.innerHTML = '';
   
-  // Crear nuevo gráfico
-  chartInstance = createChart(container, currentMode);
+  // Crear gráfico
+  chartInstance = createChart(container);
   
-  let ufData, usdData, echData;
+  // Crear las 3 series con ejes independientes
+  seriesInstances.uf = createSeries(chartInstance, 'uf', 'UF', COLORS.uf, 'left');
+  seriesInstances.usd = createSeries(chartInstance, 'usd', 'USD/CLP', COLORS.usd, 'right');
+  seriesInstances.ipsa = createSeries(chartInstance, 'ipsa', 'IPSA', COLORS.ipsa, 'right');
   
-  if (currentMode === 'base100') {
-    ufData = base100(seriesData.uf);
-    usdData = base100(seriesData.usd);
-    echData = base100(seriesData.ech);
-    
-    const ufSeries = addLineSeries(chartInstance, 'UF', COLORS[0], 'right');
-    const usdSeries = addLineSeries(chartInstance, 'USD/CLP', COLORS[1], 'right');
-    const echSeries = addLineSeries(chartInstance, 'IPSA (ECH)', COLORS[2], 'right');
-    
-    ufSeries.setData(ufData);
-    usdSeries.setData(usdData);
-    echSeries.setData(echData);
-    
-    setupTooltip(container, chartInstance, [
-      { series: ufSeries, label: 'UF', color: COLORS[0] },
-      { series: usdSeries, label: 'USD/CLP', color: COLORS[1] },
-      { series: echSeries, label: 'IPSA (ECH)', color: COLORS[2] }
-    ]);
-    
-  } else {
-    ufData = seriesData.uf;
-    usdData = seriesData.usd;
-    echData = seriesData.ech;
-    
-    // UF en escala izquierda
-    const ufSeries = addLineSeries(chartInstance, 'UF', COLORS[0], 'left');
-    ufSeries.setData(ufData);
-    
-    // USD/CLP en escala derecha
-    const usdSeries = addLineSeries(chartInstance, 'USD/CLP', COLORS[1], 'right');
-    usdSeries.setData(usdData);
-    
-    // IPSA en su propia escala (derecha también, auto-ajuste)
-    const echSeries = addLineSeries(chartInstance, 'IPSA (ECH)', COLORS[2], 'right');
-    echSeries.setData(echData);
-    
-    setupTooltip(container, chartInstance, [
-      { series: ufSeries, label: 'UF', color: COLORS[0] },
-      { series: usdSeries, label: 'USD/CLP', color: COLORS[1] },
-      { series: echSeries, label: 'IPSA (ECH)', color: COLORS[2] }
-    ]);
-  }
+  // Setear datos
+  seriesInstances.uf.setData(seriesData.uf);
+  seriesInstances.usd.setData(seriesData.usd);
+  seriesInstances.ipsa.setData(seriesData.ipsa);
   
-  // Agregar controles
-  addControls(container);
+  // Aplicar visibilidad inicial
+  Object.keys(seriesVisibility).forEach(key => {
+    seriesInstances[key].applyOptions({
+      visible: seriesVisibility[key]
+    });
+  });
+  
+  // Tooltip
+  setupTooltip(container, chartInstance);
+  
+  // Controles de leyenda
+  addLegendControls(container);
   
   // Fit content
   chartInstance.timeScale().fitContent();
   
-  // Click handler para ir a detalle
-  container.style.cursor = 'pointer';
+  // Click handler (excepto en botones)
   container.onclick = (e) => {
-    if (!e.target.tagName || e.target.tagName.toLowerCase() !== 'button') {
-      window.location.href = '/detail/tradfi-cl';
-    }
+    if (e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
+    window.location.href = '/detail/tradfi-cl';
   };
 }
 
-// === DIBUJA EL GRÁFICO TRADFI CHILE ===
-async function drawChile() {
+// === CARGAR DATOS YTD ===
+async function loadYTDData() {
   const container = document.getElementById('c-chile');
   const noteEl = document.getElementById('c-chile-note');
   
@@ -493,48 +494,38 @@ async function drawChile() {
   }
   
   try {
-    console.log('\n🚀 === INICIANDO TRADFI CHILE ===');
+    console.log('\n🚀 === CARGANDO TRADFI CHILE YTD ===');
     
-    // Cargar las 3 fuentes en paralelo
-    const [uf, usd, ech] = await Promise.all([
-      fetchMindicador('uf'),
-      fetchMindicador('dolar'),
-      fetchStooqMonthly('ech.us')
+    const { start, end } = getYTDRange();
+    console.log(`   Periodo: ${start} → ${end}`);
+    
+    // Cargar datos en paralelo
+    const [uf, usd, ipsa] = await Promise.all([
+      fetchMindicadorYTD('uf'),
+      fetchMindicadorYTD('dolar'),
+      fetchStooqYTD('ech.us')
     ]);
     
-    console.log('\n✅ Todas las fuentes cargadas');
+    console.log('\n✅ Datos YTD cargados');
     
-    // Intersectar fechas comunes
-    const [ufAligned, usdAligned, echAligned] = intersectDates([uf, usd, ech]);
+    // Merge y forward-fill
+    const merged = mergeSeries(uf, usd, ipsa);
+    seriesData = merged;
     
-    if (ufAligned.length === 0) {
-      throw new Error('No hay fechas comunes entre las series');
-    }
+    console.log('\n📊 Renderizando gráfico YTD...');
     
-    // Guardar datos alineados
-    seriesData = {
-      uf: ufAligned,
-      usd: usdAligned,
-      ech: echAligned
-    };
-    
-    console.log('\n📊 Renderizando gráfico...');
-    
-    // Renderizar gráfico
     renderChart();
     
-    console.log('✅ ¡Gráfico renderizado exitosamente!\n');
+    console.log('✅ ¡Gráfico YTD renderizado!\n');
     
-    if (noteEl) {
-      noteEl.style.display = 'none';
-    }
+    if (noteEl) noteEl.style.display = 'none';
     
   } catch (error) {
-    console.error('\n❌ ERROR FATAL:', error);
+    console.error('\n❌ ERROR:', error);
     
     container.innerHTML = `
       <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
-        <strong>Error al cargar datos</strong><br>
+        <strong>Error al cargar datos YTD</strong><br>
         <small style="color:#cbd5e0">${error.message}</small>
       </div>
     `;
@@ -549,13 +540,9 @@ async function drawChile() {
 
 // === INICIALIZACIÓN ===
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎬 DOM cargado, inicializando...');
-    drawChile();
-  });
+  document.addEventListener('DOMContentLoaded', loadYTDData);
 } else {
-  console.log('🎬 DOM ya cargado, inicializando...');
-  drawChile();
+  loadYTDData();
 }
 
 })();
