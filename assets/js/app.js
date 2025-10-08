@@ -1,7 +1,7 @@
 (() => {
-/* Bitácora Digital - app.js (TradFi Chile)
-   VERSIÓN MEJORADA: Controles externos al gráfico
-   Layout limpio sin superposiciones
+/* Bitácora Digital - app.js (Home) - TradFi Chile
+   UF, USD/CLP, IPSA (proxy ECH)
+   Layout limpio con controles externos
 */
 
 // === CONFIGURACIÓN ===
@@ -412,9 +412,8 @@ function setupTooltip(container, chart, mode) {
   });
 }
 
-// === CONTROLES EXTERNOS - LAYOUT LIMPIO ===
+// === CONTROLES EXTERNOS ===
 function addControlsBar(containerParent) {
-  // Crear barra de controles ANTES del gráfico
   const controlsBar = document.createElement('div');
   controlsBar.id = 'controls-bar-chile';
   controlsBar.style.cssText = `
@@ -430,13 +429,9 @@ function addControlsBar(containerParent) {
     border: 1px solid #1a2434;
   `;
   
-  // === LADO IZQUIERDO: Leyenda de series ===
+  // Lado izquierdo: Leyenda
   const leftSide = document.createElement('div');
-  leftSide.style.cssText = `
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  `;
+  leftSide.style.cssText = `display: flex; gap: 12px; align-items: center;`;
   
   const items = [
     { key: 'uf', label: 'UF', color: COLORS.uf },
@@ -447,121 +442,70 @@ function addControlsBar(containerParent) {
   items.forEach(item => {
     const btn = document.createElement('button');
     btn.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: transparent;
-      border: 1px solid ${item.color};
-      border-radius: 6px;
-      color: ${item.color};
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      opacity: ${seriesVisibility[item.key] ? '1' : '0.35'};
+      display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+      background: transparent; border: 1px solid ${item.color}; border-radius: 6px;
+      color: ${item.color}; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; opacity: ${seriesVisibility[item.key] ? '1' : '0.35'};
     `;
     
     const dot = document.createElement('span');
-    dot.style.cssText = `
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: ${item.color};
-      display: block;
-    `;
+    dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${item.color}; display: block;`;
     
     btn.appendChild(dot);
     btn.appendChild(document.createTextNode(item.label));
     
     btn.onclick = () => {
       seriesVisibility[item.key] = !seriesVisibility[item.key];
-      seriesInstances[item.key].applyOptions({
-        visible: seriesVisibility[item.key]
-      });
+      seriesInstances[item.key].applyOptions({ visible: seriesVisibility[item.key] });
       btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.35';
     };
     
     leftSide.appendChild(btn);
   });
   
-  // === LADO DERECHO: Controles de periodo y modo ===
+  // Lado derecho: Controles
   const rightSide = document.createElement('div');
-  rightSide.style.cssText = `
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-  `;
+  rightSide.style.cssText = `display: flex; gap: 12px; align-items: center; flex-wrap: wrap;`;
   
   // Selector de Periodo
   const periodGroup = document.createElement('div');
   periodGroup.style.cssText = `
-    display: flex;
-    gap: 4px;
-    background: rgba(10, 15, 25, 0.8);
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid #233048;
+    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
+    border-radius: 8px; border: 1px solid #233048;
   `;
   
   const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
-  
   periods.forEach(p => {
     const btn = document.createElement('button');
     const isActive = currentPeriod === p;
     btn.style.cssText = `
-      padding: 8px 14px;
-      background: ${isActive ? '#1f9df2' : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#8a99b3'};
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-width: 48px;
-      text-align: center;
+      padding: 8px 14px; background: ${isActive ? '#1f9df2' : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      min-width: 48px; text-align: center;
     `;
     btn.textContent = p;
-    
     btn.onmouseover = () => {
-      if (currentPeriod !== p) {
-        btn.style.background = 'rgba(31, 157, 242, 0.2)';
-        btn.style.color = '#1f9df2';
-      }
+      if (currentPeriod !== p) { btn.style.background = 'rgba(31, 157, 242, 0.2)'; btn.style.color = '#1f9df2'; }
     };
     btn.onmouseout = () => {
-      if (currentPeriod !== p) {
-        btn.style.background = 'transparent';
-        btn.style.color = '#8a99b3';
-      }
+      if (currentPeriod !== p) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
     };
     btn.onclick = () => switchPeriod(p);
-    
     periodGroup.appendChild(btn);
   });
-  
   rightSide.appendChild(periodGroup);
   
-  // Separador visual
-  const separator = document.createElement('div');
-  separator.style.cssText = `
-    width: 1px;
-    height: 32px;
-    background: #233048;
-  `;
-  rightSide.appendChild(separator);
+  // Separador
+  const sep = document.createElement('div');
+  sep.style.cssText = `width: 1px; height: 32px; background: #233048;`;
+  rightSide.appendChild(sep);
   
   // Selector de Modo
   const modeGroup = document.createElement('div');
   modeGroup.style.cssText = `
-    display: flex;
-    gap: 4px;
-    background: rgba(10, 15, 25, 0.8);
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid #233048;
+    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
+    border-radius: 8px; border: 1px solid #233048;
   `;
   
   const modes = [
@@ -574,44 +518,25 @@ function addControlsBar(containerParent) {
     const btn = document.createElement('button');
     const isActive = currentMode === m.id;
     btn.style.cssText = `
-      padding: 8px 14px;
-      background: ${isActive ? m.color : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#8a99b3'};
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-width: 68px;
-      text-align: center;
+      padding: 8px 14px; background: ${isActive ? m.color : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      min-width: 68px; text-align: center;
     `;
     btn.textContent = m.label;
-    
     btn.onmouseover = () => {
-      if (currentMode !== m.id) {
-        btn.style.background = `${m.color}30`;
-        btn.style.color = m.color;
-      }
+      if (currentMode !== m.id) { btn.style.background = `${m.color}30`; btn.style.color = m.color; }
     };
     btn.onmouseout = () => {
-      if (currentMode !== m.id) {
-        btn.style.background = 'transparent';
-        btn.style.color = '#8a99b3';
-      }
+      if (currentMode !== m.id) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
     };
     btn.onclick = () => switchMode(m.id);
-    
     modeGroup.appendChild(btn);
   });
-  
   rightSide.appendChild(modeGroup);
   
-  // Ensamblar barra completa
   controlsBar.appendChild(leftSide);
   controlsBar.appendChild(rightSide);
-  
-  // Insertar ANTES del contenedor del gráfico
   containerParent.insertBefore(controlsBar, containerParent.firstChild);
 }
 
@@ -634,14 +559,10 @@ function renderChart() {
   
   if (!container || !rawData.uf.length) return;
   
-  // Limpiar controles anteriores si existen
   const oldControls = document.getElementById('controls-bar-chile');
   if (oldControls) oldControls.remove();
   
-  // Limpiar gráfico
   container.innerHTML = '';
-  
-  // Crear gráfico
   chartInstance = createChart(container, currentMode);
   
   let ufData, usdData, ipsaData;
@@ -683,10 +604,7 @@ function renderChart() {
   });
   
   setupTooltip(container, chartInstance, currentMode);
-  
-  // Agregar barra de controles EXTERNA
   addControlsBar(containerParent);
-  
   chartInstance.timeScale().fitContent();
   
   container.onclick = (e) => {
