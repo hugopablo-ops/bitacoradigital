@@ -1,26 +1,24 @@
 (() => {
-/* Bitácora Digital - Commodities
-   Oro (GLD), Plata (SLV), Cobre (COPX), Litio (ALB)
-   - MEJORADO: Selector de periodo (1M, 3M, 6M, YTD, 1Y, All)
-   - Botones Real/% con mejor visibilidad
+/* Bitácora Digital - app.js (Home) - TradFi Chile
+   UF, USD/CLP, IPSA (proxy ECH)
+   Layout limpio con controles externos
 */
 
 // === CONFIGURACIÓN ===
 const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
 const COLORS = {
-  gold: '#FFD700',
-  silver: '#C0C0C0',
-  copper: '#B87333',
-  lithium: '#7DF9FF'
+  uf: '#63b3ed',
+  usd: '#f6ad55', 
+  ipsa: '#9f7aea'
 };
 
 // Estado global
 let chartInstance = null;
 let seriesInstances = {};
-let rawData = { gold: [], silver: [], copper: [], lithium: [] };
-let currentMode = 'real';
+let rawData = { uf: [], usd: [], ipsa: [] };
+let currentMode = 'base100';
 let currentPeriod = 'YTD';
-let seriesVisibility = { gold: true, silver: true, copper: true, lithium: true };
+let seriesVisibility = { uf: true, usd: true, ipsa: true };
 
 // === UTILIDADES ===
 function getDateRange(period) {
@@ -61,6 +59,11 @@ function getDateRange(period) {
   };
 }
 
+function parseDate(dateStr) {
+  const d = new Date(dateStr);
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
 function forwardFill(data, maxGap = 2) {
   if (!data.length) return data;
   const filled = [data[0]];
@@ -87,27 +90,24 @@ function forwardFill(data, maxGap = 2) {
   return filled;
 }
 
-function mergeSeries(gold, silver, copper, lithium) {
+function mergeSeries(uf, usd, ipsa) {
   const allDates = new Set([
-    ...gold.map(p => p.time),
-    ...silver.map(p => p.time),
-    ...copper.map(p => p.time),
-    ...lithium.map(p => p.time)
+    ...uf.map(p => p.time),
+    ...usd.map(p => p.time),
+    ...ipsa.map(p => p.time)
   ]);
   
   const dates = Array.from(allDates).sort();
-  const goldMap = new Map(gold.map(p => [p.time, p.value]));
-  const silverMap = new Map(silver.map(p => [p.time, p.value]));
-  const copperMap = new Map(copper.map(p => [p.time, p.value]));
-  const lithiumMap = new Map(lithium.map(p => [p.time, p.value]));
+  const ufMap = new Map(uf.map(p => [p.time, p.value]));
+  const usdMap = new Map(usd.map(p => [p.time, p.value]));
+  const ipsaMap = new Map(ipsa.map(p => [p.time, p.value]));
   
-  const merged = { gold: [], silver: [], copper: [], lithium: [] };
+  const merged = { uf: [], usd: [], ipsa: [] };
   
   dates.forEach(date => {
-    if (goldMap.has(date)) merged.gold.push({ time: date, value: goldMap.get(date) });
-    if (silverMap.has(date)) merged.silver.push({ time: date, value: silverMap.get(date) });
-    if (copperMap.has(date)) merged.copper.push({ time: date, value: copperMap.get(date) });
-    if (lithiumMap.has(date)) merged.lithium.push({ time: date, value: lithiumMap.get(date) });
+    if (ufMap.has(date)) merged.uf.push({ time: date, value: ufMap.get(date) });
+    if (usdMap.has(date)) merged.usd.push({ time: date, value: usdMap.get(date) });
+    if (ipsaMap.has(date)) merged.ipsa.push({ time: date, value: ipsaMap.get(date) });
   });
   
   return merged;
@@ -143,9 +143,63 @@ async function fetchWithTimeout(url, options = {}, timeout = 30000) {
   }
 }
 
+// === MINDICADOR ===
+async function fetchMindicador(tipo, period) {
+  console.log(`\n📡 Mindicador: ${tipo} (periodo: ${period})`);
+  
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 15 }, (_, i) => currentYear - i);
+  
+  try {
+    const yearlyData = await Promise.all(
+      years.map(async (year) => {
+        const url = `https://mindicador.cl/api/${tipo}/${year}`;
+        
+        try {
+          const response = await fetchWithTimeout(url, { cache: 'no-store' }, 30000);
+          if (!response.ok) return [];
+          
+          const json = await response.json();
+          if (!json.serie || !Array.isArray(json.serie)) return [];
+          
+          return json.serie.map(x => {
+            const d = parseDate(x.fecha);
+            return {
+              time: d.toISOString().split('T')[0],
+              value: Number(x.valor)
+            };
+          });
+        } catch (err) {
+          return [];
+        }
+      })
+    );
+    
+    const allPoints = yearlyData.flat();
+    if (allPoints.length === 0) throw new Error('No se obtuvieron datos');
+    
+    const { start, end } = getDateRange(period);
+    const filteredPoints = allPoints
+      .filter(p => p.time >= start && p.time <= end)
+      .sort((a, b) => a.time.localeCompare(b.time));
+    
+    const byDate = {};
+    filteredPoints.forEach(p => { byDate[p.time] = p.value; });
+    const uniquePoints = Object.entries(byDate).map(([time, value]) => ({ time, value }));
+    
+    console.log(`   ✅ ${uniquePoints.length} puntos`);
+    return forwardFill(uniquePoints);
+    
+  } catch (error) {
+    console.error(`   ❌ Error: ${error.message}`);
+    throw error;
+  }
+}
+
 // === STOOQ ===
-async function fetchCommodity(ticker, name, period) {
-  console.log(`\n📡 Commodity: ${name} (${ticker}) - ${period}`);
+async function fetchStooq(ticker, period) {
+  console.log(`\n📡 Stooq: ${ticker} (periodo: ${period})`);
+  
   const { start, end } = getDateRange(period);
   const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
@@ -155,13 +209,13 @@ async function fetchCommodity(ticker, name, period) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const csv = await response.text();
-    if (csv.length < 50) throw new Error('CSV muy corto');
+    if (csv.length < 50) throw new Error('CSV vacío');
     
     const lines = csv.trim().split(/\r?\n/);
     const header = lines[0];
     
     if (!header.includes('Date') || !header.includes('Close')) {
-      throw new Error('CSV sin Date/Close');
+      throw new Error('CSV sin columnas Date/Close');
     }
     
     const points = [];
@@ -181,11 +235,10 @@ async function fetchCommodity(ticker, name, period) {
     
     const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
     console.log(`   ✅ ${sorted.length} puntos`);
-    
     return forwardFill(sorted);
     
   } catch (error) {
-    console.error(`   ❌ Error ${name}: ${error.message}`);
+    console.error(`   ❌ Error: ${error.message}`);
     throw error;
   }
 }
@@ -272,16 +325,16 @@ function setupTooltip(container, chart, mode) {
     z-index: 1000;
     backdrop-filter: blur(8px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    min-width: 260px;
+    min-width: 240px;
   `;
   container.appendChild(tooltip);
   
-  const fmtReal = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
+  const fmtReal = new Intl.NumberFormat('es-CL', {
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2
   });
   
-  const fmtMetric = new Intl.NumberFormat('en-US', {
+  const fmtMetric = new Intl.NumberFormat('es-CL', {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
     signDisplay: mode === 'deltapct' ? 'always' : 'auto'
@@ -302,10 +355,9 @@ function setupTooltip(container, chart, mode) {
     let html = `<div style="font-weight:600;margin-bottom:10px;color:#fff;border-bottom:1px solid #2a3f5f;padding-bottom:6px">${dateStr}</div>`;
     
     const series = [
-      { key: 'gold', label: 'Oro ETF (GLD)', color: COLORS.gold },
-      { key: 'silver', label: 'Plata ETF (SLV)', color: COLORS.silver },
-      { key: 'copper', label: 'Cobre ETF (COPX)', color: COLORS.copper },
-      { key: 'lithium', label: 'Litio (ALB)', color: COLORS.lithium }
+      { key: 'uf', label: 'UF', color: COLORS.uf },
+      { key: 'usd', label: 'USD/CLP', color: COLORS.usd },
+      { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa }
     ];
     
     series.forEach(s => {
@@ -330,14 +382,18 @@ function setupTooltip(container, chart, mode) {
       
       let realFormatted = '—';
       if (realValue !== null) {
-        realFormatted = '$' + fmtReal.format(realValue);
+        if (s.key === 'ipsa') {
+          realFormatted = fmtReal.format(realValue) + ' pts';
+        } else {
+          realFormatted = '$' + fmtReal.format(realValue);
+        }
       }
       
       html += `
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
           <span style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
-          <span style="font-weight:500;color:#96a3b7;min-width:120px;font-size:12px">${s.label}:</span>
-          ${metricLabel ? `<span style="color:#cbd5e0;font-size:11px;min-width:45px">${metricValue}</span>` : ''}
+          <span style="font-weight:500;color:#96a3b7;min-width:65px">${s.label}:</span>
+          ${metricLabel ? `<span style="color:#cbd5e0;font-size:11px;min-width:50px">${metricValue}</span>` : ''}
           <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
             ${realFormatted}
           </span>
@@ -356,80 +412,100 @@ function setupTooltip(container, chart, mode) {
   });
 }
 
-// === CONTROLES MEJORADOS ===
-function addControls(container) {
-  const controlsWrapper = document.createElement('div');
-  controlsWrapper.style.cssText = `
-    position: absolute;
-    top: 12px;
-    right: 12px;
+// === CONTROLES EXTERNOS ===
+function addControlsBar(containerParent) {
+  const controlsBar = document.createElement('div');
+  controlsBar.id = 'controls-bar-chile';
+  controlsBar.style.cssText = `
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 100;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(15, 22, 32, 0.6);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    gap: 16px;
+    flex-wrap: wrap;
+    border: 1px solid #1a2434;
   `;
   
+  // Lado izquierdo: Leyenda
+  const leftSide = document.createElement('div');
+  leftSide.style.cssText = `display: flex; gap: 12px; align-items: center;`;
+  
+  const items = [
+    { key: 'uf', label: 'UF', color: COLORS.uf },
+    { key: 'usd', label: 'USD/CLP', color: COLORS.usd },
+    { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa }
+  ];
+  
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `
+      display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+      background: transparent; border: 1px solid ${item.color}; border-radius: 6px;
+      color: ${item.color}; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; opacity: ${seriesVisibility[item.key] ? '1' : '0.35'};
+    `;
+    
+    const dot = document.createElement('span');
+    dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${item.color}; display: block;`;
+    
+    btn.appendChild(dot);
+    btn.appendChild(document.createTextNode(item.label));
+    
+    btn.onclick = () => {
+      seriesVisibility[item.key] = !seriesVisibility[item.key];
+      seriesInstances[item.key].applyOptions({ visible: seriesVisibility[item.key] });
+      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.35';
+    };
+    
+    leftSide.appendChild(btn);
+  });
+  
+  // Lado derecho: Controles
+  const rightSide = document.createElement('div');
+  rightSide.style.cssText = `display: flex; gap: 12px; align-items: center; flex-wrap: wrap;`;
+  
   // Selector de Periodo
-  const periodSelector = document.createElement('div');
-  periodSelector.style.cssText = `
-    display: flex;
-    gap: 4px;
-    background: rgba(15, 22, 32, 0.95);
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid #1a2434;
-    backdrop-filter: blur(8px);
+  const periodGroup = document.createElement('div');
+  periodGroup.style.cssText = `
+    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
+    border-radius: 8px; border: 1px solid #233048;
   `;
   
   const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
-  
   periods.forEach(p => {
     const btn = document.createElement('button');
     const isActive = currentPeriod === p;
     btn.style.cssText = `
-      padding: 6px 10px;
-      background: ${isActive ? '#1f9df2' : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#96a3b7'};
-      border: 1px solid ${isActive ? '#1f9df2' : 'transparent'};
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-width: 42px;
-      text-align: center;
+      padding: 8px 14px; background: ${isActive ? '#1f9df2' : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      min-width: 48px; text-align: center;
     `;
     btn.textContent = p;
     btn.onmouseover = () => {
-      if (currentPeriod !== p) {
-        btn.style.background = 'rgba(31, 157, 242, 0.15)';
-        btn.style.borderColor = '#1f9df2';
-        btn.style.color = '#1f9df2';
-      }
+      if (currentPeriod !== p) { btn.style.background = 'rgba(31, 157, 242, 0.2)'; btn.style.color = '#1f9df2'; }
     };
     btn.onmouseout = () => {
-      if (currentPeriod !== p) {
-        btn.style.background = 'transparent';
-        btn.style.borderColor = 'transparent';
-        btn.style.color = '#96a3b7';
-      }
+      if (currentPeriod !== p) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
     };
     btn.onclick = () => switchPeriod(p);
-    periodSelector.appendChild(btn);
+    periodGroup.appendChild(btn);
   });
+  rightSide.appendChild(periodGroup);
   
-  controlsWrapper.appendChild(periodSelector);
+  // Separador
+  const sep = document.createElement('div');
+  sep.style.cssText = `width: 1px; height: 32px; background: #233048;`;
+  rightSide.appendChild(sep);
   
   // Selector de Modo
-  const modeSelector = document.createElement('div');
-  modeSelector.style.cssText = `
-    display: flex;
-    gap: 4px;
-    background: rgba(15, 22, 32, 0.95);
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid #1a2434;
-    backdrop-filter: blur(8px);
+  const modeGroup = document.createElement('div');
+  modeGroup.style.cssText = `
+    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
+    border-radius: 8px; border: 1px solid #233048;
   `;
   
   const modes = [
@@ -442,106 +518,26 @@ function addControls(container) {
     const btn = document.createElement('button');
     const isActive = currentMode === m.id;
     btn.style.cssText = `
-      padding: 6px 10px;
-      background: ${isActive ? m.color : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#96a3b7'};
-      border: 1px solid ${isActive ? m.color : 'transparent'};
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      flex: 1;
-      text-align: center;
-      white-space: nowrap;
+      padding: 8px 14px; background: ${isActive ? m.color : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      min-width: 68px; text-align: center;
     `;
     btn.textContent = m.label;
     btn.onmouseover = () => {
-      if (currentMode !== m.id) {
-        btn.style.background = `${m.color}20`;
-        btn.style.borderColor = m.color;
-        btn.style.color = m.color;
-      }
+      if (currentMode !== m.id) { btn.style.background = `${m.color}30`; btn.style.color = m.color; }
     };
     btn.onmouseout = () => {
-      if (currentMode !== m.id) {
-        btn.style.background = 'transparent';
-        btn.style.borderColor = 'transparent';
-        btn.style.color = '#96a3b7';
-      }
+      if (currentMode !== m.id) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
     };
     btn.onclick = () => switchMode(m.id);
-    modeSelector.appendChild(btn);
+    modeGroup.appendChild(btn);
   });
+  rightSide.appendChild(modeGroup);
   
-  controlsWrapper.appendChild(modeSelector);
-  container.appendChild(controlsWrapper);
-  
-  // Leyenda
-  const legend = document.createElement('div');
-  legend.style.cssText = `
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    display: flex;
-    gap: 8px;
-    z-index: 100;
-    background: rgba(15, 22, 32, 0.85);
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #1a2434;
-    backdrop-filter: blur(8px);
-    flex-wrap: wrap;
-  `;
-  
-  const items = [
-    { key: 'gold', label: 'Oro', color: COLORS.gold },
-    { key: 'silver', label: 'Plata', color: COLORS.silver },
-    { key: 'copper', label: 'Cobre', color: COLORS.copper },
-    { key: 'lithium', label: 'Litio', color: COLORS.lithium }
-  ];
-  
-  items.forEach(item => {
-    const btn = document.createElement('button');
-    btn.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      background: transparent;
-      border: 1px solid ${item.color};
-      border-radius: 6px;
-      color: ${item.color};
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      opacity: ${seriesVisibility[item.key] ? '1' : '0.4'};
-    `;
-    
-    const dot = document.createElement('span');
-    dot.style.cssText = `
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: ${item.color};
-    `;
-    
-    btn.appendChild(dot);
-    btn.appendChild(document.createTextNode(item.label));
-    
-    btn.onclick = () => {
-      seriesVisibility[item.key] = !seriesVisibility[item.key];
-      seriesInstances[item.key].applyOptions({
-        visible: seriesVisibility[item.key]
-      });
-      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.4';
-    };
-    
-    legend.appendChild(btn);
-  });
-  
-  container.appendChild(legend);
+  controlsBar.appendChild(leftSide);
+  controlsBar.appendChild(rightSide);
+  containerParent.insertBefore(controlsBar, containerParent.firstChild);
 }
 
 function switchMode(newMode) {
@@ -558,76 +554,77 @@ function switchPeriod(newPeriod) {
 
 // === RENDERIZAR ===
 function renderChart() {
-  const container = document.getElementById('c-commodities');
-  if (!container || !rawData.gold.length) return;
+  const containerParent = document.getElementById('c-chile').parentElement;
+  const container = document.getElementById('c-chile');
+  
+  if (!container || !rawData.uf.length) return;
+  
+  const oldControls = document.getElementById('controls-bar-chile');
+  if (oldControls) oldControls.remove();
   
   container.innerHTML = '';
   chartInstance = createChart(container, currentMode);
   
-  let goldData, silverData, copperData, lithiumData;
+  let ufData, usdData, ipsaData;
   
   if (currentMode === 'base100') {
-    goldData = toBase100(rawData.gold);
-    silverData = toBase100(rawData.silver);
-    copperData = toBase100(rawData.copper);
-    lithiumData = toBase100(rawData.lithium);
+    ufData = toBase100(rawData.uf);
+    usdData = toBase100(rawData.usd);
+    ipsaData = toBase100(rawData.ipsa);
     
-    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'right');
-    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
-    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
-    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
+    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'right');
+    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
+    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
     
   } else if (currentMode === 'deltapct') {
-    goldData = toDeltaPct(rawData.gold);
-    silverData = toDeltaPct(rawData.silver);
-    copperData = toDeltaPct(rawData.copper);
-    lithiumData = toDeltaPct(rawData.lithium);
+    ufData = toDeltaPct(rawData.uf);
+    usdData = toDeltaPct(rawData.usd);
+    ipsaData = toDeltaPct(rawData.ipsa);
     
-    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'right');
-    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
-    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
-    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
+    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'right');
+    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
+    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
     
   } else {
-    goldData = rawData.gold;
-    silverData = rawData.silver;
-    copperData = rawData.copper;
-    lithiumData = rawData.lithium;
+    ufData = rawData.uf;
+    usdData = rawData.usd;
+    ipsaData = rawData.ipsa;
     
-    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'left');
-    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
-    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
-    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
+    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'left');
+    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
+    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
   }
   
-  seriesInstances.gold.setData(goldData);
-  seriesInstances.silver.setData(silverData);
-  seriesInstances.copper.setData(copperData);
-  seriesInstances.lithium.setData(lithiumData);
+  seriesInstances.uf.setData(ufData);
+  seriesInstances.usd.setData(usdData);
+  seriesInstances.ipsa.setData(ipsaData);
   
   Object.keys(seriesVisibility).forEach(key => {
     seriesInstances[key].applyOptions({ visible: seriesVisibility[key] });
   });
   
   setupTooltip(container, chartInstance, currentMode);
-  addControls(container);
+  addControlsBar(containerParent);
   chartInstance.timeScale().fitContent();
   
   container.onclick = (e) => {
     if (e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
-    window.location.href = '/detail/commodities';
+    window.location.href = '/detail/tradfi-cl';
   };
 }
 
 // === CARGAR DATOS ===
 async function loadData() {
-  const container = document.getElementById('c-commodities');
-  const noteEl = document.getElementById('c-commodities-note');
+  const container = document.getElementById('c-chile');
+  const noteEl = document.getElementById('c-chile-note');
   
-  if (!container) return;
+  if (!container) {
+    console.warn('❌ Contenedor #c-chile no encontrado');
+    return;
+  }
   
   try {
-    console.log(`\n🚀 === CARGANDO COMMODITIES (${currentPeriod}) ===`);
+    console.log(`\n🚀 === CARGANDO TRADFI CHILE (${currentPeriod}) ===`);
     
     container.innerHTML = `
       <div class="bd-loading">
@@ -636,21 +633,20 @@ async function loadData() {
       </div>
     `;
     
-    const [gold, silver, copper, lithium] = await Promise.all([
-      fetchCommodity('gld.us', 'Oro ETF', currentPeriod),
-      fetchCommodity('slv.us', 'Plata ETF', currentPeriod),
-      fetchCommodity('copx.us', 'Cobre ETF', currentPeriod),
-      fetchCommodity('alb.us', 'Litio', currentPeriod)
+    const [uf, usd, ipsa] = await Promise.all([
+      fetchMindicador('uf', currentPeriod),
+      fetchMindicador('dolar', currentPeriod),
+      fetchStooq('ech.us', currentPeriod)
     ]);
     
-    console.log('\n✅ Commodities cargados');
+    console.log('\n✅ Datos cargados');
     
-    const merged = mergeSeries(gold, silver, copper, lithium);
+    const merged = mergeSeries(uf, usd, ipsa);
     rawData = merged;
     
-    console.log('\n📊 Renderizando commodities...');
+    console.log('\n📊 Renderizando gráfico...');
     renderChart();
-    console.log('✅ Commodities renderizados!\n');
+    console.log('✅ ¡Gráfico renderizado!\n');
     
     if (noteEl) noteEl.style.display = 'none';
     
@@ -659,7 +655,7 @@ async function loadData() {
     
     container.innerHTML = `
       <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
-        <strong>Error al cargar commodities (${currentPeriod})</strong><br>
+        <strong>Error al cargar datos (${currentPeriod})</strong><br>
         <small style="color:#cbd5e0">${error.message}</small>
       </div>
     `;
