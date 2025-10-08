@@ -113,21 +113,24 @@
       <p class="bd-subtitle">Series mensuales, <em>logarítmicas</em> y Base 100, sincronizadas.</p>
 
       <div class="bd-grid">
-        <!-- TradFi Chile (Interactivo) -->
+        <!-- TradFi Chile YTD (Interactivo) -->
         <article class="bd-card" id="card-chile">
-          <h3 class="bd-title">TradFi · Chile — UF vs USD/CLP vs IPSA (proxy ECH)</h3>
-          <p class="bd-subtitle">UF / US$: mindicador.cl · IPSA: ETF ECH (Stooq vía proxy)</p>
+          <h3 class="bd-title">TradFi · Chile — UF, USD/CLP e IPSA — YTD (valores reales)</h3>
+          <p class="bd-subtitle">Formas superpuestas, ejes independientes; tooltip con valores reales.</p>
           <div id="c-chile" class="bd-chart">
-            <div class="bd-loading">Cargando datos...</div>
+            <div class="bd-loading">Cargando datos YTD...</div>
           </div>
           <div id="c-chile-note" class="bd-note" style="display:none"></div>
         </article>
 
-        <!-- Placeholders -->
-        <article class="bd-card disabled">
-          <h3 class="bd-title">Índices — SPY vs EWG vs EWJ</h3>
-          <div class="bd-chart"></div>
-          <div class="bd-note">Próximamente.</div>
+        <!-- Índices Internacionales YTD (Interactivo) -->
+        <article class="bd-card" id="card-indices">
+          <h3 class="bd-title">Índices — SPY vs EWG vs EWJ — YTD (valores reales)</h3>
+          <p class="bd-subtitle">S&P 500, Alemania, Japón · Formas superpuestas, ejes independientes</p>
+          <div id="c-indices" class="bd-chart">
+            <div class="bd-loading">Cargando índices YTD...</div>
+          </div>
+          <div id="c-indices-note" class="bd-note" style="display:none"></div>
         </article>
 
         <article class="bd-card disabled">
@@ -165,5 +168,6 @@
 
   <!-- App (UNA sola vez) -->
   <script src="assets/js/app.js"></script>
+  <script src="assets/js/indices.js"></script>
 </body>
 </html>
