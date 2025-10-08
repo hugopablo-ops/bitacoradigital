@@ -1,10 +1,9 @@
 (() => {
-/* Bitácora Digital - TradFi Chile YTD
-   UF, USD/CLP e IPSA — Comparación YTD con 3 modos
-   - Base100 (default): índices normalizados para comparar movimientos
-   - Delta%: variación porcentual desde t0
-   - Real: valores absolutos con ejes independientes
-   - Tooltip siempre muestra valores reales + métrica del modo activo
+/* Bitácora Digital - app.js (Home) - TradFi Chile YTD
+   UF, USD/CLP, IPSA (proxy ECH)
+   - Comparación YTD con 3 modos
+   - Base100 (default), Delta%, Real
+   - Timeout aumentado a 30s
 */
 
 // === CONFIGURACIÓN ===
@@ -18,11 +17,11 @@ const COLORS = {
 // Estado global
 let chartInstance = null;
 let seriesInstances = {};
-let rawData = { uf: [], usd: [], ipsa: [] }; // Datos crudos
-let currentMode = 'base100'; // 'base100' | 'deltapct' | 'real'
+let rawData = { uf: [], usd: [], ipsa: [] };
+let currentMode = 'base100';
 let seriesVisibility = { uf: true, usd: true, ipsa: true };
 
-// === UTILIDADES DE FECHA ===
+// === UTILIDADES ===
 function getYTDRange() {
   const now = new Date();
   const yearStart = new Date(now.getFullYear(), 0, 1);
@@ -37,7 +36,6 @@ function parseDate(dateStr) {
   return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
 }
 
-// Forward-fill: rellenar máximo 2 días faltantes
 function forwardFill(data, maxGap = 2) {
   if (!data.length) return data;
   const filled = [data[0]];
@@ -64,7 +62,6 @@ function forwardFill(data, maxGap = 2) {
   return filled;
 }
 
-// Merge series por fecha común
 function mergeSeries(uf, usd, ipsa) {
   const allDates = new Set([
     ...uf.map(p => p.time),
@@ -88,7 +85,6 @@ function mergeSeries(uf, usd, ipsa) {
   return merged;
 }
 
-// === TRANSFORMACIONES DE DATOS ===
 function toBase100(arr) {
   if (!arr?.length) return arr;
   const t0 = arr[0].value;
@@ -101,8 +97,7 @@ function toDeltaPct(arr) {
   return arr.map(p => ({ time: p.time, value: ((p.value - t0) / t0) * 100 }));
 }
 
-// Fetch con timeout
-async function fetchWithTimeout(url, options = {}, timeout = 15000) {
+async function fetchWithTimeout(url, options = {}, timeout = 30000) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
   
@@ -120,34 +115,69 @@ async function fetchWithTimeout(url, options = {}, timeout = 15000) {
   }
 }
 
-// === OBTENER DATOS YTD ===
-async function fetchMindicadorYTD(tipo) {
-  console.log(`\n📡 Mindicador YTD: ${tipo}`);
-  const { start, end } = getYTDRange();
+// === MINDICADOR: OBTENER DATOS POR AÑO ===
+async function fetchMindicador(tipo) {
+  console.log(`\n📡 Mindicador: ${tipo} (últimos 15 años)`);
+  
   const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 15 }, (_, i) => currentYear - i);
   
   try {
-    const url = `https://mindicador.cl/api/${tipo}/${currentYear}`;
-    const response = await fetchWithTimeout(url, { cache: 'no-store' });
-    
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const json = await response.json();
-    if (!json.serie || !Array.isArray(json.serie)) throw new Error('Formato inválido');
-    
-    const points = json.serie
-      .map(x => {
-        const d = parseDate(x.fecha);
-        return {
-          time: d.toISOString().split('T')[0],
-          value: Number(x.valor)
-        };
+    const yearlyData = await Promise.all(
+      years.map(async (year) => {
+        const url = `https://mindicador.cl/api/${tipo}/${year}`;
+        
+        try {
+          const response = await fetchWithTimeout(url, { cache: 'no-store' }, 30000);
+          
+          if (!response.ok) {
+            console.warn(`   ⚠️ Año ${year}: HTTP ${response.status}`);
+            return [];
+          }
+          
+          const json = await response.json();
+          
+          if (!json.serie || !Array.isArray(json.serie)) {
+            console.warn(`   ⚠️ Año ${year}: sin datos`);
+            return [];
+          }
+          
+          return json.serie.map(x => {
+            const d = parseDate(x.fecha);
+            return {
+              time: d.toISOString().split('T')[0],
+              value: Number(x.valor)
+            };
+          });
+          
+        } catch (err) {
+          console.warn(`   ⚠️ Año ${year}: ${err.message}`);
+          return [];
+        }
       })
+    );
+    
+    const allPoints = yearlyData.flat();
+    
+    if (allPoints.length === 0) {
+      throw new Error('No se obtuvieron datos');
+    }
+    
+    // Filtrar solo YTD
+    const { start, end } = getYTDRange();
+    const ytdPoints = allPoints
       .filter(p => p.time >= start && p.time <= end)
       .sort((a, b) => a.time.localeCompare(b.time));
     
-    console.log(`   ✅ ${points.length} puntos (${points[0]?.time} → ${points[points.length-1]?.time})`);
-    return forwardFill(points);
+    // Eliminar duplicados por fecha (quedarse con el último)
+    const byDate = {};
+    ytdPoints.forEach(p => { byDate[p.time] = p.value; });
+    const uniquePoints = Object.entries(byDate).map(([time, value]) => ({ time, value }));
+    
+    console.log(`   ✅ Total: ${uniquePoints.length} puntos YTD`);
+    console.log(`   Rango: ${uniquePoints[0]?.time} → ${uniquePoints[uniquePoints.length-1]?.time}`);
+    
+    return forwardFill(uniquePoints);
     
   } catch (error) {
     console.error(`   ❌ Error: ${error.message}`);
@@ -155,27 +185,36 @@ async function fetchMindicadorYTD(tipo) {
   }
 }
 
+// === STOOQ: OBTENER ETF ECH VIA PROXY ===
 async function fetchStooqYTD(ticker) {
   console.log(`\n📡 Stooq YTD: ${ticker}`);
+  
   const { start, end } = getYTDRange();
   const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
   try {
-    const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' }, 30000);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
     
     const csv = await response.text();
-    if (csv.length < 50) throw new Error('CSV vacío');
+    
+    if (csv.length < 50) {
+      throw new Error('CSV vacío');
+    }
     
     const lines = csv.trim().split(/\r?\n/);
     const header = lines[0];
     
     if (!header.includes('Date') || !header.includes('Close')) {
-      throw new Error('CSV sin Date/Close');
+      throw new Error('CSV sin columnas Date/Close');
     }
     
     const points = [];
+    
     for (const line of lines.slice(1)) {
       const [date, , , , close] = line.split(',');
       if (!date || !close) continue;
@@ -188,10 +227,15 @@ async function fetchStooqYTD(ticker) {
       }
     }
     
-    const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
-    console.log(`   ✅ ${sorted.length} puntos (${sorted[0]?.time} → ${sorted[sorted.length-1]?.time})`);
+    if (points.length === 0) {
+      throw new Error('No se parsearon datos del CSV');
+    }
     
-    return forwardFill(sorted);
+    const monthly = points.sort((a, b) => a.time.localeCompare(b.time));
+    console.log(`   ✅ Total: ${monthly.length} puntos YTD`);
+    console.log(`   Rango: ${monthly[0]?.time} → ${monthly[monthly.length-1]?.time}`);
+    
+    return forwardFill(monthly);
     
   } catch (error) {
     console.error(`   ❌ Error: ${error.message}`);
@@ -235,9 +279,7 @@ function createChart(container, mode) {
         color: '#4a5568',
         style: LightweightCharts.LineStyle.Solid
       },
-      horzLine: {
-        visible: false
-      }
+      horzLine: { visible: false }
     },
     handleScroll: {
       mouseWheel: true,
@@ -266,7 +308,7 @@ function createSeries(chart, label, color, priceScaleId = 'right') {
   });
 }
 
-// === TOOLTIP CON VALORES REALES + MÉTRICA DEL MODO ===
+// === TOOLTIP ===
 function setupTooltip(container, chart, mode) {
   const tooltip = document.createElement('div');
   tooltip.style.cssText = `
@@ -315,7 +357,7 @@ function setupTooltip(container, chart, mode) {
     const series = [
       { key: 'uf', label: 'UF', color: COLORS.uf },
       { key: 'usd', label: 'USD/CLP', color: COLORS.usd },
-      { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa }
+      { key: 'ipsa', label: 'IPSA (ECH)', color: COLORS.ipsa }
     ];
     
     series.forEach(s => {
@@ -324,7 +366,6 @@ function setupTooltip(container, chart, mode) {
       const chartData = param.seriesData.get(seriesInstances[s.key]);
       if (!chartData || chartData.value === undefined) return;
       
-      // Obtener valor real del mismo timestamp
       const rawPoint = rawData[s.key].find(p => p.time === param.time);
       const realValue = rawPoint ? rawPoint.value : null;
       
@@ -337,8 +378,6 @@ function setupTooltip(container, chart, mode) {
       } else if (mode === 'deltapct') {
         metricValue = fmtMetric.format(chartData.value) + '%';
         metricLabel = 'Δ%';
-      } else { // real
-        metricLabel = '';
       }
       
       let realFormatted = '—';
@@ -375,7 +414,6 @@ function setupTooltip(container, chart, mode) {
 
 // === CONTROLES ===
 function addControls(container) {
-  // Chips de modo
   const modeChips = document.createElement('div');
   modeChips.style.cssText = `
     position: absolute;
@@ -417,7 +455,6 @@ function addControls(container) {
   
   container.appendChild(modeChips);
   
-  // Leyenda de series
   const legend = document.createElement('div');
   legend.style.cssText = `
     position: absolute;
@@ -487,18 +524,16 @@ function switchMode(newMode) {
   renderChart();
 }
 
-// === RENDERIZAR GRÁFICO ===
+// === RENDERIZAR ===
 function renderChart() {
   const container = document.getElementById('c-chile');
   if (!container || !rawData.uf.length) return;
   
   container.innerHTML = '';
-  
   chartInstance = createChart(container, currentMode);
   
   let ufData, usdData, ipsaData;
   
-  // Transformar datos según modo
   if (currentMode === 'base100') {
     ufData = toBase100(rawData.uf);
     usdData = toBase100(rawData.usd);
@@ -517,7 +552,7 @@ function renderChart() {
     seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
     seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
     
-  } else { // real
+  } else {
     ufData = rawData.uf;
     usdData = rawData.usd;
     ipsaData = rawData.ipsa;
@@ -527,33 +562,25 @@ function renderChart() {
     seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
   }
   
-  // Setear datos
   seriesInstances.uf.setData(ufData);
   seriesInstances.usd.setData(usdData);
   seriesInstances.ipsa.setData(ipsaData);
   
-  // Aplicar visibilidad
   Object.keys(seriesVisibility).forEach(key => {
     seriesInstances[key].applyOptions({ visible: seriesVisibility[key] });
   });
   
-  // Tooltip
   setupTooltip(container, chartInstance, currentMode);
-  
-  // Controles
   addControls(container);
-  
-  // Fit content
   chartInstance.timeScale().fitContent();
   
-  // Click handler
   container.onclick = (e) => {
     if (e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
     window.location.href = '/detail/tradfi-cl';
   };
 }
 
-// === CARGAR DATOS YTD ===
+// === CARGAR DATOS ===
 async function loadYTDData() {
   const container = document.getElementById('c-chile');
   const noteEl = document.getElementById('c-chile-note');
@@ -570,8 +597,8 @@ async function loadYTDData() {
     console.log(`   Periodo: ${start} → ${end}`);
     
     const [uf, usd, ipsa] = await Promise.all([
-      fetchMindicadorYTD('uf'),
-      fetchMindicadorYTD('dolar'),
+      fetchMindicador('uf'),
+      fetchMindicador('dolar'),
       fetchStooqYTD('ech.us')
     ]);
     
@@ -580,11 +607,11 @@ async function loadYTDData() {
     const merged = mergeSeries(uf, usd, ipsa);
     rawData = merged;
     
-    console.log('\n📊 Renderizando en modo Base 100...');
+    console.log('\n📊 Renderizando gráfico YTD...');
     
     renderChart();
     
-    console.log('✅ Gráfico YTD renderizado!\n');
+    console.log('✅ ¡Gráfico YTD renderizado!\n');
     
     if (noteEl) noteEl.style.display = 'none';
     
@@ -606,7 +633,7 @@ async function loadYTDData() {
   }
 }
 
-// === INICIALIZACIÓN ===
+// === INIT ===
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', loadYTDData);
 } else {
