@@ -48,9 +48,51 @@
     .bd-card:hover{border-color:#2e3e55}
     .bd-card.disabled{cursor:default;opacity:0.6}
     .bd-chart{width:100%;height:420px;position:relative}
+    
+    /* Altura adaptativa móvil */
+    @media (max-width:680px){ 
+      .bd-chart{height:320px}
+      .hero__copy h1{font-size:28px}
+      .hero__inner{grid-template-columns:1fr}
+      .chips{justify-content:flex-start}
+    }
+    
     .bd-note{color:var(--muted);font-size:.92rem;margin-top:6px}
-    .bd-loading{padding:1rem;color:#96a3b7;text-align:center}
-    .bd-error{padding:1rem;color:#f56565;text-align:center}
+    
+    /* Loader mejorado */
+    .bd-loading{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      height:100%;
+      color:#96a3b7;
+      text-align:center;
+      gap:16px;
+    }
+    .bd-spinner{
+      width:40px;
+      height:40px;
+      border:3px solid #1a2434;
+      border-top-color:#1f9df2;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin{
+      to{transform:rotate(360deg)}
+    }
+    
+    .bd-error{padding:1.5rem;color:#f56565;text-align:center;line-height:1.6}
+    .bd-retry{
+      margin-top:12px;
+      padding:8px 16px;
+      background:#1f9df2;
+      color:#fff;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:14px;
+    }
 
     .footer{border-top:1px solid #0b1119;padding:18px 0;color:#9fb0c9;margin-top:40px}
     .footer__inner{display:flex;justify-content:space-between;align-items:center}
@@ -76,8 +118,6 @@
       <nav class="nav__links">
         <a href="#analytic">Dashboards</a>
         <a href="#podcast">Podcast</a>
-        <a href="#servicios">Servicios</a>
-        <a href="#roadmap">Roadmap</a>
       </nav>
     </div>
   </header>
@@ -91,11 +131,6 @@
         <div class="hero__cta">
           <a class="btn btn--primary" href="#analytic">Ver comparativos</a>
           <a class="btn" href="#podcast">Escuchar podcast</a>
-          <a class="btn" href="#servicios">Servicios</a>
-          <a class="btn" href="#bd-labs">BD Labs</a>
-          <a class="btn" href="#bd-merch">
-            <a class="btn" href="#bd-merch">BD Merchandising</a>
-          <a class="btn" href="#contacto">Contacto</a>
         </div>
       </div>
       <div class="chips">
@@ -114,32 +149,41 @@
       <p class="bd-subtitle">Series mensuales, <em>logarítmicas</em> y Base 100, sincronizadas.</p>
 
       <div class="bd-grid">
-        <!-- TradFi Chile YTD (Interactivo) -->
+        <!-- TradFi Chile YTD -->
         <article class="bd-card" id="card-chile">
           <h3 class="bd-title">TradFi · Chile — UF, USD/CLP e IPSA — YTD (valores reales)</h3>
           <p class="bd-subtitle">Formas superpuestas, ejes independientes; tooltip con valores reales.</p>
           <div id="c-chile" class="bd-chart">
-            <div class="bd-loading">Cargando datos YTD...</div>
+            <div class="bd-loading">
+              <div class="bd-spinner"></div>
+              <div>Cargando datos YTD...</div>
+            </div>
           </div>
           <div id="c-chile-note" class="bd-note" style="display:none"></div>
         </article>
 
-        <!-- Índices Internacionales YTD (Interactivo) -->
+        <!-- Índices Internacionales YTD -->
         <article class="bd-card" id="card-indices">
           <h3 class="bd-title">Índices — SPY vs EWG vs EWJ — YTD (valores reales)</h3>
           <p class="bd-subtitle">S&P 500, Alemania, Japón · Formas superpuestas, ejes independientes</p>
           <div id="c-indices" class="bd-chart">
-            <div class="bd-loading">Cargando índices YTD...</div>
+            <div class="bd-loading">
+              <div class="bd-spinner"></div>
+              <div>Cargando índices YTD...</div>
+            </div>
           </div>
           <div id="c-indices-note" class="bd-note" style="display:none"></div>
         </article>
 
-        <!-- Commodities YTD (Interactivo) -->
+        <!-- Commodities YTD -->
         <article class="bd-card" id="card-commodities">
           <h3 class="bd-title">Commodities — Oro vs Plata vs Cobre vs Litio — YTD (valores reales)</h3>
-          <p class="bd-subtitle">Comparación Year-to-Date de metales preciosos e industriales · Tooltip con valores reales</p>
+          <p class="bd-subtitle">Comparación Year-to-Date de metales preciosos e industriales</p>
           <div id="c-commodities" class="bd-chart">
-            <div class="bd-loading">Cargando commodities YTD...</div>
+            <div class="bd-loading">
+              <div class="bd-spinner"></div>
+              <div>Cargando commodities YTD...</div>
+            </div>
           </div>
           <div id="c-commodities-note" class="bd-note" style="display:none"></div>
         </article>
@@ -166,7 +210,6 @@
       <div class="footer__links">
         <a href="/">Inicio</a>
         <a href="#podcast">Podcast</a>
-        <a href="#servicios">Servicios</a>
       </div>
     </div>
   </footer>
