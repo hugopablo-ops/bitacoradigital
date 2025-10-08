@@ -120,3 +120,94 @@ async function fetchStooqYTD(ticker) {
   try {
     const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' }, 30000);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
+     const csv = await response.text();
+    if (csv.length < 50) throw new Error('CSV vacío');
+    
+    const lines = csv.trim().split(/\r?\n/);
+    const header = lines[0];
+    
+    if (!header.includes('Date') || !header.includes('Close')) {
+      throw new Error('CSV sin Date/Close');
+    }
+    
+    const points = [];
+    for (const line of lines.slice(1)) {
+      const [date, , , , close] = line.split(',');
+      if (!date || !close) continue;
+      
+      const value = Number(close);
+      if (!Number.isFinite(value)) continue;
+      
+      if (date >= start && date <= end) {
+        points.push({ time: date, value });
+      }
+    }
+    
+    const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
+    console.log(`   ✅ ${sorted.length} puntos (${sorted[0]?.time} → ${sorted[sorted.length-1]?.time})`);
+    
+    return forwardFill(sorted);
+    
+  } catch (error) {
+    console.error(`   ❌ Error: ${error.message}`);
+    throw error;
+  }
+}
+
+// === CREAR GRÁFICO ===
+function createChart(container, mode) {
+  const isReal = mode === 'real';
+  
+  const chart = LightweightCharts.createChart(container, {
+    layout: {
+      background: { type: 'solid', color: 'transparent' },
+      textColor: '#cfe0ff'
+    },
+    rightPriceScale: {
+      borderColor: '#233048',
+      visible: true,
+      scaleMargins: { top: 0.1, bottom: 0.1 }
+    },
+    leftPriceScale: {
+      borderColor: '#233048',
+      visible: isReal,
+      scaleMargins: { top: 0.1, bottom: 0.1 }
+    },
+    timeScale: {
+      borderColor: '#233048',
+      rightOffset: 3,
+      timeVisible: true
+    },
+    grid: {
+      vertLines: { color: '#1a2434' },
+      horzLines: { color: '#1a2434' }
+    },
+    localization: { locale: 'es-CL' },
+    crosshair: {
+      mode: LightweightCharts.CrosshairMode.Normal,
+      vertLine: {
+        width: 1,
+        color: '#4a5568',
+        style: LightweightCharts.LineStyle.Solid
+      },
+      horzLine: { visible: false }
+    },
+    handleScroll: {
+      mouseWheel: true,
+      pressedMouseMove: true
+    },
+    handleScale: {
+      axisPressedMouseMove: true,
+      mouseWheel: true,
+      pinch: true
+    }
+  });
+  
+  return chart;
+}
+
+function createSeries(chart, label, color, priceScaleId = 'right') {
+  return chart.addLineSeries({
+    color,
+    lineWidth: 2.5,
+    priceScaleId,
