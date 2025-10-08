@@ -1,9 +1,8 @@
 (() => {
-/* Bitácora Digital - Índices Internacionales YTD
+/* Bitácora Digital - Índices Internacionales
    SPY (S&P 500), EWG (Alemania), EWJ (Japón)
-   - Comparación YTD con 3 modos
-   - Base100 (default), Delta%, Real
-   - Timeout aumentado a 30s
+   - MEJORADO: Selector de periodo (1M, 3M, 6M, YTD, 1Y, All)
+   - Botones Real/% con mejor visibilidad
 */
 
 // === CONFIGURACIÓN ===
@@ -19,14 +18,44 @@ let chartInstance = null;
 let seriesInstances = {};
 let rawData = { spy: [], ewg: [], ewj: [] };
 let currentMode = 'base100';
+let currentPeriod = 'YTD';
 let seriesVisibility = { spy: true, ewg: true, ewj: true };
 
 // === UTILIDADES ===
-function getYTDRange() {
+function getDateRange(period) {
   const now = new Date();
-  const yearStart = new Date(now.getFullYear(), 0, 1);
+  let start;
+  
+  switch(period) {
+    case '1M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 1);
+      break;
+    case '3M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 3);
+      break;
+    case '6M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 6);
+      break;
+    case 'YTD':
+      start = new Date(now.getFullYear(), 0, 1);
+      break;
+    case '1Y':
+      start = new Date(now);
+      start.setFullYear(start.getFullYear() - 1);
+      break;
+    case 'All':
+      start = new Date(now);
+      start.setFullYear(start.getFullYear() - 15);
+      break;
+    default:
+      start = new Date(now.getFullYear(), 0, 1);
+  }
+  
   return {
-    start: yearStart.toISOString().split('T')[0],
+    start: start.toISOString().split('T')[0],
     end: now.toISOString().split('T')[0]
   };
 }
@@ -110,17 +139,18 @@ async function fetchWithTimeout(url, options = {}, timeout = 30000) {
   }
 }
 
-// === OBTENER DATOS DE STOOQ ===
-async function fetchStooqYTD(ticker) {
-  console.log(`\n📡 Stooq YTD: ${ticker}`);
-  const { start, end } = getYTDRange();
+// === STOOQ ===
+async function fetchStooq(ticker, period) {
+  console.log(`\n📡 Stooq: ${ticker} (periodo: ${period})`);
+  const { start, end } = getDateRange(period);
   const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
   try {
     const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' }, 30000);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-     const csv = await response.text();
+    
+    const csv = await response.text();
     if (csv.length < 50) throw new Error('CSV vacío');
     
     const lines = csv.trim().split(/\r?\n/);
@@ -144,8 +174,7 @@ async function fetchStooqYTD(ticker) {
     }
     
     const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
-    console.log(`   ✅ ${sorted.length} puntos (${sorted[0]?.time} → ${sorted[sorted.length-1]?.time})`);
-    
+    console.log(`   ✅ ${sorted.length} puntos`);
     return forwardFill(sorted);
     
   } catch (error) {
@@ -154,7 +183,7 @@ async function fetchStooqYTD(ticker) {
   }
 }
 
-// === CREAR GRÁFICO ===
+// === GRÁFICO ===
 function createChart(container, mode) {
   const isReal = mode === 'real';
   
@@ -319,61 +348,141 @@ function setupTooltip(container, chart, mode) {
   });
 }
 
-// === CONTROLES ===
+// === CONTROLES MEJORADOS ===
 function addControls(container) {
-  const modeChips = document.createElement('div');
-  modeChips.style.cssText = `
+  const controlsWrapper = document.createElement('div');
+  controlsWrapper.style.cssText = `
     position: absolute;
     top: 12px;
     right: 12px;
     display: flex;
-    gap: 6px;
+    flex-direction: column;
+    gap: 8px;
     z-index: 100;
-    background: rgba(15, 22, 32, 0.9);
-    padding: 6px;
+  `;
+  
+  // Selector de Periodo
+  const periodSelector = document.createElement('div');
+  periodSelector.style.cssText = `
+    display: flex;
+    gap: 4px;
+    background: rgba(15, 22, 32, 0.95);
+    padding: 4px;
     border-radius: 8px;
     border: 1px solid #1a2434;
+    backdrop-filter: blur(8px);
+  `;
+  
+  const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
+  
+  periods.forEach(p => {
+    const btn = document.createElement('button');
+    const isActive = currentPeriod === p;
+    btn.style.cssText = `
+      padding: 6px 10px;
+      background: ${isActive ? '#1f9df2' : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#96a3b7'};
+      border: 1px solid ${isActive ? '#1f9df2' : 'transparent'};
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 42px;
+      text-align: center;
+    `;
+    btn.textContent = p;
+    btn.onmouseover = () => {
+      if (currentPeriod !== p) {
+        btn.style.background = 'rgba(31, 157, 242, 0.15)';
+        btn.style.borderColor = '#1f9df2';
+        btn.style.color = '#1f9df2';
+      }
+    };
+    btn.onmouseout = () => {
+      if (currentPeriod !== p) {
+        btn.style.background = 'transparent';
+        btn.style.borderColor = 'transparent';
+        btn.style.color = '#96a3b7';
+      }
+    };
+    btn.onclick = () => switchPeriod(p);
+    periodSelector.appendChild(btn);
+  });
+  
+  controlsWrapper.appendChild(periodSelector);
+  
+  // Selector de Modo
+  const modeSelector = document.createElement('div');
+  modeSelector.style.cssText = `
+    display: flex;
+    gap: 4px;
+    background: rgba(15, 22, 32, 0.95);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #1a2434;
+    backdrop-filter: blur(8px);
   `;
   
   const modes = [
-    { id: 'base100', label: 'Base 100' },
-    { id: 'deltapct', label: 'Delta %' },
-    { id: 'real', label: 'Real' }
+    { id: 'real', label: 'Real', color: '#10b981' },
+    { id: 'base100', label: 'Base100', color: '#3b82f6' },
+    { id: 'deltapct', label: '%', color: '#8b5cf6' }
   ];
   
   modes.forEach(m => {
-    const chip = document.createElement('button');
+    const btn = document.createElement('button');
     const isActive = currentMode === m.id;
-    chip.style.cssText = `
-      padding: 6px 12px;
-      background: ${isActive ? '#1f9df2' : 'transparent'};
-      color: ${isActive ? '#fff' : '#96a3b7'};
-      border: 1px solid ${isActive ? '#1f9df2' : '#2a3f5f'};
+    btn.style.cssText = `
+      padding: 6px 10px;
+      background: ${isActive ? m.color : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#96a3b7'};
+      border: 1px solid ${isActive ? m.color : 'transparent'};
       border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 11px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      flex: 1;
+      text-align: center;
+      white-space: nowrap;
     `;
-    chip.textContent = m.label;
-    chip.onclick = () => switchMode(m.id);
-    modeChips.appendChild(chip);
+    btn.textContent = m.label;
+    btn.onmouseover = () => {
+      if (currentMode !== m.id) {
+        btn.style.background = `${m.color}20`;
+        btn.style.borderColor = m.color;
+        btn.style.color = m.color;
+      }
+    };
+    btn.onmouseout = () => {
+      if (currentMode !== m.id) {
+        btn.style.background = 'transparent';
+        btn.style.borderColor = 'transparent';
+        btn.style.color = '#96a3b7';
+      }
+    };
+    btn.onclick = () => switchMode(m.id);
+    modeSelector.appendChild(btn);
   });
   
-  container.appendChild(modeChips);
+  controlsWrapper.appendChild(modeSelector);
+  container.appendChild(controlsWrapper);
   
+  // Leyenda
   const legend = document.createElement('div');
   legend.style.cssText = `
     position: absolute;
     top: 12px;
     left: 12px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     z-index: 100;
-    background: rgba(15, 22, 32, 0.8);
+    background: rgba(15, 22, 32, 0.85);
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #1a2434;
+    backdrop-filter: blur(8px);
   `;
   
   const items = [
@@ -429,6 +538,12 @@ function switchMode(newMode) {
   if (newMode === currentMode) return;
   currentMode = newMode;
   renderChart();
+}
+
+function switchPeriod(newPeriod) {
+  if (newPeriod === currentPeriod) return;
+  currentPeriod = newPeriod;
+  loadData();
 }
 
 // === RENDERIZAR ===
@@ -488,22 +603,26 @@ function renderChart() {
 }
 
 // === CARGAR DATOS ===
-async function loadIndicesData() {
+async function loadData() {
   const container = document.getElementById('c-indices');
   const noteEl = document.getElementById('c-indices-note');
   
   if (!container) return;
   
   try {
-    console.log('\n🚀 === CARGANDO ÍNDICES YTD ===');
+    console.log(`\n🚀 === CARGANDO ÍNDICES (${currentPeriod}) ===`);
     
-    const { start, end } = getYTDRange();
-    console.log(`   Periodo: ${start} → ${end}`);
+    container.innerHTML = `
+      <div class="bd-loading">
+        <div class="bd-spinner"></div>
+        <div>Cargando ${currentPeriod}...</div>
+      </div>
+    `;
     
     const [spy, ewg, ewj] = await Promise.all([
-      fetchStooqYTD('spy.us'),
-      fetchStooqYTD('ewg.us'),
-      fetchStooqYTD('ewj.us')
+      fetchStooq('spy.us', currentPeriod),
+      fetchStooq('ewg.us', currentPeriod),
+      fetchStooq('ewj.us', currentPeriod)
     ]);
     
     console.log('\n✅ Índices cargados');
@@ -522,7 +641,7 @@ async function loadIndicesData() {
     
     container.innerHTML = `
       <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
-        <strong>Error al cargar índices</strong><br>
+        <strong>Error al cargar índices (${currentPeriod})</strong><br>
         <small style="color:#cbd5e0">${error.message}</small>
       </div>
     `;
@@ -537,9 +656,9 @@ async function loadIndicesData() {
 
 // === INIT ===
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadIndicesData);
+  document.addEventListener('DOMContentLoaded', loadData);
 } else {
-  loadIndicesData();
+  loadData();
 }
 
 })();
