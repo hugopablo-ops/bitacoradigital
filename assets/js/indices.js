@@ -1,6 +1,6 @@
 (() => {
-/* Bitácora Digital - Índices Internacionales
-   SPY (S&P 500), EWG (Alemania), EWJ (Japón)
+/* Bitácora Digital - Commodities
+   Oro (GLD), Plata (SLV), Cobre (COPX), Litio (ALB)
    - MEJORADO: Selector de periodo (1M, 3M, 6M, YTD, 1Y, All)
    - Botones Real/% con mejor visibilidad
 */
@@ -8,18 +8,19 @@
 // === CONFIGURACIÓN ===
 const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
 const COLORS = {
-  spy: '#48bb78',
-  ewg: '#ed8936',
-  ewj: '#9f7aea'
+  gold: '#FFD700',
+  silver: '#C0C0C0',
+  copper: '#B87333',
+  lithium: '#7DF9FF'
 };
 
 // Estado global
 let chartInstance = null;
 let seriesInstances = {};
-let rawData = { spy: [], ewg: [], ewj: [] };
-let currentMode = 'base100';
+let rawData = { gold: [], silver: [], copper: [], lithium: [] };
+let currentMode = 'real';
 let currentPeriod = 'YTD';
-let seriesVisibility = { spy: true, ewg: true, ewj: true };
+let seriesVisibility = { gold: true, silver: true, copper: true, lithium: true };
 
 // === UTILIDADES ===
 function getDateRange(period) {
@@ -86,24 +87,27 @@ function forwardFill(data, maxGap = 2) {
   return filled;
 }
 
-function mergeSeries(spy, ewg, ewj) {
+function mergeSeries(gold, silver, copper, lithium) {
   const allDates = new Set([
-    ...spy.map(p => p.time),
-    ...ewg.map(p => p.time),
-    ...ewj.map(p => p.time)
+    ...gold.map(p => p.time),
+    ...silver.map(p => p.time),
+    ...copper.map(p => p.time),
+    ...lithium.map(p => p.time)
   ]);
   
   const dates = Array.from(allDates).sort();
-  const spyMap = new Map(spy.map(p => [p.time, p.value]));
-  const ewgMap = new Map(ewg.map(p => [p.time, p.value]));
-  const ewjMap = new Map(ewj.map(p => [p.time, p.value]));
+  const goldMap = new Map(gold.map(p => [p.time, p.value]));
+  const silverMap = new Map(silver.map(p => [p.time, p.value]));
+  const copperMap = new Map(copper.map(p => [p.time, p.value]));
+  const lithiumMap = new Map(lithium.map(p => [p.time, p.value]));
   
-  const merged = { spy: [], ewg: [], ewj: [] };
+  const merged = { gold: [], silver: [], copper: [], lithium: [] };
   
   dates.forEach(date => {
-    if (spyMap.has(date)) merged.spy.push({ time: date, value: spyMap.get(date) });
-    if (ewgMap.has(date)) merged.ewg.push({ time: date, value: ewgMap.get(date) });
-    if (ewjMap.has(date)) merged.ewj.push({ time: date, value: ewjMap.get(date) });
+    if (goldMap.has(date)) merged.gold.push({ time: date, value: goldMap.get(date) });
+    if (silverMap.has(date)) merged.silver.push({ time: date, value: silverMap.get(date) });
+    if (copperMap.has(date)) merged.copper.push({ time: date, value: copperMap.get(date) });
+    if (lithiumMap.has(date)) merged.lithium.push({ time: date, value: lithiumMap.get(date) });
   });
   
   return merged;
@@ -140,8 +144,8 @@ async function fetchWithTimeout(url, options = {}, timeout = 30000) {
 }
 
 // === STOOQ ===
-async function fetchStooq(ticker, period) {
-  console.log(`\n📡 Stooq: ${ticker} (periodo: ${period})`);
+async function fetchCommodity(ticker, name, period) {
+  console.log(`\n📡 Commodity: ${name} (${ticker}) - ${period}`);
   const { start, end } = getDateRange(period);
   const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
@@ -151,7 +155,7 @@ async function fetchStooq(ticker, period) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const csv = await response.text();
-    if (csv.length < 50) throw new Error('CSV vacío');
+    if (csv.length < 50) throw new Error('CSV muy corto');
     
     const lines = csv.trim().split(/\r?\n/);
     const header = lines[0];
@@ -173,12 +177,15 @@ async function fetchStooq(ticker, period) {
       }
     }
     
+    if (points.length === 0) throw new Error('No hay datos en el rango');
+    
     const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
     console.log(`   ✅ ${sorted.length} puntos`);
+    
     return forwardFill(sorted);
     
   } catch (error) {
-    console.error(`   ❌ Error: ${error.message}`);
+    console.error(`   ❌ Error ${name}: ${error.message}`);
     throw error;
   }
 }
@@ -265,7 +272,7 @@ function setupTooltip(container, chart, mode) {
     z-index: 1000;
     backdrop-filter: blur(8px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    min-width: 240px;
+    min-width: 260px;
   `;
   container.appendChild(tooltip);
   
@@ -295,9 +302,10 @@ function setupTooltip(container, chart, mode) {
     let html = `<div style="font-weight:600;margin-bottom:10px;color:#fff;border-bottom:1px solid #2a3f5f;padding-bottom:6px">${dateStr}</div>`;
     
     const series = [
-      { key: 'spy', label: 'SPY (S&P 500)', color: COLORS.spy },
-      { key: 'ewg', label: 'EWG (Alemania)', color: COLORS.ewg },
-      { key: 'ewj', label: 'EWJ (Japón)', color: COLORS.ewj }
+      { key: 'gold', label: 'Oro ETF (GLD)', color: COLORS.gold },
+      { key: 'silver', label: 'Plata ETF (SLV)', color: COLORS.silver },
+      { key: 'copper', label: 'Cobre ETF (COPX)', color: COLORS.copper },
+      { key: 'lithium', label: 'Litio (ALB)', color: COLORS.lithium }
     ];
     
     series.forEach(s => {
@@ -328,7 +336,7 @@ function setupTooltip(container, chart, mode) {
       html += `
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
           <span style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
-          <span style="font-weight:500;color:#96a3b7;min-width:110px;font-size:12px">${s.label}:</span>
+          <span style="font-weight:500;color:#96a3b7;min-width:120px;font-size:12px">${s.label}:</span>
           ${metricLabel ? `<span style="color:#cbd5e0;font-size:11px;min-width:45px">${metricValue}</span>` : ''}
           <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
             ${realFormatted}
@@ -483,12 +491,14 @@ function addControls(container) {
     border-radius: 8px;
     border: 1px solid #1a2434;
     backdrop-filter: blur(8px);
+    flex-wrap: wrap;
   `;
   
   const items = [
-    { key: 'spy', label: 'SPY', color: COLORS.spy },
-    { key: 'ewg', label: 'EWG', color: COLORS.ewg },
-    { key: 'ewj', label: 'EWJ', color: COLORS.ewj }
+    { key: 'gold', label: 'Oro', color: COLORS.gold },
+    { key: 'silver', label: 'Plata', color: COLORS.silver },
+    { key: 'copper', label: 'Cobre', color: COLORS.copper },
+    { key: 'lithium', label: 'Litio', color: COLORS.lithium }
   ];
   
   items.forEach(item => {
@@ -548,45 +558,52 @@ function switchPeriod(newPeriod) {
 
 // === RENDERIZAR ===
 function renderChart() {
-  const container = document.getElementById('c-indices');
-  if (!container || !rawData.spy.length) return;
+  const container = document.getElementById('c-commodities');
+  if (!container || !rawData.gold.length) return;
   
   container.innerHTML = '';
   chartInstance = createChart(container, currentMode);
   
-  let spyData, ewgData, ewjData;
+  let goldData, silverData, copperData, lithiumData;
   
   if (currentMode === 'base100') {
-    spyData = toBase100(rawData.spy);
-    ewgData = toBase100(rawData.ewg);
-    ewjData = toBase100(rawData.ewj);
+    goldData = toBase100(rawData.gold);
+    silverData = toBase100(rawData.silver);
+    copperData = toBase100(rawData.copper);
+    lithiumData = toBase100(rawData.lithium);
     
-    seriesInstances.spy = createSeries(chartInstance, 'SPY', COLORS.spy, 'right');
-    seriesInstances.ewg = createSeries(chartInstance, 'EWG', COLORS.ewg, 'right');
-    seriesInstances.ewj = createSeries(chartInstance, 'EWJ', COLORS.ewj, 'right');
+    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'right');
+    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
+    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
+    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
     
   } else if (currentMode === 'deltapct') {
-    spyData = toDeltaPct(rawData.spy);
-    ewgData = toDeltaPct(rawData.ewg);
-    ewjData = toDeltaPct(rawData.ewj);
+    goldData = toDeltaPct(rawData.gold);
+    silverData = toDeltaPct(rawData.silver);
+    copperData = toDeltaPct(rawData.copper);
+    lithiumData = toDeltaPct(rawData.lithium);
     
-    seriesInstances.spy = createSeries(chartInstance, 'SPY', COLORS.spy, 'right');
-    seriesInstances.ewg = createSeries(chartInstance, 'EWG', COLORS.ewg, 'right');
-    seriesInstances.ewj = createSeries(chartInstance, 'EWJ', COLORS.ewj, 'right');
+    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'right');
+    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
+    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
+    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
     
   } else {
-    spyData = rawData.spy;
-    ewgData = rawData.ewg;
-    ewjData = rawData.ewj;
+    goldData = rawData.gold;
+    silverData = rawData.silver;
+    copperData = rawData.copper;
+    lithiumData = rawData.lithium;
     
-    seriesInstances.spy = createSeries(chartInstance, 'SPY', COLORS.spy, 'left');
-    seriesInstances.ewg = createSeries(chartInstance, 'EWG', COLORS.ewg, 'right');
-    seriesInstances.ewj = createSeries(chartInstance, 'EWJ', COLORS.ewj, 'right');
+    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'left');
+    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
+    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
+    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
   }
   
-  seriesInstances.spy.setData(spyData);
-  seriesInstances.ewg.setData(ewgData);
-  seriesInstances.ewj.setData(ewjData);
+  seriesInstances.gold.setData(goldData);
+  seriesInstances.silver.setData(silverData);
+  seriesInstances.copper.setData(copperData);
+  seriesInstances.lithium.setData(lithiumData);
   
   Object.keys(seriesVisibility).forEach(key => {
     seriesInstances[key].applyOptions({ visible: seriesVisibility[key] });
@@ -598,19 +615,19 @@ function renderChart() {
   
   container.onclick = (e) => {
     if (e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
-    window.location.href = '/detail/indices';
+    window.location.href = '/detail/commodities';
   };
 }
 
 // === CARGAR DATOS ===
 async function loadData() {
-  const container = document.getElementById('c-indices');
-  const noteEl = document.getElementById('c-indices-note');
+  const container = document.getElementById('c-commodities');
+  const noteEl = document.getElementById('c-commodities-note');
   
   if (!container) return;
   
   try {
-    console.log(`\n🚀 === CARGANDO ÍNDICES (${currentPeriod}) ===`);
+    console.log(`\n🚀 === CARGANDO COMMODITIES (${currentPeriod}) ===`);
     
     container.innerHTML = `
       <div class="bd-loading">
@@ -619,20 +636,21 @@ async function loadData() {
       </div>
     `;
     
-    const [spy, ewg, ewj] = await Promise.all([
-      fetchStooq('spy.us', currentPeriod),
-      fetchStooq('ewg.us', currentPeriod),
-      fetchStooq('ewj.us', currentPeriod)
+    const [gold, silver, copper, lithium] = await Promise.all([
+      fetchCommodity('gld.us', 'Oro ETF', currentPeriod),
+      fetchCommodity('slv.us', 'Plata ETF', currentPeriod),
+      fetchCommodity('copx.us', 'Cobre ETF', currentPeriod),
+      fetchCommodity('alb.us', 'Litio', currentPeriod)
     ]);
     
-    console.log('\n✅ Índices cargados');
+    console.log('\n✅ Commodities cargados');
     
-    const merged = mergeSeries(spy, ewg, ewj);
+    const merged = mergeSeries(gold, silver, copper, lithium);
     rawData = merged;
     
-    console.log('\n📊 Renderizando índices...');
+    console.log('\n📊 Renderizando commodities...');
     renderChart();
-    console.log('✅ Índices renderizados!\n');
+    console.log('✅ Commodities renderizados!\n');
     
     if (noteEl) noteEl.style.display = 'none';
     
@@ -641,7 +659,7 @@ async function loadData() {
     
     container.innerHTML = `
       <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
-        <strong>Error al cargar índices (${currentPeriod})</strong><br>
+        <strong>Error al cargar commodities (${currentPeriod})</strong><br>
         <small style="color:#cbd5e0">${error.message}</small>
       </div>
     `;
