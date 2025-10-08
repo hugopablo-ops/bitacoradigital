@@ -1,8 +1,7 @@
 (() => {
-/* Bitácora Digital - Commodities YTD
+/* Bitácora Digital - Commodities
    Oro (GLD), Plata (SLV), Cobre (COPX), Litio (ALB)
-   - Usando ETFs para mejor disponibilidad de datos
-   - Timeout aumentado a 30s
+   Layout limpio con controles externos
 */
 
 // === CONFIGURACIÓN ===
@@ -19,14 +18,44 @@ let chartInstance = null;
 let seriesInstances = {};
 let rawData = { gold: [], silver: [], copper: [], lithium: [] };
 let currentMode = 'real';
+let currentPeriod = 'YTD';
 let seriesVisibility = { gold: true, silver: true, copper: true, lithium: true };
 
 // === UTILIDADES ===
-function getYTDRange() {
+function getDateRange(period) {
   const now = new Date();
-  const yearStart = new Date(now.getFullYear(), 0, 1);
+  let start;
+  
+  switch(period) {
+    case '1M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 1);
+      break;
+    case '3M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 3);
+      break;
+    case '6M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 6);
+      break;
+    case 'YTD':
+      start = new Date(now.getFullYear(), 0, 1);
+      break;
+    case '1Y':
+      start = new Date(now);
+      start.setFullYear(start.getFullYear() - 1);
+      break;
+    case 'All':
+      start = new Date(now);
+      start.setFullYear(start.getFullYear() - 15);
+      break;
+    default:
+      start = new Date(now.getFullYear(), 0, 1);
+  }
+  
   return {
-    start: yearStart.toISOString().split('T')[0],
+    start: start.toISOString().split('T')[0],
     end: now.toISOString().split('T')[0]
   };
 }
@@ -113,10 +142,10 @@ async function fetchWithTimeout(url, options = {}, timeout = 30000) {
   }
 }
 
-// === OBTENER DATOS DE STOOQ ===
-async function fetchCommodityYTD(ticker, name) {
-  console.log(`\n📡 Commodity YTD: ${name} (${ticker})`);
-  const { start, end } = getYTDRange();
+// === STOOQ ===
+async function fetchCommodity(ticker, name, period) {
+  console.log(`\n📡 Commodity: ${name} (${ticker}) - ${period}`);
+  const { start, end } = getDateRange(period);
   const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
@@ -125,7 +154,6 @@ async function fetchCommodityYTD(ticker, name) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const csv = await response.text();
-    
     if (csv.length < 50) throw new Error('CSV muy corto');
     
     const lines = csv.trim().split(/\r?\n/);
@@ -148,12 +176,10 @@ async function fetchCommodityYTD(ticker, name) {
       }
     }
     
-    if (points.length === 0) {
-      throw new Error('No hay datos en el rango YTD');
-    }
+    if (points.length === 0) throw new Error('No hay datos en el rango');
     
     const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
-    console.log(`   ✅ ${sorted.length} puntos (${sorted[0]?.time} → ${sorted[sorted.length-1]?.time})`);
+    console.log(`   ✅ ${sorted.length} puntos`);
     
     return forwardFill(sorted);
     
@@ -163,7 +189,7 @@ async function fetchCommodityYTD(ticker, name) {
   }
 }
 
-// === CREAR GRÁFICO ===
+// === GRÁFICO ===
 function createChart(container, mode) {
   const isReal = mode === 'real';
   
@@ -329,64 +355,25 @@ function setupTooltip(container, chart, mode) {
   });
 }
 
-// === CONTROLES ===
-function addControls(container) {
-  const modeChips = document.createElement('div');
-  modeChips.style.cssText = `
-    position: absolute;
-    top: 12px;
-    right: 12px;
+// === CONTROLES EXTERNOS ===
+function addControlsBar(containerParent) {
+  const controlsBar = document.createElement('div');
+  controlsBar.id = 'controls-bar-commodities';
+  controlsBar.style.cssText = `
     display: flex;
-    gap: 6px;
-    z-index: 100;
-    background: rgba(15, 22, 32, 0.9);
-    padding: 6px;
-    border-radius: 8px;
-    border
-    : 1px solid #1a2434;
-  `;
-  
-  const modes = [
-    { id: 'real', label: 'Real' },
-    { id: 'base100', label: 'Base 100' },
-    { id: 'deltapct', label: 'Delta %' }
-  ];
-  
-  modes.forEach(m => {
-    const chip = document.createElement('button');
-    const isActive = currentMode === m.id;
-    chip.style.cssText = `
-      padding: 6px 12px;
-      background: ${isActive ? '#1f9df2' : 'transparent'};
-      color: ${isActive ? '#fff' : '#96a3b7'};
-      border: 1px solid ${isActive ? '#1f9df2' : '#2a3f5f'};
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    `;
-    chip.textContent = m.label;
-    chip.onclick = () => switchMode(m.id);
-    modeChips.appendChild(chip);
-  });
-  
-  container.appendChild(modeChips);
-  
-  const legend = document.createElement('div');
-  legend.style.cssText = `
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    display: flex;
-    gap: 8px;
-    z-index: 100;
-    background: rgba(15, 22, 32, 0.8);
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #1a2434;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(15, 22, 32, 0.6);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    gap: 16px;
     flex-wrap: wrap;
+    border: 1px solid #1a2434;
   `;
+  
+  const leftSide = document.createElement('div');
+  leftSide.style.cssText = `display: flex; gap: 10px; align-items: center; flex-wrap: wrap;`;
   
   const items = [
     { key: 'gold', label: 'Oro', color: COLORS.gold },
@@ -398,44 +385,98 @@ function addControls(container) {
   items.forEach(item => {
     const btn = document.createElement('button');
     btn.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      background: transparent;
-      border: 1px solid ${item.color};
-      border-radius: 6px;
-      color: ${item.color};
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      opacity: ${seriesVisibility[item.key] ? '1' : '0.4'};
+      display: flex; align-items: center; gap: 6px; padding: 6px 10px;
+      background: transparent; border: 1px solid ${item.color}; border-radius: 6px;
+      color: ${item.color}; font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; opacity: ${seriesVisibility[item.key] ? '1' : '0.35'};
     `;
     
     const dot = document.createElement('span');
-    dot.style.cssText = `
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: ${item.color};
-    `;
+    dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${item.color};`;
     
     btn.appendChild(dot);
     btn.appendChild(document.createTextNode(item.label));
     
     btn.onclick = () => {
       seriesVisibility[item.key] = !seriesVisibility[item.key];
-      seriesInstances[item.key].applyOptions({
-        visible: seriesVisibility[item.key]
-      });
-      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.4';
+      seriesInstances[item.key].applyOptions({ visible: seriesVisibility[item.key] });
+      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.35';
     };
     
-    legend.appendChild(btn);
+    leftSide.appendChild(btn);
   });
   
-  container.appendChild(legend);
+  const rightSide = document.createElement('div');
+  rightSide.style.cssText = `display: flex; gap: 12px; align-items: center; flex-wrap: wrap;`;
+  
+  const periodGroup = document.createElement('div');
+  periodGroup.style.cssText = `
+    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
+    border-radius: 8px; border: 1px solid #233048;
+  `;
+  
+  const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
+  periods.forEach(p => {
+    const btn = document.createElement('button');
+    const isActive = currentPeriod === p;
+    btn.style.cssText = `
+      padding: 8px 14px; background: ${isActive ? '#1f9df2' : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      min-width: 48px; text-align: center;
+    `;
+    btn.textContent = p;
+    btn.onmouseover = () => {
+      if (currentPeriod !== p) { btn.style.background = 'rgba(31, 157, 242, 0.2)'; btn.style.color = '#1f9df2'; }
+    };
+    btn.onmouseout = () => {
+      if (currentPeriod !== p) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
+    };
+    btn.onclick = () => switchPeriod(p);
+    periodGroup.appendChild(btn);
+  });
+  rightSide.appendChild(periodGroup);
+  
+  const sep = document.createElement('div');
+  sep.style.cssText = `width: 1px; height: 32px; background: #233048;`;
+  rightSide.appendChild(sep);
+  
+  const modeGroup = document.createElement('div');
+  modeGroup.style.cssText = `
+    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
+    border-radius: 8px; border: 1px solid #233048;
+  `;
+  
+  const modes = [
+    { id: 'real', label: 'Real', color: '#10b981' },
+    { id: 'base100', label: 'Base100', color: '#3b82f6' },
+    { id: 'deltapct', label: '%', color: '#8b5cf6' }
+  ];
+  
+  modes.forEach(m => {
+    const btn = document.createElement('button');
+    const isActive = currentMode === m.id;
+    btn.style.cssText = `
+      padding: 8px 14px; background: ${isActive ? m.color : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      min-width: 68px; text-align: center;
+    `;
+    btn.textContent = m.label;
+    btn.onmouseover = () => {
+      if (currentMode !== m.id) { btn.style.background = `${m.color}30`; btn.style.color = m.color; }
+    };
+    btn.onmouseout = () => {
+      if (currentMode !== m.id) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
+    };
+    btn.onclick = () => switchMode(m.id);
+    modeGroup.appendChild(btn);
+  });
+  rightSide.appendChild(modeGroup);
+  
+  controlsBar.appendChild(leftSide);
+  controlsBar.appendChild(rightSide);
+  containerParent.insertBefore(controlsBar, containerParent.firstChild);
 }
 
 function switchMode(newMode) {
@@ -444,10 +485,21 @@ function switchMode(newMode) {
   renderChart();
 }
 
+function switchPeriod(newPeriod) {
+  if (newPeriod === currentPeriod) return;
+  currentPeriod = newPeriod;
+  loadData();
+}
+
 // === RENDERIZAR ===
 function renderChart() {
+  const containerParent = document.getElementById('c-commodities').parentElement;
   const container = document.getElementById('c-commodities');
+  
   if (!container || !rawData.gold.length) return;
+  
+  const oldControls = document.getElementById('controls-bar-commodities');
+  if (oldControls) oldControls.remove();
   
   container.innerHTML = '';
   chartInstance = createChart(container, currentMode);
@@ -498,7 +550,7 @@ function renderChart() {
   });
   
   setupTooltip(container, chartInstance, currentMode);
-  addControls(container);
+  addControlsBar(containerParent);
   chartInstance.timeScale().fitContent();
   
   container.onclick = (e) => {
@@ -508,29 +560,27 @@ function renderChart() {
 }
 
 // === CARGAR DATOS ===
-async function loadCommoditiesData() {
+async function loadData() {
   const container = document.getElementById('c-commodities');
   const noteEl = document.getElementById('c-commodities-note');
   
   if (!container) return;
   
   try {
-    console.log('\n🚀 === CARGANDO COMMODITIES YTD ===');
+    console.log(`\n🚀 === CARGANDO COMMODITIES (${currentPeriod}) ===`);
     
-    const { start, end } = getYTDRange();
-    console.log(`   Periodo: ${start} → ${end}`);
-    
-    // Usar ETFs que SÍ están disponibles en Stooq:
-    // gld.us = SPDR Gold Shares (proxy Oro)
-    // slv.us = iShares Silver Trust (proxy Plata)
-    // copx.us = Global X Copper Miners ETF (proxy Cobre)
-    // alb.us = Albemarle Corp (proxy Litio)
+    container.innerHTML = `
+      <div class="bd-loading">
+        <div class="bd-spinner"></div>
+        <div>Cargando ${currentPeriod}...</div>
+      </div>
+    `;
     
     const [gold, silver, copper, lithium] = await Promise.all([
-      fetchCommodityYTD('gld.us', 'Oro ETF'),
-      fetchCommodityYTD('slv.us', 'Plata ETF'),
-      fetchCommodityYTD('copx.us', 'Cobre ETF'),
-      fetchCommodityYTD('alb.us', 'Litio')
+      fetchCommodity('gld.us', 'Oro ETF', currentPeriod),
+      fetchCommodity('slv.us', 'Plata ETF', currentPeriod),
+      fetchCommodity('copx.us', 'Cobre ETF', currentPeriod),
+      fetchCommodity('alb.us', 'Litio', currentPeriod)
     ]);
     
     console.log('\n✅ Commodities cargados');
@@ -549,7 +599,7 @@ async function loadCommoditiesData() {
     
     container.innerHTML = `
       <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
-        <strong>Error al cargar commodities</strong><br>
+        <strong>Error al cargar commodities (${currentPeriod})</strong><br>
         <small style="color:#cbd5e0">${error.message}</small>
       </div>
     `;
@@ -564,9 +614,9 @@ async function loadCommoditiesData() {
 
 // === INIT ===
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadCommoditiesData);
+  document.addEventListener('DOMContentLoaded', loadData);
 } else {
-  loadCommoditiesData();
+  loadData();
 }
 
 })();
