@@ -1,15 +1,21 @@
 (() => {
-/* Bitácora Digital - app.js (Home) - VERSION LIMPIA Y FUNCIONAL
+/* Bitácora Digital - app.js (Home) - VERSION VALORES REALES
    TradFi Chile: UF vs USD/CLP vs IPSA (proxy ECH)
-   - Datos históricos por año desde Mindicador
-   - Stooq via proxy para ECH
-   - Base 100 + Log scale
+   - Valores reales con múltiples escalas
+   - Tooltip comparativo multi-serie
+   - Toggle Base 100 / Valores Reales
+   - Click → página de detalle
 */
 
 // === CONFIGURACIÓN ===
 const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
 const COLORS = ["#63b3ed", "#f6ad55", "#9f7aea"];
-const YEARS_TO_FETCH = 10;
+const YEARS_TO_FETCH = 15; // 15 años de historia
+
+// Estado global
+let currentMode = 'real'; // 'real' o 'base100'
+let chartInstance = null;
+let seriesData = { uf: [], usd: [], ech: [] };
 
 // === UTILIDADES ===
 const isoMonth = (d) => {
@@ -103,8 +109,6 @@ async function fetchMindicador(tipo) {
             return [];
           }
           
-          console.log(`   ✓ Año ${year}: ${json.serie.length} registros`);
-          
           return json.serie.map(x => {
             const d = new Date(x.fecha);
             return {
@@ -145,18 +149,15 @@ async function fetchStooqMonthly(ticker) {
   const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=m`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
-  console.log(`   Proxy: ${proxyUrl}`);
-  
   try {
     const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' });
     
     if (!response.ok) {
       const text = await response.text().catch(() => '');
-      throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+      throw new Error(`HTTP ${response.status}`);
     }
     
     const csv = await response.text();
-    console.log(`   CSV: ${csv.length} caracteres`);
     
     if (csv.length < 50) {
       throw new Error('CSV vacío');
@@ -178,7 +179,6 @@ async function fetchStooqMonthly(ticker) {
       const value = Number(close);
       if (!Number.isFinite(value)) continue;
       
-      // Normalizar a primer día del mes: YYYY-MM-DD → YYYY-MM-01
       const parts = date.split('-');
       if (parts.length === 3) {
         const normalized = `${parts[0]}-${parts[1]}-01`;
@@ -202,20 +202,28 @@ async function fetchStooqMonthly(ticker) {
   }
 }
 
-// === GRÁFICO ===
-function createChart(container) {
-  return LightweightCharts.createChart(container, {
+// === CREAR GRÁFICO CON MÚLTIPLES ESCALAS ===
+function createChart(container, mode = 'real') {
+  const isLog = mode === 'base100';
+  
+  const chart = LightweightCharts.createChart(container, {
     layout: {
       background: { type: 'solid', color: 'transparent' },
       textColor: '#cfe0ff'
     },
     rightPriceScale: {
       borderColor: '#233048',
-      mode: 2  // logarithmic
+      mode: isLog ? 2 : 0, // 2 = log, 0 = normal
+      visible: true
+    },
+    leftPriceScale: {
+      borderColor: '#233048',
+      visible: mode === 'real'
     },
     timeScale: {
       borderColor: '#233048',
-      rightOffset: 2
+      rightOffset: 5,
+      timeVisible: true
     },
     grid: {
       vertLines: { color: '#1a2434' },
@@ -223,17 +231,255 @@ function createChart(container) {
     },
     localization: { locale: 'es-CL' },
     crosshair: {
-      mode: LightweightCharts.CrosshairMode.Normal
+      mode: LightweightCharts.CrosshairMode.Normal,
+      vertLine: {
+        width: 1,
+        color: '#4a5568',
+        style: LightweightCharts.LineStyle.Dashed
+      },
+      horzLine: {
+        width: 1,
+        color: '#4a5568',
+        style: LightweightCharts.LineStyle.Dashed
+      }
+    },
+    handleScroll: {
+      mouseWheel: true,
+      pressedMouseMove: true,
+      horzTouchDrag: true,
+      vertTouchDrag: false
+    },
+    handleScale: {
+      axisPressedMouseMove: true,
+      mouseWheel: true,
+      pinch: true
     }
   });
+  
+  return chart;
 }
 
-function addLineSeries(chart, label, color) {
+function addLineSeries(chart, label, color, priceScale = 'right') {
   return chart.addLineSeries({
     title: label,
     color,
-    lineWidth: 2
+    lineWidth: 2,
+    priceScaleId: priceScale,
+    crosshairMarkerVisible: true,
+    crosshairMarkerRadius: 4,
+    lastValueVisible: true,
+    priceLineVisible: false
   });
+}
+
+// === TOOLTIP PERSONALIZADO ===
+function setupTooltip(container, chart, series) {
+  const tooltip = document.createElement('div');
+  tooltip.style.cssText = `
+    position: absolute;
+    display: none;
+    padding: 12px;
+    background: rgba(20, 28, 39, 0.95);
+    border: 1px solid #2a3f5f;
+    border-radius: 8px;
+    color: #dbe4f3;
+    font-size: 13px;
+    line-height: 1.6;
+    pointer-events: none;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  `;
+  container.appendChild(tooltip);
+  
+  chart.subscribeCrosshairMove(param => {
+    if (
+      !param.time ||
+      param.point.x < 0 ||
+      param.point.y < 0
+    ) {
+      tooltip.style.display = 'none';
+      return;
+    }
+    
+    const dateStr = new Date(param.time).toLocaleDateString('es-CL', {
+      year: 'numeric',
+      month: 'long'
+    });
+    
+    let tooltipHtml = `<div style="font-weight:600;margin-bottom:6px;color:#fff">${dateStr}</div>`;
+    
+    series.forEach((s, idx) => {
+      const data = param.seriesData.get(s.series);
+      if (data) {
+        const value = data.value;
+        let formattedValue = '';
+        
+        if (currentMode === 'base100') {
+          formattedValue = `${value.toFixed(2)}`;
+        } else {
+          if (idx === 0) { // UF
+            formattedValue = `$${value.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          } else if (idx === 1) { // USD/CLP
+            formattedValue = `$${value.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          } else { // IPSA
+            formattedValue = `${value.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pts`;
+          }
+        }
+        
+        tooltipHtml += `
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <span style="width:10px;height:10px;border-radius:50%;background:${s.color}"></span>
+            <span style="font-weight:500">${s.label}:</span>
+            <span style="margin-left:auto;font-weight:600;color:${s.color}">${formattedValue}</span>
+          </div>
+        `;
+      }
+    });
+    
+    tooltip.innerHTML = tooltipHtml;
+    tooltip.style.display = 'block';
+    
+    const x = Math.min(param.point.x + 20, container.clientWidth - tooltip.offsetWidth - 20);
+    const y = Math.max(param.point.y - tooltip.offsetHeight - 20, 10);
+    
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  });
+}
+
+// === CONTROLES DE VISUALIZACIÓN ===
+function addControls(container) {
+  const controls = document.createElement('div');
+  controls.style.cssText = `
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+  `;
+  
+  const btnBase100 = createButton('Base 100', currentMode === 'base100');
+  const btnReal = createButton('Valores Reales', currentMode === 'real');
+  
+  btnBase100.onclick = () => switchMode('base100');
+  btnReal.onclick = () => switchMode('real');
+  
+  controls.appendChild(btnReal);
+  controls.appendChild(btnBase100);
+  container.appendChild(controls);
+  
+  return { btnBase100, btnReal };
+}
+
+function createButton(text, active = false) {
+  const btn = document.createElement('button');
+  btn.textContent = text;
+  btn.style.cssText = `
+    padding: 6px 12px;
+    background: ${active ? '#1f9df2' : 'rgba(26, 36, 52, 0.8)'};
+    color: ${active ? '#fff' : '#96a3b7'};
+    border: 1px solid ${active ? '#1f9df2' : '#2a3f5f'};
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  `;
+  
+  btn.onmouseenter = () => {
+    if (!active) {
+      btn.style.background = 'rgba(31, 157, 242, 0.1)';
+      btn.style.borderColor = '#1f9df2';
+    }
+  };
+  
+  btn.onmouseleave = () => {
+    if (!active) {
+      btn.style.background = 'rgba(26, 36, 52, 0.8)';
+      btn.style.borderColor = '#2a3f5f';
+    }
+  };
+  
+  return btn;
+}
+
+function switchMode(newMode) {
+  if (newMode === currentMode) return;
+  currentMode = newMode;
+  renderChart();
+}
+
+// === RENDERIZAR GRÁFICO ===
+function renderChart() {
+  const container = document.getElementById('c-chile');
+  if (!container || !seriesData.uf.length) return;
+  
+  // Limpiar contenedor
+  container.innerHTML = '';
+  
+  // Crear nuevo gráfico
+  chartInstance = createChart(container, currentMode);
+  
+  let ufData, usdData, echData;
+  
+  if (currentMode === 'base100') {
+    ufData = base100(seriesData.uf);
+    usdData = base100(seriesData.usd);
+    echData = base100(seriesData.ech);
+    
+    const ufSeries = addLineSeries(chartInstance, 'UF', COLORS[0], 'right');
+    const usdSeries = addLineSeries(chartInstance, 'USD/CLP', COLORS[1], 'right');
+    const echSeries = addLineSeries(chartInstance, 'IPSA (ECH)', COLORS[2], 'right');
+    
+    ufSeries.setData(ufData);
+    usdSeries.setData(usdData);
+    echSeries.setData(echData);
+    
+    setupTooltip(container, chartInstance, [
+      { series: ufSeries, label: 'UF', color: COLORS[0] },
+      { series: usdSeries, label: 'USD/CLP', color: COLORS[1] },
+      { series: echSeries, label: 'IPSA (ECH)', color: COLORS[2] }
+    ]);
+    
+  } else {
+    ufData = seriesData.uf;
+    usdData = seriesData.usd;
+    echData = seriesData.ech;
+    
+    // UF en escala izquierda
+    const ufSeries = addLineSeries(chartInstance, 'UF', COLORS[0], 'left');
+    ufSeries.setData(ufData);
+    
+    // USD/CLP en escala derecha
+    const usdSeries = addLineSeries(chartInstance, 'USD/CLP', COLORS[1], 'right');
+    usdSeries.setData(usdData);
+    
+    // IPSA en su propia escala (derecha también, auto-ajuste)
+    const echSeries = addLineSeries(chartInstance, 'IPSA (ECH)', COLORS[2], 'right');
+    echSeries.setData(echData);
+    
+    setupTooltip(container, chartInstance, [
+      { series: ufSeries, label: 'UF', color: COLORS[0] },
+      { series: usdSeries, label: 'USD/CLP', color: COLORS[1] },
+      { series: echSeries, label: 'IPSA (ECH)', color: COLORS[2] }
+    ]);
+  }
+  
+  // Agregar controles
+  addControls(container);
+  
+  // Fit content
+  chartInstance.timeScale().fitContent();
+  
+  // Click handler para ir a detalle
+  container.style.cursor = 'pointer';
+  container.onclick = (e) => {
+    if (!e.target.tagName || e.target.tagName.toLowerCase() !== 'button') {
+      window.location.href = '/detail/tradfi-cl';
+    }
+  };
 }
 
 // === DIBUJA EL GRÁFICO TRADFI CHILE ===
@@ -259,37 +505,25 @@ async function drawChile() {
     console.log('\n✅ Todas las fuentes cargadas');
     
     // Intersectar fechas comunes
-    let [ufAligned, usdAligned, echAligned] = intersectDates([uf, usd, ech]);
+    const [ufAligned, usdAligned, echAligned] = intersectDates([uf, usd, ech]);
     
     if (ufAligned.length === 0) {
       throw new Error('No hay fechas comunes entre las series');
     }
     
-    // Normalizar a Base 100
-    ufAligned = base100(ufAligned);
-    usdAligned = base100(usdAligned);
-    echAligned = base100(echAligned);
+    // Guardar datos alineados
+    seriesData = {
+      uf: ufAligned,
+      usd: usdAligned,
+      ech: echAligned
+    };
     
     console.log('\n📊 Renderizando gráfico...');
     
-    // Limpiar mensaje de carga
-    container.innerHTML = '';
-    
-    // Crear gráfico
-    const chart = createChart(container);
-    
-    // Agregar series
-    addLineSeries(chart, 'UF', COLORS[0]).setData(ufAligned);
-    addLineSeries(chart, 'USD/CLP', COLORS[1]).setData(usdAligned);
-    addLineSeries(chart, 'IPSA (ECH)', COLORS[2]).setData(echAligned);
+    // Renderizar gráfico
+    renderChart();
     
     console.log('✅ ¡Gráfico renderizado exitosamente!\n');
-    
-    // Hacer clickeable
-    container.style.cursor = 'pointer';
-    container.onclick = () => {
-      window.location.href = '/detail/tradfi-cl';
-    };
     
     if (noteEl) {
       noteEl.style.display = 'none';
