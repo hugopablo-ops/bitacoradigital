@@ -94,3 +94,86 @@
           <a class="btn" href="#servicios">Servicios</a>
           <a class="btn" href="#bd-labs">BD Labs</a>
           <a class="btn" href="#bd-merch">
+            <a class="btn" href="#bd-merch">BD Merchandising</a>
+          <a class="btn" href="#contacto">Contacto</a>
+        </div>
+      </div>
+      <div class="chips">
+        <div class="chip">CLP</div>
+        <div class="chip">BTC</div>
+        <div class="chip">ETH</div>
+        <div class="chip">UF</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARDS -->
+  <section id="analytic" class="section">
+    <div class="container">
+      <h2 class="bd-title">Dashboards comparativos</h2>
+      <p class="bd-subtitle">Series mensuales, <em>logarítmicas</em> y Base 100, sincronizadas.</p>
+
+      <div class="bd-grid">
+        <!-- TradFi Chile YTD (Interactivo) -->
+        <article class="bd-card" id="card-chile">
+          <h3 class="bd-title">TradFi · Chile — UF, USD/CLP e IPSA — YTD (valores reales)</h3>
+          <p class="bd-subtitle">Formas superpuestas, ejes independientes; tooltip con valores reales.</p>
+          <div id="c-chile" class="bd-chart">
+            <div class="bd-loading">Cargando datos YTD...</div>
+          </div>
+          <div id="c-chile-note" class="bd-note" style="display:none"></div>
+        </article>
+
+        <!-- Índices Internacionales YTD (Interactivo) -->
+        <article class="bd-card" id="card-indices">
+          <h3 class="bd-title">Índices — SPY vs EWG vs EWJ — YTD (valores reales)</h3>
+          <p class="bd-subtitle">S&P 500, Alemania, Japón · Formas superpuestas, ejes independientes</p>
+          <div id="c-indices" class="bd-chart">
+            <div class="bd-loading">Cargando índices YTD...</div>
+          </div>
+          <div id="c-indices-note" class="bd-note" style="display:none"></div>
+        </article>
+
+        <!-- Commodities YTD (Interactivo) -->
+        <article class="bd-card" id="card-commodities">
+          <h3 class="bd-title">Commodities — Oro vs Plata vs Cobre vs Litio — YTD (valores reales)</h3>
+          <p class="bd-subtitle">Comparación Year-to-Date de metales preciosos e industriales · Tooltip con valores reales</p>
+          <div id="c-commodities" class="bd-chart">
+            <div class="bd-loading">Cargando commodities YTD...</div>
+          </div>
+          <div id="c-commodities-note" class="bd-note" style="display:none"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- PODCAST -->
+  <section id="podcast" class="section">
+    <div class="container">
+      <h2 class="bd-title">Podcast</h2>
+      <div style="background:#101827;border:1px solid #1c2636;border-radius:12px;padding:10px">
+        <iframe style="border:0;width:100%;height:232px;border-radius:10px" loading="lazy"
+          src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="muted">© 2025 Bitácora Digital</span>
+      <div class="footer__links">
+        <a href="/">Inicio</a>
+        <a href="#podcast">Podcast</a>
+        <a href="#servicios">Servicios</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/indices.js"></script>
+  <script src="assets/js/commodities.js"></script>
+</body>
+</html>
