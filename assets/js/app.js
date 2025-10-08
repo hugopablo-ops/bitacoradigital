@@ -1,9 +1,8 @@
 (() => {
-/* Bitácora Digital - app.js (Home) - TradFi Chile YTD
+/* Bitácora Digital - app.js (TradFi Chile)
    UF, USD/CLP, IPSA (proxy ECH)
-   - Comparación YTD con 3 modos
-   - Base100 (default), Delta%, Real
-   - Timeout aumentado a 30s
+   - MEJORADO: Selector de periodo (1M, 3M, 6M, YTD, 1Y, All)
+   - Botones Real/% con mejor visibilidad
 */
 
 // === CONFIGURACIÓN ===
@@ -19,14 +18,44 @@ let chartInstance = null;
 let seriesInstances = {};
 let rawData = { uf: [], usd: [], ipsa: [] };
 let currentMode = 'base100';
+let currentPeriod = 'YTD'; // NUEVO: periodo actual
 let seriesVisibility = { uf: true, usd: true, ipsa: true };
 
 // === UTILIDADES ===
-function getYTDRange() {
+function getDateRange(period) {
   const now = new Date();
-  const yearStart = new Date(now.getFullYear(), 0, 1);
+  let start;
+  
+  switch(period) {
+    case '1M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 1);
+      break;
+    case '3M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 3);
+      break;
+    case '6M':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 6);
+      break;
+    case 'YTD':
+      start = new Date(now.getFullYear(), 0, 1);
+      break;
+    case '1Y':
+      start = new Date(now);
+      start.setFullYear(start.getFullYear() - 1);
+      break;
+    case 'All':
+      start = new Date(now);
+      start.setFullYear(start.getFullYear() - 15);
+      break;
+    default:
+      start = new Date(now.getFullYear(), 0, 1);
+  }
+  
   return {
-    start: yearStart.toISOString().split('T')[0],
+    start: start.toISOString().split('T')[0],
     end: now.toISOString().split('T')[0]
   };
 }
@@ -115,9 +144,9 @@ async function fetchWithTimeout(url, options = {}, timeout = 30000) {
   }
 }
 
-// === MINDICADOR: OBTENER DATOS POR AÑO ===
-async function fetchMindicador(tipo) {
-  console.log(`\n📡 Mindicador: ${tipo} (últimos 15 años)`);
+// === MINDICADOR ===
+async function fetchMindicador(tipo, period) {
+  console.log(`\n📡 Mindicador: ${tipo} (periodo: ${period})`);
   
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 15 }, (_, i) => currentYear - i);
@@ -129,18 +158,10 @@ async function fetchMindicador(tipo) {
         
         try {
           const response = await fetchWithTimeout(url, { cache: 'no-store' }, 30000);
-          
-          if (!response.ok) {
-            console.warn(`   ⚠️ Año ${year}: HTTP ${response.status}`);
-            return [];
-          }
+          if (!response.ok) return [];
           
           const json = await response.json();
-          
-          if (!json.serie || !Array.isArray(json.serie)) {
-            console.warn(`   ⚠️ Año ${year}: sin datos`);
-            return [];
-          }
+          if (!json.serie || !Array.isArray(json.serie)) return [];
           
           return json.serie.map(x => {
             const d = parseDate(x.fecha);
@@ -149,34 +170,25 @@ async function fetchMindicador(tipo) {
               value: Number(x.valor)
             };
           });
-          
         } catch (err) {
-          console.warn(`   ⚠️ Año ${year}: ${err.message}`);
           return [];
         }
       })
     );
     
     const allPoints = yearlyData.flat();
+    if (allPoints.length === 0) throw new Error('No se obtuvieron datos');
     
-    if (allPoints.length === 0) {
-      throw new Error('No se obtuvieron datos');
-    }
-    
-    // Filtrar solo YTD
-    const { start, end } = getYTDRange();
-    const ytdPoints = allPoints
+    const { start, end } = getDateRange(period);
+    const filteredPoints = allPoints
       .filter(p => p.time >= start && p.time <= end)
       .sort((a, b) => a.time.localeCompare(b.time));
     
-    // Eliminar duplicados por fecha (quedarse con el último)
     const byDate = {};
-    ytdPoints.forEach(p => { byDate[p.time] = p.value; });
+    filteredPoints.forEach(p => { byDate[p.time] = p.value; });
     const uniquePoints = Object.entries(byDate).map(([time, value]) => ({ time, value }));
     
-    console.log(`   ✅ Total: ${uniquePoints.length} puntos YTD`);
-    console.log(`   Rango: ${uniquePoints[0]?.time} → ${uniquePoints[uniquePoints.length-1]?.time}`);
-    
+    console.log(`   ✅ ${uniquePoints.length} puntos (${uniquePoints[0]?.time} → ${uniquePoints[uniquePoints.length-1]?.time})`);
     return forwardFill(uniquePoints);
     
   } catch (error) {
@@ -185,26 +197,20 @@ async function fetchMindicador(tipo) {
   }
 }
 
-// === STOOQ: OBTENER ETF ECH VIA PROXY ===
-async function fetchStooqYTD(ticker) {
-  console.log(`\n📡 Stooq YTD: ${ticker}`);
+// === STOOQ ===
+async function fetchStooq(ticker, period) {
+  console.log(`\n📡 Stooq: ${ticker} (periodo: ${period})`);
   
-  const { start, end } = getYTDRange();
+  const { start, end } = getDateRange(period);
   const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
   try {
     const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' }, 30000);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const csv = await response.text();
-    
-    if (csv.length < 50) {
-      throw new Error('CSV vacío');
-    }
+    if (csv.length < 50) throw new Error('CSV vacío');
     
     const lines = csv.trim().split(/\r?\n/);
     const header = lines[0];
@@ -214,7 +220,6 @@ async function fetchStooqYTD(ticker) {
     }
     
     const points = [];
-    
     for (const line of lines.slice(1)) {
       const [date, , , , close] = line.split(',');
       if (!date || !close) continue;
@@ -227,15 +232,11 @@ async function fetchStooqYTD(ticker) {
       }
     }
     
-    if (points.length === 0) {
-      throw new Error('No se parsearon datos del CSV');
-    }
+    if (points.length === 0) throw new Error('No hay datos en el rango');
     
-    const monthly = points.sort((a, b) => a.time.localeCompare(b.time));
-    console.log(`   ✅ Total: ${monthly.length} puntos YTD`);
-    console.log(`   Rango: ${monthly[0]?.time} → ${monthly[monthly.length-1]?.time}`);
-    
-    return forwardFill(monthly);
+    const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
+    console.log(`   ✅ ${sorted.length} puntos`);
+    return forwardFill(sorted);
     
   } catch (error) {
     console.error(`   ❌ Error: ${error.message}`);
@@ -243,7 +244,7 @@ async function fetchStooqYTD(ticker) {
   }
 }
 
-// === CREAR GRÁFICO ===
+// === GRÁFICO ===
 function createChart(container, mode) {
   const isReal = mode === 'real';
   
@@ -357,7 +358,7 @@ function setupTooltip(container, chart, mode) {
     const series = [
       { key: 'uf', label: 'UF', color: COLORS.uf },
       { key: 'usd', label: 'USD/CLP', color: COLORS.usd },
-      { key: 'ipsa', label: 'IPSA (ECH)', color: COLORS.ipsa }
+      { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa }
     ];
     
     series.forEach(s => {
@@ -412,61 +413,142 @@ function setupTooltip(container, chart, mode) {
   });
 }
 
-// === CONTROLES ===
+// === CONTROLES MEJORADOS ===
 function addControls(container) {
-  const modeChips = document.createElement('div');
-  modeChips.style.cssText = `
+  // Contenedor principal de controles
+  const controlsWrapper = document.createElement('div');
+  controlsWrapper.style.cssText = `
     position: absolute;
     top: 12px;
     right: 12px;
     display: flex;
-    gap: 6px;
+    flex-direction: column;
+    gap: 8px;
     z-index: 100;
-    background: rgba(15, 22, 32, 0.9);
-    padding: 6px;
+  `;
+  
+  // FILA 1: Selector de Periodo
+  const periodSelector = document.createElement('div');
+  periodSelector.style.cssText = `
+    display: flex;
+    gap: 4px;
+    background: rgba(15, 22, 32, 0.95);
+    padding: 4px;
     border-radius: 8px;
     border: 1px solid #1a2434;
+    backdrop-filter: blur(8px);
+  `;
+  
+  const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
+  
+  periods.forEach(p => {
+    const btn = document.createElement('button');
+    const isActive = currentPeriod === p;
+    btn.style.cssText = `
+      padding: 6px 10px;
+      background: ${isActive ? '#1f9df2' : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#96a3b7'};
+      border: 1px solid ${isActive ? '#1f9df2' : 'transparent'};
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 42px;
+      text-align: center;
+    `;
+    btn.textContent = p;
+    btn.onmouseover = () => {
+      if (currentPeriod !== p) {
+        btn.style.background = 'rgba(31, 157, 242, 0.15)';
+        btn.style.borderColor = '#1f9df2';
+        btn.style.color = '#1f9df2';
+      }
+    };
+    btn.onmouseout = () => {
+      if (currentPeriod !== p) {
+        btn.style.background = 'transparent';
+        btn.style.borderColor = 'transparent';
+        btn.style.color = '#96a3b7';
+      }
+    };
+    btn.onclick = () => switchPeriod(p);
+    periodSelector.appendChild(btn);
+  });
+  
+  controlsWrapper.appendChild(periodSelector);
+  
+  // FILA 2: Selector de Modo (Real, Base 100, Delta %)
+  const modeSelector = document.createElement('div');
+  modeSelector.style.cssText = `
+    display: flex;
+    gap: 4px;
+    background: rgba(15, 22, 32, 0.95);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #1a2434;
+    backdrop-filter: blur(8px);
   `;
   
   const modes = [
-    { id: 'base100', label: 'Base 100' },
-    { id: 'deltapct', label: 'Delta %' },
-    { id: 'real', label: 'Real' }
+    { id: 'real', label: 'Real', color: '#10b981' },
+    { id: 'base100', label: 'Base100', color: '#3b82f6' },
+    { id: 'deltapct', label: '%', color: '#8b5cf6' }
   ];
   
   modes.forEach(m => {
-    const chip = document.createElement('button');
+    const btn = document.createElement('button');
     const isActive = currentMode === m.id;
-    chip.style.cssText = `
-      padding: 6px 12px;
-      background: ${isActive ? '#1f9df2' : 'transparent'};
-      color: ${isActive ? '#fff' : '#96a3b7'};
-      border: 1px solid ${isActive ? '#1f9df2' : '#2a3f5f'};
+    btn.style.cssText = `
+      padding: 6px 10px;
+      background: ${isActive ? m.color : 'transparent'};
+      color: ${isActive ? '#ffffff' : '#96a3b7'};
+      border: 1px solid ${isActive ? m.color : 'transparent'};
       border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 11px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      flex: 1;
+      text-align: center;
+      white-space: nowrap;
     `;
-    chip.textContent = m.label;
-    chip.onclick = () => switchMode(m.id);
-    modeChips.appendChild(chip);
+    btn.textContent = m.label;
+    btn.onmouseover = () => {
+      if (currentMode !== m.id) {
+        btn.style.background = `${m.color}20`;
+        btn.style.borderColor = m.color;
+        btn.style.color = m.color;
+      }
+    };
+    btn.onmouseout = () => {
+      if (currentMode !== m.id) {
+        btn.style.background = 'transparent';
+        btn.style.borderColor = 'transparent';
+        btn.style.color = '#96a3b7';
+      }
+    };
+    btn.onclick = () => switchMode(m.id);
+    modeSelector.appendChild(btn);
   });
   
-  container.appendChild(modeChips);
+  controlsWrapper.appendChild(modeSelector);
+  container.appendChild(controlsWrapper);
   
+  // Leyenda de series (izquierda)
   const legend = document.createElement('div');
   legend.style.cssText = `
     position: absolute;
     top: 12px;
     left: 12px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     z-index: 100;
-    background: rgba(15, 22, 32, 0.8);
+    background: rgba(15, 22, 32, 0.85);
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #1a2434;
+    backdrop-filter: blur(8px);
   `;
   
   const items = [
@@ -522,6 +604,12 @@ function switchMode(newMode) {
   if (newMode === currentMode) return;
   currentMode = newMode;
   renderChart();
+}
+
+function switchPeriod(newPeriod) {
+  if (newPeriod === currentPeriod) return;
+  currentPeriod = newPeriod;
+  loadData(); // Recargar datos con nuevo periodo
 }
 
 // === RENDERIZAR ===
@@ -581,7 +669,7 @@ function renderChart() {
 }
 
 // === CARGAR DATOS ===
-async function loadYTDData() {
+async function loadData() {
   const container = document.getElementById('c-chile');
   const noteEl = document.getElementById('c-chile-note');
   
@@ -591,27 +679,29 @@ async function loadYTDData() {
   }
   
   try {
-    console.log('\n🚀 === CARGANDO TRADFI CHILE YTD ===');
+    console.log(`\n🚀 === CARGANDO TRADFI CHILE (${currentPeriod}) ===`);
     
-    const { start, end } = getYTDRange();
-    console.log(`   Periodo: ${start} → ${end}`);
+    container.innerHTML = `
+      <div class="bd-loading">
+        <div class="bd-spinner"></div>
+        <div>Cargando ${currentPeriod}...</div>
+      </div>
+    `;
     
     const [uf, usd, ipsa] = await Promise.all([
-      fetchMindicador('uf'),
-      fetchMindicador('dolar'),
-      fetchStooqYTD('ech.us')
+      fetchMindicador('uf', currentPeriod),
+      fetchMindicador('dolar', currentPeriod),
+      fetchStooq('ech.us', currentPeriod)
     ]);
     
-    console.log('\n✅ Datos YTD cargados');
+    console.log('\n✅ Datos cargados');
     
     const merged = mergeSeries(uf, usd, ipsa);
     rawData = merged;
     
-    console.log('\n📊 Renderizando gráfico YTD...');
-    
+    console.log('\n📊 Renderizando gráfico...');
     renderChart();
-    
-    console.log('✅ ¡Gráfico YTD renderizado!\n');
+    console.log('✅ ¡Gráfico renderizado!\n');
     
     if (noteEl) noteEl.style.display = 'none';
     
@@ -620,7 +710,7 @@ async function loadYTDData() {
     
     container.innerHTML = `
       <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
-        <strong>Error al cargar datos YTD</strong><br>
+        <strong>Error al cargar datos (${currentPeriod})</strong><br>
         <small style="color:#cbd5e0">${error.message}</small>
       </div>
     `;
@@ -635,9 +725,9 @@ async function loadYTDData() {
 
 // === INIT ===
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadYTDData);
+  document.addEventListener('DOMContentLoaded', loadData);
 } else {
-  loadYTDData();
+  loadData();
 }
 
 })();
