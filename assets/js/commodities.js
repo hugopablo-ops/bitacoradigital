@@ -1,25 +1,23 @@
 (() => {
 /* Bitácora Digital - Commodities YTD
-   Oro (XAU/USD), Plata (XAG/USD), Cobre (HG), Litio (ALB como proxy)
-   - Comparación YTD con 3 modos
-   - Base100 (default), Delta%, Real
-   - Datos desde Stooq/Yahoo Finance via proxy
+   Oro (GLD), Plata (SLV), Cobre (COPX), Litio (ALB)
+   - Usando ETFs para mejor disponibilidad de datos
 */
 
 // === CONFIGURACIÓN ===
 const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
 const COLORS = {
-  gold: '#FFD700',    // Oro
-  silver: '#C0C0C0',  // Plata
-  copper: '#B87333',  // Cobre
-  lithium: '#7DF9FF'  // Litio
+  gold: '#FFD700',
+  silver: '#C0C0C0',
+  copper: '#B87333',
+  lithium: '#7DF9FF'
 };
 
 // Estado global
 let chartInstance = null;
 let seriesInstances = {};
 let rawData = { gold: [], silver: [], copper: [], lithium: [] };
-let currentMode = 'real'; // default: valores reales
+let currentMode = 'real';
 let seriesVisibility = { gold: true, silver: true, copper: true, lithium: true };
 
 // === UTILIDADES ===
@@ -126,10 +124,16 @@ async function fetchCommodityYTD(ticker, name) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const csv = await response.text();
-    if (csv.length < 50) throw new Error('CSV vacío');
+    
+    console.log(`   CSV recibido: ${csv.length} caracteres`);
+    console.log(`   Primeras líneas: ${csv.split('\n').slice(0, 3).join(' | ')}`);
+    
+    if (csv.length < 50) throw new Error('CSV muy corto');
     
     const lines = csv.trim().split(/\r?\n/);
     const header = lines[0];
+    
+    console.log(`   Header: ${header}`);
     
     if (!header.includes('Date') || !header.includes('Close')) {
       throw new Error('CSV sin Date/Close');
@@ -148,13 +152,17 @@ async function fetchCommodityYTD(ticker, name) {
       }
     }
     
+    if (points.length === 0) {
+      throw new Error('No hay datos en el rango YTD');
+    }
+    
     const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
     console.log(`   ✅ ${sorted.length} puntos (${sorted[0]?.time} → ${sorted[sorted.length-1]?.time})`);
     
     return forwardFill(sorted);
     
   } catch (error) {
-    console.error(`   ❌ Error: ${error.message}`);
+    console.error(`   ❌ Error ${name}: ${error.message}`);
     throw error;
   }
 }
@@ -271,10 +279,10 @@ function setupTooltip(container, chart, mode) {
     let html = `<div style="font-weight:600;margin-bottom:10px;color:#fff;border-bottom:1px solid #2a3f5f;padding-bottom:6px">${dateStr}</div>`;
     
     const series = [
-      { key: 'gold', label: 'Oro (XAU/USD)', color: COLORS.gold, unit: '' },
-      { key: 'silver', label: 'Plata (XAG/USD)', color: COLORS.silver, unit: '' },
-      { key: 'copper', label: 'Cobre (USD/lb)', color: COLORS.copper, unit: '' },
-      { key: 'lithium', label: 'Litio (proxy ALB)', color: COLORS.lithium, unit: '' }
+      { key: 'gold', label: 'Oro ETF (GLD)', color: COLORS.gold },
+      { key: 'silver', label: 'Plata ETF (SLV)', color: COLORS.silver },
+      { key: 'copper', label: 'Cobre ETF (COPX)', color: COLORS.copper },
+      { key: 'lithium', label: 'Litio (ALB)', color: COLORS.lithium }
     ];
     
     series.forEach(s => {
@@ -299,13 +307,13 @@ function setupTooltip(container, chart, mode) {
       
       let realFormatted = '—';
       if (realValue !== null) {
-        realFormatted = '$' + fmtReal.format(realValue) + s.unit;
+        realFormatted = '$' + fmtReal.format(realValue);
       }
       
       html += `
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
           <span style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
-          <span style="font-weight:500;color:#96a3b7;min-width:130px;font-size:12px">${s.label}:</span>
+          <span style="font-weight:500;color:#96a3b7;min-width:120px;font-size:12px">${s.label}:</span>
           ${metricLabel ? `<span style="color:#cbd5e0;font-size:11px;min-width:45px">${metricValue}</span>` : ''}
           <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
             ${realFormatted}
@@ -515,17 +523,17 @@ async function loadCommoditiesData() {
     const { start, end } = getYTDRange();
     console.log(`   Periodo: ${start} → ${end}`);
     
-    // Tickers de Stooq:
-    // Oro: xauusd (Gold spot)
-    // Plata: xagusd (Silver spot)
-    // Cobre: hg.f (Copper futures)
-    // Litio: alb.us (Albemarle como proxy)
+    // Usar ETFs que SÍ están disponibles en Stooq:
+    // gld.us = SPDR Gold Shares (proxy Oro)
+    // slv.us = iShares Silver Trust (proxy Plata)
+    // copx.us = Global X Copper Miners ETF (proxy Cobre)
+    // alb.us = Albemarle Corp (proxy Litio)
     
     const [gold, silver, copper, lithium] = await Promise.all([
-      fetchCommodityYTD('xauusd', 'Oro'),
-      fetchCommodityYTD('xagusd', 'Plata'),
-      fetchCommodityYTD('hg.f', 'Cobre'),
-      fetchCommodityYTD('alb.us', 'Litio (ALB)')
+      fetchCommodityYTD('gld.us', 'Oro ETF'),
+      fetchCommodityYTD('slv.us', 'Plata ETF'),
+      fetchCommodityYTD('copx.us', 'Cobre ETF'),
+      fetchCommodityYTD('alb.us', 'Litio')
     ]);
     
     console.log('\n✅ Commodities cargados');
