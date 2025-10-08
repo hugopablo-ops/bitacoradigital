@@ -1,10 +1,10 @@
 (() => {
 /* Bitácora Digital - TradFi Chile YTD
-   UF, USD/CLP e IPSA — Valores reales superpuestos
-   - YTD (01-ene hasta hoy)
-   - 3 ejes Y independientes
-   - Tooltip con valores reales
-   - Toggle visibilidad por serie
+   UF, USD/CLP e IPSA — Comparación YTD con 3 modos
+   - Base100 (default): índices normalizados para comparar movimientos
+   - Delta%: variación porcentual desde t0
+   - Real: valores absolutos con ejes independientes
+   - Tooltip siempre muestra valores reales + métrica del modo activo
 */
 
 // === CONFIGURACIÓN ===
@@ -18,14 +18,14 @@ const COLORS = {
 // Estado global
 let chartInstance = null;
 let seriesInstances = {};
-let seriesData = { uf: [], usd: [], ipsa: [] };
+let rawData = { uf: [], usd: [], ipsa: [] }; // Datos crudos
+let currentMode = 'base100'; // 'base100' | 'deltapct' | 'real'
 let seriesVisibility = { uf: true, usd: true, ipsa: true };
 
 // === UTILIDADES DE FECHA ===
 function getYTDRange() {
   const now = new Date();
-  const yearStart = new Date(now.getFullYear(), 0, 1); // 01-ene
-  
+  const yearStart = new Date(now.getFullYear(), 0, 1);
   return {
     start: yearStart.toISOString().split('T')[0],
     end: now.toISOString().split('T')[0]
@@ -37,29 +37,18 @@ function parseDate(dateStr) {
   return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
 }
 
-function formatDateForAPI(date) {
-  const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-}
-
 // Forward-fill: rellenar máximo 2 días faltantes
 function forwardFill(data, maxGap = 2) {
   if (!data.length) return data;
-  
   const filled = [data[0]];
   
   for (let i = 1; i < data.length; i++) {
     const prev = filled[filled.length - 1];
     const curr = data[i];
-    
     const prevDate = new Date(prev.time);
     const currDate = new Date(curr.time);
     const daysDiff = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24));
     
-    // Si hay gap de 2-3 días, rellenar con valor anterior
     if (daysDiff > 1 && daysDiff <= maxGap + 1) {
       for (let j = 1; j < daysDiff; j++) {
         const fillDate = new Date(prevDate);
@@ -70,10 +59,8 @@ function forwardFill(data, maxGap = 2) {
         });
       }
     }
-    
     filled.push(curr);
   }
-  
   return filled;
 }
 
@@ -86,16 +73,11 @@ function mergeSeries(uf, usd, ipsa) {
   ]);
   
   const dates = Array.from(allDates).sort();
-  
   const ufMap = new Map(uf.map(p => [p.time, p.value]));
   const usdMap = new Map(usd.map(p => [p.time, p.value]));
   const ipsaMap = new Map(ipsa.map(p => [p.time, p.value]));
   
-  const merged = {
-    uf: [],
-    usd: [],
-    ipsa: []
-  };
+  const merged = { uf: [], usd: [], ipsa: [] };
   
   dates.forEach(date => {
     if (ufMap.has(date)) merged.uf.push({ time: date, value: ufMap.get(date) });
@@ -104,6 +86,19 @@ function mergeSeries(uf, usd, ipsa) {
   });
   
   return merged;
+}
+
+// === TRANSFORMACIONES DE DATOS ===
+function toBase100(arr) {
+  if (!arr?.length) return arr;
+  const t0 = arr[0].value;
+  return arr.map(p => ({ time: p.time, value: (p.value / t0) * 100 }));
+}
+
+function toDeltaPct(arr) {
+  if (!arr?.length) return arr;
+  const t0 = arr[0].value;
+  return arr.map(p => ({ time: p.time, value: ((p.value - t0) / t0) * 100 }));
 }
 
 // Fetch con timeout
@@ -120,9 +115,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 15000) {
     return response;
   } catch (error) {
     clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error(`Timeout (${timeout}ms)`);
-    }
+    if (error.name === 'AbortError') throw new Error(`Timeout (${timeout}ms)`);
     throw error;
   }
 }
@@ -130,7 +123,6 @@ async function fetchWithTimeout(url, options = {}, timeout = 15000) {
 // === OBTENER DATOS YTD ===
 async function fetchMindicadorYTD(tipo) {
   console.log(`\n📡 Mindicador YTD: ${tipo}`);
-  
   const { start, end } = getYTDRange();
   const currentYear = new Date().getFullYear();
   
@@ -138,15 +130,10 @@ async function fetchMindicadorYTD(tipo) {
     const url = `https://mindicador.cl/api/${tipo}/${currentYear}`;
     const response = await fetchWithTimeout(url, { cache: 'no-store' });
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const json = await response.json();
-    
-    if (!json.serie || !Array.isArray(json.serie)) {
-      throw new Error('Formato inválido');
-    }
+    if (!json.serie || !Array.isArray(json.serie)) throw new Error('Formato inválido');
     
     const points = json.serie
       .map(x => {
@@ -159,8 +146,7 @@ async function fetchMindicadorYTD(tipo) {
       .filter(p => p.time >= start && p.time <= end)
       .sort((a, b) => a.time.localeCompare(b.time));
     
-    console.log(`   ✅ ${points.length} puntos YTD (${points[0]?.time} → ${points[points.length-1]?.time})`);
-    
+    console.log(`   ✅ ${points.length} puntos (${points[0]?.time} → ${points[points.length-1]?.time})`);
     return forwardFill(points);
     
   } catch (error) {
@@ -171,33 +157,25 @@ async function fetchMindicadorYTD(tipo) {
 
 async function fetchStooqYTD(ticker) {
   console.log(`\n📡 Stooq YTD: ${ticker}`);
-  
   const { start, end } = getYTDRange();
-  const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`; // Diario
+  const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
   const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
   
   try {
     const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const csv = await response.text();
-    
-    if (csv.length < 50) {
-      throw new Error('CSV vacío');
-    }
+    if (csv.length < 50) throw new Error('CSV vacío');
     
     const lines = csv.trim().split(/\r?\n/);
     const header = lines[0];
     
     if (!header.includes('Date') || !header.includes('Close')) {
-      throw new Error('CSV sin columnas Date/Close');
+      throw new Error('CSV sin Date/Close');
     }
     
     const points = [];
-    
     for (const line of lines.slice(1)) {
       const [date, , , , close] = line.split(',');
       if (!date || !close) continue;
@@ -211,8 +189,7 @@ async function fetchStooqYTD(ticker) {
     }
     
     const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
-    
-    console.log(`   ✅ ${sorted.length} puntos YTD (${sorted[0]?.time} → ${sorted[sorted.length-1]?.time})`);
+    console.log(`   ✅ ${sorted.length} puntos (${sorted[0]?.time} → ${sorted[sorted.length-1]?.time})`);
     
     return forwardFill(sorted);
     
@@ -222,8 +199,10 @@ async function fetchStooqYTD(ticker) {
   }
 }
 
-// === CREAR GRÁFICO CON 3 EJES Y ===
-function createChart(container) {
+// === CREAR GRÁFICO ===
+function createChart(container, mode) {
+  const isReal = mode === 'real';
+  
   const chart = LightweightCharts.createChart(container, {
     layout: {
       background: { type: 'solid', color: 'transparent' },
@@ -236,36 +215,25 @@ function createChart(container) {
     },
     leftPriceScale: {
       borderColor: '#233048',
-      visible: true,
+      visible: isReal,
       scaleMargins: { top: 0.1, bottom: 0.1 }
     },
     timeScale: {
       borderColor: '#233048',
       rightOffset: 3,
-      timeVisible: true,
-      secondsVisible: false
+      timeVisible: true
     },
     grid: {
       vertLines: { color: '#1a2434' },
       horzLines: { color: '#1a2434' }
     },
-    localization: { 
-      locale: 'es-CL',
-      timeFormatter: (timestamp) => {
-        const date = new Date(timestamp * 1000);
-        return date.toLocaleDateString('es-CL', { 
-          day: '2-digit', 
-          month: 'short' 
-        });
-      }
-    },
+    localization: { locale: 'es-CL' },
     crosshair: {
       mode: LightweightCharts.CrosshairMode.Normal,
       vertLine: {
         width: 1,
         color: '#4a5568',
-        style: LightweightCharts.LineStyle.Solid,
-        labelBackgroundColor: '#1a2434'
+        style: LightweightCharts.LineStyle.Solid
       },
       horzLine: {
         visible: false
@@ -285,7 +253,7 @@ function createChart(container) {
   return chart;
 }
 
-function createSeries(chart, id, label, color, priceScaleId) {
+function createSeries(chart, label, color, priceScaleId = 'right') {
   return chart.addLineSeries({
     color,
     lineWidth: 2.5,
@@ -294,13 +262,12 @@ function createSeries(chart, id, label, color, priceScaleId) {
     crosshairMarkerVisible: true,
     crosshairMarkerRadius: 4,
     lastValueVisible: true,
-    priceLineVisible: false,
-    lineStyle: 0 // Solid
+    priceLineVisible: false
   });
 }
 
-// === TOOLTIP PERSONALIZADO ===
-function setupTooltip(container, chart) {
+// === TOOLTIP CON VALORES REALES + MÉTRICA DEL MODO ===
+function setupTooltip(container, chart, mode) {
   const tooltip = document.createElement('div');
   tooltip.style.cssText = `
     position: absolute;
@@ -311,18 +278,24 @@ function setupTooltip(container, chart) {
     border-radius: 10px;
     color: #dbe4f3;
     font-size: 13px;
-    line-height: 1.7;
+    line-height: 1.8;
     pointer-events: none;
     z-index: 1000;
     backdrop-filter: blur(8px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    min-width: 200px;
+    min-width: 240px;
   `;
   container.appendChild(tooltip);
   
-  const formatter = new Intl.NumberFormat('es-CL', {
+  const fmtReal = new Intl.NumberFormat('es-CL', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
+  });
+  
+  const fmtMetric = new Intl.NumberFormat('es-CL', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    signDisplay: mode === 'deltapct' ? 'always' : 'auto'
   });
   
   chart.subscribeCrosshairMove(param => {
@@ -340,27 +313,53 @@ function setupTooltip(container, chart) {
     let html = `<div style="font-weight:600;margin-bottom:10px;color:#fff;border-bottom:1px solid #2a3f5f;padding-bottom:6px">${dateStr}</div>`;
     
     const series = [
-      { key: 'uf', label: 'UF', color: COLORS.uf, prefix: '$', suffix: '' },
-      { key: 'usd', label: 'USD/CLP', color: COLORS.usd, prefix: '$', suffix: '' },
-      { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa, prefix: '', suffix: ' pts' }
+      { key: 'uf', label: 'UF', color: COLORS.uf },
+      { key: 'usd', label: 'USD/CLP', color: COLORS.usd },
+      { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa }
     ];
     
     series.forEach(s => {
       if (!seriesVisibility[s.key]) return;
       
-      const data = param.seriesData.get(seriesInstances[s.key]);
-      if (data && data.value !== undefined) {
-        const formatted = formatter.format(data.value);
-        html += `
-          <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
-            <span style="width:12px;height:12px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
-            <span style="font-weight:500;color:#96a3b7">${s.label}:</span>
-            <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
-              ${s.prefix}${formatted}${s.suffix}
-            </span>
-          </div>
-        `;
+      const chartData = param.seriesData.get(seriesInstances[s.key]);
+      if (!chartData || chartData.value === undefined) return;
+      
+      // Obtener valor real del mismo timestamp
+      const rawPoint = rawData[s.key].find(p => p.time === param.time);
+      const realValue = rawPoint ? rawPoint.value : null;
+      
+      let metricValue = '—';
+      let metricLabel = '';
+      
+      if (mode === 'base100') {
+        metricValue = fmtMetric.format(chartData.value);
+        metricLabel = 'Base100';
+      } else if (mode === 'deltapct') {
+        metricValue = fmtMetric.format(chartData.value) + '%';
+        metricLabel = 'Δ%';
+      } else { // real
+        metricLabel = '';
       }
+      
+      let realFormatted = '—';
+      if (realValue !== null) {
+        if (s.key === 'ipsa') {
+          realFormatted = fmtReal.format(realValue) + ' pts';
+        } else {
+          realFormatted = '$' + fmtReal.format(realValue);
+        }
+      }
+      
+      html += `
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <span style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
+          <span style="font-weight:500;color:#96a3b7;min-width:65px">${s.label}:</span>
+          ${metricLabel ? `<span style="color:#cbd5e0;font-size:11px;min-width:50px">${metricValue}</span>` : ''}
+          <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
+            ${realFormatted}
+          </span>
+        </div>
+      `;
     });
     
     tooltip.innerHTML = html;
@@ -374,21 +373,63 @@ function setupTooltip(container, chart) {
   });
 }
 
-// === CONTROLES DE VISIBILIDAD ===
-function addLegendControls(container) {
+// === CONTROLES ===
+function addControls(container) {
+  // Chips de modo
+  const modeChips = document.createElement('div');
+  modeChips.style.cssText = `
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 100;
+    background: rgba(15, 22, 32, 0.9);
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid #1a2434;
+  `;
+  
+  const modes = [
+    { id: 'base100', label: 'Base 100' },
+    { id: 'deltapct', label: 'Delta %' },
+    { id: 'real', label: 'Real' }
+  ];
+  
+  modes.forEach(m => {
+    const chip = document.createElement('button');
+    const isActive = currentMode === m.id;
+    chip.style.cssText = `
+      padding: 6px 12px;
+      background: ${isActive ? '#1f9df2' : 'transparent'};
+      color: ${isActive ? '#fff' : '#96a3b7'};
+      border: 1px solid ${isActive ? '#1f9df2' : '#2a3f5f'};
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    `;
+    chip.textContent = m.label;
+    chip.onclick = () => switchMode(m.id);
+    modeChips.appendChild(chip);
+  });
+  
+  container.appendChild(modeChips);
+  
+  // Leyenda de series
   const legend = document.createElement('div');
   legend.style.cssText = `
     position: absolute;
     top: 12px;
     left: 12px;
     display: flex;
-    gap: 12px;
+    gap: 10px;
     z-index: 100;
     background: rgba(15, 22, 32, 0.8);
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #1a2434;
-    backdrop-filter: blur(4px);
   `;
   
   const items = [
@@ -440,43 +481,72 @@ function addLegendControls(container) {
   container.appendChild(legend);
 }
 
+function switchMode(newMode) {
+  if (newMode === currentMode) return;
+  currentMode = newMode;
+  renderChart();
+}
+
 // === RENDERIZAR GRÁFICO ===
 function renderChart() {
   const container = document.getElementById('c-chile');
-  if (!container || !seriesData.uf.length) return;
+  if (!container || !rawData.uf.length) return;
   
   container.innerHTML = '';
   
-  // Crear gráfico
-  chartInstance = createChart(container);
+  chartInstance = createChart(container, currentMode);
   
-  // Crear las 3 series con ejes independientes
-  seriesInstances.uf = createSeries(chartInstance, 'uf', 'UF', COLORS.uf, 'left');
-  seriesInstances.usd = createSeries(chartInstance, 'usd', 'USD/CLP', COLORS.usd, 'right');
-  seriesInstances.ipsa = createSeries(chartInstance, 'ipsa', 'IPSA', COLORS.ipsa, 'right');
+  let ufData, usdData, ipsaData;
+  
+  // Transformar datos según modo
+  if (currentMode === 'base100') {
+    ufData = toBase100(rawData.uf);
+    usdData = toBase100(rawData.usd);
+    ipsaData = toBase100(rawData.ipsa);
+    
+    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'right');
+    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
+    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
+    
+  } else if (currentMode === 'deltapct') {
+    ufData = toDeltaPct(rawData.uf);
+    usdData = toDeltaPct(rawData.usd);
+    ipsaData = toDeltaPct(rawData.ipsa);
+    
+    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'right');
+    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
+    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
+    
+  } else { // real
+    ufData = rawData.uf;
+    usdData = rawData.usd;
+    ipsaData = rawData.ipsa;
+    
+    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'left');
+    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
+    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
+  }
   
   // Setear datos
-  seriesInstances.uf.setData(seriesData.uf);
-  seriesInstances.usd.setData(seriesData.usd);
-  seriesInstances.ipsa.setData(seriesData.ipsa);
+  seriesInstances.uf.setData(ufData);
+  seriesInstances.usd.setData(usdData);
+  seriesInstances.ipsa.setData(ipsaData);
   
-  // Aplicar visibilidad inicial
+  // Aplicar visibilidad
   Object.keys(seriesVisibility).forEach(key => {
-    seriesInstances[key].applyOptions({
-      visible: seriesVisibility[key]
-    });
+    seriesInstances[key].applyOptions({ visible: seriesVisibility[key] });
   });
   
   // Tooltip
-  setupTooltip(container, chartInstance);
+  setupTooltip(container, chartInstance, currentMode);
   
-  // Controles de leyenda
-  addLegendControls(container);
+  // Controles
+  addControls(container);
   
   // Fit content
   chartInstance.timeScale().fitContent();
   
-  // Click handler (excepto en botones)
+  // Click handler
   container.onclick = (e) => {
     if (e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
     window.location.href = '/detail/tradfi-cl';
@@ -499,7 +569,6 @@ async function loadYTDData() {
     const { start, end } = getYTDRange();
     console.log(`   Periodo: ${start} → ${end}`);
     
-    // Cargar datos en paralelo
     const [uf, usd, ipsa] = await Promise.all([
       fetchMindicadorYTD('uf'),
       fetchMindicadorYTD('dolar'),
@@ -508,15 +577,14 @@ async function loadYTDData() {
     
     console.log('\n✅ Datos YTD cargados');
     
-    // Merge y forward-fill
     const merged = mergeSeries(uf, usd, ipsa);
-    seriesData = merged;
+    rawData = merged;
     
-    console.log('\n📊 Renderizando gráfico YTD...');
+    console.log('\n📊 Renderizando en modo Base 100...');
     
     renderChart();
     
-    console.log('✅ ¡Gráfico YTD renderizado!\n');
+    console.log('✅ Gráfico YTD renderizado!\n');
     
     if (noteEl) noteEl.style.display = 'none';
     
