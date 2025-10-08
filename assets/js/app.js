@@ -1,7 +1,7 @@
 (() => {
 /* Bitácora Digital - app.js (Home) - TradFi Chile
    UF, USD/CLP, IPSA (proxy ECH)
-   Layout limpio con controles externos
+   Controles DEBAJO del título
 */
 
 // === CONFIGURACIÓN ===
@@ -412,8 +412,8 @@ function setupTooltip(container, chart, mode) {
   });
 }
 
-// === CONTROLES EXTERNOS ===
-function addControlsBar(containerParent) {
+// === CONTROLES (debajo del título) ===
+function addControlsBar(container) {
   const controlsBar = document.createElement('div');
   controlsBar.id = 'controls-bar-chile';
   controlsBar.style.cssText = `
@@ -429,7 +429,6 @@ function addControlsBar(containerParent) {
     border: 1px solid #1a2434;
   `;
   
-  // Lado izquierdo: Leyenda
   const leftSide = document.createElement('div');
   leftSide.style.cssText = `display: flex; gap: 12px; align-items: center;`;
   
@@ -449,7 +448,7 @@ function addControlsBar(containerParent) {
     `;
     
     const dot = document.createElement('span');
-    dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${item.color}; display: block;`;
+    dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${item.color};`;
     
     btn.appendChild(dot);
     btn.appendChild(document.createTextNode(item.label));
@@ -463,11 +462,9 @@ function addControlsBar(containerParent) {
     leftSide.appendChild(btn);
   });
   
-  // Lado derecho: Controles
   const rightSide = document.createElement('div');
   rightSide.style.cssText = `display: flex; gap: 12px; align-items: center; flex-wrap: wrap;`;
   
-  // Selector de Periodo
   const periodGroup = document.createElement('div');
   periodGroup.style.cssText = `
     display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
@@ -496,12 +493,10 @@ function addControlsBar(containerParent) {
   });
   rightSide.appendChild(periodGroup);
   
-  // Separador
   const sep = document.createElement('div');
   sep.style.cssText = `width: 1px; height: 32px; background: #233048;`;
   rightSide.appendChild(sep);
   
-  // Selector de Modo
   const modeGroup = document.createElement('div');
   modeGroup.style.cssText = `
     display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
@@ -537,7 +532,9 @@ function addControlsBar(containerParent) {
   
   controlsBar.appendChild(leftSide);
   controlsBar.appendChild(rightSide);
-  containerParent.insertBefore(controlsBar, containerParent.firstChild);
+  
+  // INSERTAR ANTES del gráfico (debajo del título)
+  container.parentNode.insertBefore(controlsBar, container);
 }
 
 function switchMode(newMode) {
@@ -554,7 +551,6 @@ function switchPeriod(newPeriod) {
 
 // === RENDERIZAR ===
 function renderChart() {
-  const containerParent = document.getElementById('c-chile').parentElement;
   const container = document.getElementById('c-chile');
   
   if (!container || !rawData.uf.length) return;
@@ -604,7 +600,7 @@ function renderChart() {
   });
   
   setupTooltip(container, chartInstance, currentMode);
-  addControlsBar(containerParent);
+  addControlsBar(container);
   chartInstance.timeScale().fitContent();
   
   container.onclick = (e) => {
