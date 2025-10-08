@@ -211,3 +211,335 @@ function createSeries(chart, label, color, priceScaleId = 'right') {
     color,
     lineWidth: 2.5,
     priceScaleId,
+    title: label,
+    crosshairMarkerVisible: true,
+    crosshairMarkerRadius: 4,
+    lastValueVisible: true,
+    priceLineVisible: false
+  });
+}
+
+// === TOOLTIP ===
+function setupTooltip(container, chart, mode) {
+  const tooltip = document.createElement('div');
+  tooltip.style.cssText = `
+    position: absolute;
+    display: none;
+    padding: 14px 16px;
+    background: rgba(15, 22, 32, 0.98);
+    border: 1px solid #2a3f5f;
+    border-radius: 10px;
+    color: #dbe4f3;
+    font-size: 13px;
+    line-height: 1.8;
+    pointer-events: none;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    min-width: 240px;
+  `;
+  container.appendChild(tooltip);
+  
+  const fmtReal = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  
+  const fmtMetric = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    signDisplay: mode === 'deltapct' ? 'always' : 'auto'
+  });
+  
+  chart.subscribeCrosshairMove(param => {
+    if (!param.time || param.point.x < 0 || param.point.y < 0) {
+      tooltip.style.display = 'none';
+      return;
+    }
+    
+    const dateStr = new Date(param.time).toLocaleDateString('es-CL', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    let html = `<div style="font-weight:600;margin-bottom:10px;color:#fff;border-bottom:1px solid #2a3f5f;padding-bottom:6px">${dateStr}</div>`;
+    
+    const series = [
+      { key: 'spy', label: 'SPY (S&P 500)', color: COLORS.spy },
+      { key: 'ewg', label: 'EWG (Alemania)', color: COLORS.ewg },
+      { key: 'ewj', label: 'EWJ (Japón)', color: COLORS.ewj }
+    ];
+    
+    series.forEach(s => {
+      if (!seriesVisibility[s.key]) return;
+      
+      const chartData = param.seriesData.get(seriesInstances[s.key]);
+      if (!chartData || chartData.value === undefined) return;
+      
+      const rawPoint = rawData[s.key].find(p => p.time === param.time);
+      const realValue = rawPoint ? rawPoint.value : null;
+      
+      let metricValue = '—';
+      let metricLabel = '';
+      
+      if (mode === 'base100') {
+        metricValue = fmtMetric.format(chartData.value);
+        metricLabel = 'Base100';
+      } else if (mode === 'deltapct') {
+        metricValue = fmtMetric.format(chartData.value) + '%';
+        metricLabel = 'Δ%';
+      }
+      
+      let realFormatted = '—';
+      if (realValue !== null) {
+        realFormatted = '$' + fmtReal.format(realValue);
+      }
+      
+      html += `
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <span style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
+          <span style="font-weight:500;color:#96a3b7;min-width:110px;font-size:12px">${s.label}:</span>
+          ${metricLabel ? `<span style="color:#cbd5e0;font-size:11px;min-width:45px">${metricValue}</span>` : ''}
+          <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
+            ${realFormatted}
+          </span>
+        </div>
+      `;
+    });
+    
+    tooltip.innerHTML = html;
+    tooltip.style.display = 'block';
+    
+    const x = Math.min(param.point.x + 20, container.clientWidth - tooltip.offsetWidth - 20);
+    const y = Math.max(param.point.y - tooltip.offsetHeight - 20, 10);
+    
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  });
+}
+
+// === CONTROLES ===
+function addControls(container) {
+  const modeChips = document.createElement('div');
+  modeChips.style.cssText = `
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 100;
+    background: rgba(15, 22, 32, 0.9);
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid #1a2434;
+  `;
+  
+  const modes = [
+    { id: 'base100', label: 'Base 100' },
+    { id: 'deltapct', label: 'Delta %' },
+    { id: 'real', label: 'Real' }
+  ];
+  
+  modes.forEach(m => {
+    const chip = document.createElement('button');
+    const isActive = currentMode === m.id;
+    chip.style.cssText = `
+      padding: 6px 12px;
+      background: ${isActive ? '#1f9df2' : 'transparent'};
+      color: ${isActive ? '#fff' : '#96a3b7'};
+      border: 1px solid ${isActive ? '#1f9df2' : '#2a3f5f'};
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    `;
+    chip.textContent = m.label;
+    chip.onclick = () => switchMode(m.id);
+    modeChips.appendChild(chip);
+  });
+  
+  container.appendChild(modeChips);
+  
+  const legend = document.createElement('div');
+  legend.style.cssText = `
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+    background: rgba(15, 22, 32, 0.8);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #1a2434;
+  `;
+  
+  const items = [
+    { key: 'spy', label: 'SPY', color: COLORS.spy },
+    { key: 'ewg', label: 'EWG', color: COLORS.ewg },
+    { key: 'ewj', label: 'EWJ', color: COLORS.ewj }
+  ];
+  
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: transparent;
+      border: 1px solid ${item.color};
+      border-radius: 6px;
+      color: ${item.color};
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      opacity: ${seriesVisibility[item.key] ? '1' : '0.4'};
+    `;
+    
+    const dot = document.createElement('span');
+    dot.style.cssText = `
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: ${item.color};
+    `;
+    
+    btn.appendChild(dot);
+    btn.appendChild(document.createTextNode(item.label));
+    
+    btn.onclick = () => {
+      seriesVisibility[item.key] = !seriesVisibility[item.key];
+      seriesInstances[item.key].applyOptions({
+        visible: seriesVisibility[item.key]
+      });
+      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.4';
+    };
+    
+    legend.appendChild(btn);
+  });
+  
+  container.appendChild(legend);
+}
+
+function switchMode(newMode) {
+  if (newMode === currentMode) return;
+  currentMode = newMode;
+  renderChart();
+}
+
+// === RENDERIZAR ===
+function renderChart() {
+  const container = document.getElementById('c-indices');
+  if (!container || !rawData.spy.length) return;
+  
+  container.innerHTML = '';
+  chartInstance = createChart(container, currentMode);
+  
+  let spyData, ewgData, ewjData;
+  
+  if (currentMode === 'base100') {
+    spyData = toBase100(rawData.spy);
+    ewgData = toBase100(rawData.ewg);
+    ewjData = toBase100(rawData.ewj);
+    
+    seriesInstances.spy = createSeries(chartInstance, 'SPY', COLORS.spy, 'right');
+    seriesInstances.ewg = createSeries(chartInstance, 'EWG', COLORS.ewg, 'right');
+    seriesInstances.ewj = createSeries(chartInstance, 'EWJ', COLORS.ewj, 'right');
+    
+  } else if (currentMode === 'deltapct') {
+    spyData = toDeltaPct(rawData.spy);
+    ewgData = toDeltaPct(rawData.ewg);
+    ewjData = toDeltaPct(rawData.ewj);
+    
+    seriesInstances.spy = createSeries(chartInstance, 'SPY', COLORS.spy, 'right');
+    seriesInstances.ewg = createSeries(chartInstance, 'EWG', COLORS.ewg, 'right');
+    seriesInstances.ewj = createSeries(chartInstance, 'EWJ', COLORS.ewj, 'right');
+    
+  } else {
+    spyData = rawData.spy;
+    ewgData = rawData.ewg;
+    ewjData = rawData.ewj;
+    
+    seriesInstances.spy = createSeries(chartInstance, 'SPY', COLORS.spy, 'left');
+    seriesInstances.ewg = createSeries(chartInstance, 'EWG', COLORS.ewg, 'right');
+    seriesInstances.ewj = createSeries(chartInstance, 'EWJ', COLORS.ewj, 'right');
+  }
+  
+  seriesInstances.spy.setData(spyData);
+  seriesInstances.ewg.setData(ewgData);
+  seriesInstances.ewj.setData(ewjData);
+  
+  Object.keys(seriesVisibility).forEach(key => {
+    seriesInstances[key].applyOptions({ visible: seriesVisibility[key] });
+  });
+  
+  setupTooltip(container, chartInstance, currentMode);
+  addControls(container);
+  chartInstance.timeScale().fitContent();
+  
+  container.onclick = (e) => {
+    if (e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
+    window.location.href = '/detail/indices';
+  };
+}
+
+// === CARGAR DATOS ===
+async function loadIndicesData() {
+  const container = document.getElementById('c-indices');
+  const noteEl = document.getElementById('c-indices-note');
+  
+  if (!container) return;
+  
+  try {
+    console.log('\n🚀 === CARGANDO ÍNDICES YTD ===');
+    
+    const { start, end } = getYTDRange();
+    console.log(`   Periodo: ${start} → ${end}`);
+    
+    const [spy, ewg, ewj] = await Promise.all([
+      fetchStooqYTD('spy.us'),
+      fetchStooqYTD('ewg.us'),
+      fetchStooqYTD('ewj.us')
+    ]);
+    
+    console.log('\n✅ Índices cargados');
+    
+    const merged = mergeSeries(spy, ewg, ewj);
+    rawData = merged;
+    
+    console.log('\n📊 Renderizando índices...');
+    renderChart();
+    console.log('✅ Índices renderizados!\n');
+    
+    if (noteEl) noteEl.style.display = 'none';
+    
+  } catch (error) {
+    console.error('\n❌ ERROR:', error);
+    
+    container.innerHTML = `
+      <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
+        <strong>Error al cargar índices</strong><br>
+        <small style="color:#cbd5e0">${error.message}</small>
+      </div>
+    `;
+    
+    if (noteEl) {
+      noteEl.textContent = `Error: ${error.message}`;
+      noteEl.style.display = 'block';
+      noteEl.style.color = '#f56565';
+    }
+  }
+}
+
+// === INIT ===
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadIndicesData);
+} else {
+  loadIndicesData();
+}
+
+})();
