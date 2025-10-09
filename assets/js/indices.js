@@ -1,365 +1,438 @@
 // ============================================
-// ÍNDICES - SPY vs EWG vs EWJ (YTD)
-// Bitácora Digital - JavaScript Vanilla
+// Índices Globales Dashboard
+// SPY, EWG, EWJ (Stooq vía proxy)
 // ============================================
 
-console.log("=== CARGANDO ÍNDICES GLOBALES (YTD) ===");
+(function() {
+  'use strict';
 
-// Configuración de índices
-const indicesConfig = {
-  SPY: { name: 'S&P 500', color: '#3b82f6', active: true },
-  EWG: { name: 'Alemania', color: '#10b981', active: true },
-  EWJ: { name: 'Japón', color: '#f59e0b', active: true }
-};
+  console.log('=== CARGANDO ÍNDICES GLOBALES (YTD) ===');
 
-// Estado global
-let indicesState = {
-  activeIndices: ['SPY', 'EWG', 'EWJ'],
-  timeRange: 'YTD',
-  viewMode: 'Base100',
-  data: [],
-  chart: null
-};
+  const DASHBOARD_ID = 'indices';
+  const CONTAINER_ID = 'c-indices';
+  const DETAIL_URL = '/detail/indices';
 
-// ============================================
-// FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
-// ============================================
-function initIndicesDashboard() {
-  console.log("📊 Inicializando dashboard de índices...");
-  
-  // Crear estructura HTML
-  createIndicesHTML();
-  
-  // Configurar event listeners
-  setupEventListeners();
-  
-  // Cargar datos iniciales
-  loadIndicesData();
-}
-
-// ============================================
-// CREAR ESTRUCTURA HTML
-// ============================================
-function createIndicesHTML() {
-  const container = document.getElementById('indices-dashboard');
-  if (!container) {
-    console.error("❌ No se encontró el contenedor #indices-dashboard");
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="dashboard-container">
-      
-      <!-- Header -->
-      <div class="dashboard-header">
-        <h1 class="dashboard-title">
-          Índices — SPY vs EWG vs EWJ — YTD (valores reales)
-        </h1>
-        <p class="dashboard-subtitle">
-          S&P 500, Alemania, Japón · Formas superpuestas, ejes independientes
-        </p>
-      </div>
-
-      <!-- Selectores de Índices -->
-      <div class="control-group">
-        <button class="index-btn active" data-index="SPY">
-          <span class="index-dot" style="background: #3b82f6;"></span>
-          S&P 500
-        </button>
-        <button class="index-btn active" data-index="EWG">
-          <span class="index-dot" style="background: #10b981;"></span>
-          Alemania
-        </button>
-        <button class="index-btn active" data-index="EWJ">
-          <span class="index-dot" style="background: #f59e0b;"></span>
-          Japón
-        </button>
-      </div>
-
-      <!-- Selectores de Tiempo -->
-      <div class="control-group">
-        <button class="time-btn" data-range="1M">1M</button>
-        <button class="time-btn" data-range="3M">3M</button>
-        <button class="time-btn" data-range="6M">6M</button>
-        <button class="time-btn active" data-range="YTD">YTD</button>
-        <button class="time-btn" data-range="1Y">1Y</button>
-        <button class="time-btn" data-range="All">All</button>
-      </div>
-
-      <!-- Selectores de Vista -->
-      <div class="control-group">
-        <button class="view-btn" data-view="Real">Real</button>
-        <button class="view-btn active" data-view="Base100">Base100</button>
-        <button class="view-btn" data-view="%">%</button>
-      </div>
-
-      <!-- Gráfico -->
-      <div class="chart-container">
-        <canvas id="indices-chart"></canvas>
-        <div id="loading-indicator" class="loading">
-          <div class="spinner"></div>
-          <p>Cargando índices YTD...</p>
-        </div>
-      </div>
-
-      <!-- Métricas -->
-      <div id="metrics-container" class="metrics-grid"></div>
-
-    </div>
-  `;
-}
-
-// ============================================
-// CONFIGURAR EVENT LISTENERS
-// ============================================
-function setupEventListeners() {
-  // Botones de índices
-  document.querySelectorAll('.index-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const index = e.currentTarget.dataset.index;
-      toggleIndex(index);
-      e.currentTarget.classList.toggle('active');
-    });
-  });
-
-  // Botones de tiempo
-  document.querySelectorAll('.time-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      indicesState.timeRange = e.currentTarget.dataset.range;
-      loadIndicesData();
-    });
-  });
-
-  // Botones de vista
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      indicesState.viewMode = e.currentTarget.dataset.view;
-      updateChart();
-    });
-  });
-}
-
-// ============================================
-// TOGGLE ÍNDICE
-// ============================================
-function toggleIndex(indexId) {
-  const idx = indicesState.activeIndices.indexOf(indexId);
-  if (idx > -1) {
-    indicesState.activeIndices.splice(idx, 1);
-  } else {
-    indicesState.activeIndices.push(indexId);
-  }
-  updateChart();
-}
-
-// ============================================
-// CARGAR DATOS DE ÍNDICES
-// ============================================
-async function loadIndicesData() {
-  console.log(`📡 Cargando datos para rango: ${indicesState.timeRange}`);
-  showLoading(true);
-
-  try {
-    // OPCIÓN 1: Datos simulados (reemplazar con API real)
-    const data = generateMockData(indicesState.timeRange);
-    
-    // OPCIÓN 2: API real (descomentar cuando tengas el endpoint)
-    /*
-    const response = await fetch(`/api/indices?range=${indicesState.timeRange}`);
-    const data = await response.json();
-    */
-
-    indicesState.data = data;
-    updateChart();
-    updateMetrics();
-    
-  } catch (error) {
-    console.error("❌ Error cargando datos:", error);
-  } finally {
-    showLoading(false);
-  }
-}
-
-// ============================================
-// GENERAR DATOS SIMULADOS
-// ============================================
-function generateMockData(range) {
-  const points = {
-    '1M': 20,
-    '3M': 60,
-    '6M': 120,
-    'YTD': 200,
-    '1Y': 250,
-    'All': 500
-  }[range] || 200;
-
-  const data = [];
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - points);
-
-  for (let i = 0; i < points; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    
-    const baseValue = 100;
-    const volatility = 15;
-    
-    data.push({
-      date: date.toLocaleDateString('es-CL', { month: 'short', day: 'numeric' }),
-      timestamp: date.getTime(),
-      SPY: baseValue + Math.sin(i / 10) * volatility + (i / 5) + (Math.random() * 5),
-      EWG: baseValue + Math.cos(i / 12) * (volatility * 0.8) + (i / 6) + (Math.random() * 4),
-      EWJ: baseValue + Math.sin(i / 8) * (volatility * 1.2) + (i / 7) + (Math.random() * 6)
-    });
-  }
-
-  console.log(`✅ ${points} puntos generados para ${range}`);
-  return data;
-}
-
-// ============================================
-// ACTUALIZAR GRÁFICO (Chart.js)
-// ============================================
-function updateChart() {
-  const canvas = document.getElementById('indices-chart');
-  if (!canvas) return;
-
-  const ctx = canvas.getContext('2d');
-
-  // Destruir gráfico anterior si existe
-  if (indicesState.chart) {
-    indicesState.chart.destroy();
-  }
-
-  // Preparar datasets
-  const datasets = indicesState.activeIndices.map(indexId => {
-    const config = indicesConfig[indexId];
-    return {
-      label: config.name,
-      data: indicesState.data.map(d => d[indexId]),
-      borderColor: config.color,
-      backgroundColor: config.color + '20',
-      borderWidth: 2,
-      tension: 0.4,
-      pointRadius: 0,
-      pointHoverRadius: 4,
-      fill: false
-    };
-  });
-
-  // Crear nuevo gráfico
-  indicesState.chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: indicesState.data.map(d => d.date),
-      datasets: datasets
+  // Configuración de series
+  const SERIES_CONFIG = {
+    spy: { 
+      name: 'SPY (S&P 500)', 
+      color: '#3b82f6',
+      ticker: 'spy.us'
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false
+    ewg: { 
+      name: 'EWG (Alemania)', 
+      color: '#10b981',
+      ticker: 'ewg.us'
+    },
+    ewj: { 
+      name: 'EWJ (Japón)', 
+      color: '#f59e0b',
+      ticker: 'ewj.us'
+    }
+  };
+
+  // Estado del dashboard
+  let state = {
+    activeSeries: ['spy', 'ewg', 'ewj'],
+    period: 'YTD',
+    mode: 'Base100',
+    data: {},
+    chart: null,
+    chartSeries: {}
+  };
+
+  // Inicialización
+  function init() {
+    const container = document.getElementById(CONTAINER_ID);
+    if (!container) {
+      console.error(`❌ No se encontró el contenedor #${CONTAINER_ID}`);
+      return;
+    }
+
+    console.log(`✅ Contenedor encontrado: #${CONTAINER_ID}`);
+    setupEventListeners();
+    loadAllData();
+  }
+
+  // Event Listeners
+  function setupEventListeners() {
+    const card = document.querySelector(`[data-dashboard="${DASHBOARD_ID}"]`);
+    if (!card) {
+      console.error(`❌ No se encontró la tarjeta [data-dashboard="${DASHBOARD_ID}"]`);
+      return;
+    }
+
+    // Series toggles
+    card.querySelectorAll('.btn-series').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const series = e.currentTarget.dataset.series;
+        toggleSeries(series);
+        e.currentTarget.classList.toggle('active');
+      });
+    });
+
+    // Period toggles
+    card.querySelectorAll('.btn-period').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        card.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        state.period = e.currentTarget.dataset.period;
+        updateChart();
+      });
+    });
+
+    // Mode toggles
+    card.querySelectorAll('.btn-mode').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        card.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        state.mode = e.currentTarget.dataset.mode;
+        updateChart();
+      });
+    });
+
+    // Chart click → detail page
+    const chartContainer = document.getElementById(CONTAINER_ID);
+    if (chartContainer) {
+      chartContainer.addEventListener('click', () => {
+        window.location.href = DETAIL_URL;
+      });
+    }
+
+    console.log('✅ Event listeners configurados');
+  }
+
+  // Toggle series
+  function toggleSeries(seriesId) {
+    const idx = state.activeSeries.indexOf(seriesId);
+    if (idx > -1) {
+      state.activeSeries.splice(idx, 1);
+    } else {
+      state.activeSeries.push(seriesId);
+    }
+    updateChart();
+  }
+
+  // Cargar todos los datos
+  async function loadAllData() {
+    showLoading(true);
+    console.log('📡 Iniciando carga de datos...');
+    
+    try {
+      const promises = Object.entries(SERIES_CONFIG).map(async ([id, config]) => {
+        try {
+          console.log(`📊 Cargando ${config.name} (${config.ticker})...`);
+          const data = await fetchStooq(config.ticker);
+          console.log(`✅ ${config.name}: ${data.length} puntos cargados`);
+          return [id, data];
+        } catch (error) {
+          console.error(`❌ Error cargando ${config.name}:`, error);
+          return [id, []];
+        }
+      });
+
+      const results = await Promise.all(promises);
+      state.data = Object.fromEntries(results);
+
+      console.log('✅ Todos los datos cargados:', {
+        spy: state.data.spy?.length || 0,
+        ewg: state.data.ewg?.length || 0,
+        ewj: state.data.ewj?.length || 0
+      });
+      
+      initChart();
+      updateChart();
+    } catch (error) {
+      console.error('❌ Error general cargando datos:', error);
+      showError('Error al cargar índices. Por favor, recarga la página.');
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  // Fetch Stooq vía proxy
+  async function fetchStooq(ticker) {
+    if (!window.__BD_PROXY) {
+      throw new Error('Proxy no configurado. Asegúrate de definir window.__BD_PROXY');
+    }
+
+    const stooqUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
+    const proxyUrl = window.__BD_PROXY + encodeURIComponent(stooqUrl);
+
+    console.log(`🔗 Fetching: ${proxyUrl}`);
+
+    const response = await fetch(proxyUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const csv = await response.text();
+    
+    if (!csv || csv.length < 50) {
+      throw new Error('CSV vacío o inválido');
+    }
+
+    return parseStooqCSV(csv);
+  }
+
+  // Parse Stooq CSV
+  function parseStooqCSV(csv) {
+    const lines = csv.trim().split('\n');
+    
+    if (lines.length < 2) {
+      throw new Error('CSV sin datos');
+    }
+
+    // Skip header
+    const dataLines = lines.slice(1);
+    
+    const parsed = dataLines
+      .map(line => {
+        const parts = line.split(',');
+        if (parts.length < 5) return null;
+
+        const [date, , , , close] = parts;
+        const value = parseFloat(close);
+        
+        if (isNaN(value) || !date) return null;
+        
+        return { time: date, value };
+      })
+      .filter(item => item !== null);
+
+    console.log(`📈 CSV parseado: ${parsed.length} registros válidos`);
+    
+    return parsed;
+  }
+
+  // Filtrar datos por período
+  function filterByPeriod(data) {
+    if (!data || data.length === 0) return [];
+
+    const now = new Date();
+    let cutoffDate;
+
+    switch (state.period) {
+      case '1M':
+        cutoffDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        break;
+      case '3M':
+        cutoffDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        break;
+      case '6M':
+        cutoffDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+        break;
+      case 'YTD':
+        cutoffDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      case '1Y':
+        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        break;
+      case 'All':
+        return data;
+      default:
+        cutoffDate = new Date(now.getFullYear(), 0, 1);
+    }
+
+    return data.filter(item => new Date(item.time) >= cutoffDate);
+  }
+
+  // Normalizar datos según modo
+  function normalizeData(data) {
+    if (!data || data.length === 0) return [];
+    
+    const filtered = filterByPeriod(data);
+    if (filtered.length === 0) return [];
+
+    if (state.mode === 'Real') {
+      return filtered;
+    }
+
+    const firstValue = filtered[0].value;
+    
+    return filtered.map(item => {
+      let value;
+      if (state.mode === 'Base100') {
+        value = (item.value / firstValue) * 100;
+      } else { // %
+        value = ((item.value - firstValue) / firstValue) * 100;
+      }
+      return { time: item.time, value, originalValue: item.value };
+    });
+  }
+
+  // Inicializar chart
+  function initChart() {
+    const container = document.getElementById(CONTAINER_ID);
+    if (!container) {
+      console.error('❌ Contenedor no disponible para inicializar chart');
+      return;
+    }
+    
+    if (state.chart) {
+      console.log('⚠️ Chart ya inicializado, reutilizando...');
+      return;
+    }
+
+    console.log('🎨 Inicializando Lightweight Charts...');
+
+    state.chart = LightweightCharts.createChart(container, {
+      layout: {
+        background: { color: '#0a0e1a' },
+        textColor: '#9ca3af'
       },
-      plugins: {
-        legend: {
-          display: true,
-          position: 'bottom',
-          labels: {
-            color: '#9ca3af',
-            font: { size: 12 },
-            usePointStyle: true,
-            padding: 20
-          }
-        },
-        tooltip: {
-          backgroundColor: '#1f2937',
-          titleColor: '#f3f4f6',
-          bodyColor: '#f3f4f6',
-          borderColor: '#374151',
-          borderWidth: 1,
-          padding: 12,
-          displayColors: true,
-          callbacks: {
-            label: function(context) {
-              const value = context.parsed.y.toFixed(2);
-              return `${context.dataset.label}: ${value}`;
+      grid: {
+        vertLines: { color: '#1f2937' },
+        horzLines: { color: '#1f2937' }
+      },
+      crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal
+      },
+      rightPriceScale: {
+        borderColor: '#1f2937',
+        visible: state.mode === 'Real'
+      },
+      leftPriceScale: {
+        borderColor: '#1f2937',
+        visible: state.mode === 'Real'
+      },
+      timeScale: {
+        borderColor: '#1f2937',
+        timeVisible: true,
+        secondsVisible: false
+      },
+      handleScroll: false,
+      handleScale: false
+    });
+
+    state.chart.timeScale().fitContent();
+    console.log('✅ Chart inicializado correctamente');
+  }
+
+  // Actualizar chart
+  function updateChart() {
+    if (!state.chart) {
+      console.error('❌ No hay chart disponible para actualizar');
+      return;
+    }
+
+    console.log('🔄 Actualizando chart...');
+
+    // Limpiar series existentes
+    Object.values(state.chartSeries).forEach(series => {
+      state.chart.removeSeries(series);
+    });
+    state.chartSeries = {};
+
+    // Agregar series activas
+    let seriesAdded = 0;
+    
+    state.activeSeries.forEach((seriesId, index) => {
+      const config = SERIES_CONFIG[seriesId];
+      const rawData = state.data[seriesId];
+      
+      if (!rawData || rawData.length === 0) {
+        console.warn(`⚠️ No hay datos para ${config.name}`);
+        return;
+      }
+
+      const normalizedData = normalizeData(rawData);
+      if (normalizedData.length === 0) {
+        console.warn(`⚠️ No hay datos normalizados para ${config.name}`);
+        return;
+      }
+
+      console.log(`📊 Agregando serie ${config.name}: ${normalizedData.length} puntos`);
+
+      const series = state.chart.addLineSeries({
+        color: config.color,
+        lineWidth: 2,
+        title: config.name,
+        priceScaleId: state.mode === 'Real' ? (index % 2 === 0 ? 'right' : 'left') : 'right',
+        priceFormat: {
+          type: 'custom',
+          formatter: (price) => {
+            if (state.mode === 'Real') {
+              return '$' + price.toFixed(2);
+            } else if (state.mode === 'Base100') {
+              return price.toFixed(2);
+            } else {
+              return price.toFixed(2) + '%';
             }
           }
         }
-      },
-      scales: {
-        x: {
-          grid: { color: '#374151', drawBorder: false },
-          ticks: { color: '#9ca3af', font: { size: 11 } }
-        },
-        y: {
-          grid: { color: '#374151', drawBorder: false },
-          ticks: { color: '#9ca3af', font: { size: 11 } }
-        }
-      },
-      animation: {
-        duration: 1000,
-        easing: 'easeInOutQuart'
+      });
+
+      series.setData(normalizedData);
+      state.chartSeries[seriesId] = series;
+      seriesAdded++;
+
+      series.applyOptions({
+        priceLineVisible: false,
+        lastValueVisible: true
+      });
+    });
+
+    console.log(`✅ ${seriesAdded} series agregadas al chart`);
+
+    // Ajustar escalas
+    state.chart.priceScale('right').applyOptions({
+      visible: state.mode === 'Real' || state.activeSeries.length > 0
+    });
+    state.chart.priceScale('left').applyOptions({
+      visible: state.mode === 'Real' && state.activeSeries.length > 1
+    });
+
+    state.chart.timeScale().fitContent();
+  }
+
+  // Loading state
+  function showLoading(show) {
+    const card = document.querySelector(`[data-dashboard="${DASHBOARD_ID}"]`);
+    if (!card) return;
+
+    const chartWrapper = card.querySelector('.card-chart');
+    if (chartWrapper) {
+      if (show) {
+        chartWrapper.classList.add('loading');
+      } else {
+        chartWrapper.classList.remove('loading');
       }
     }
-  });
-
-  console.log("✅ Gráfico actualizado");
-}
-
-// ============================================
-// ACTUALIZAR MÉTRICAS
-// ============================================
-function updateMetrics() {
-  const container = document.getElementById('metrics-container');
-  if (!container || indicesState.data.length === 0) return;
-
-  const html = indicesState.activeIndices.map(indexId => {
-    const config = indicesConfig[indexId];
-    const lastValue = indicesState.data[indicesState.data.length - 1][indexId];
-    const firstValue = indicesState.data[0][indexId];
-    const change = ((lastValue - firstValue) / firstValue * 100).toFixed(2);
-    const isPositive = change >= 0;
-
-    return `
-      <div class="metric-card">
-        <div class="metric-header">
-          <span class="metric-dot" style="background: ${config.color};"></span>
-          <h3>${config.name}</h3>
-        </div>
-        <p class="metric-value">${lastValue.toFixed(2)}</p>
-        <p class="metric-change ${isPositive ? 'positive' : 'negative'}">
-          ${isPositive ? '+' : ''}${change}% ${indicesState.timeRange}
-        </p>
-      </div>
-    `;
-  }).join('');
-
-  container.innerHTML = html;
-}
-
-// ============================================
-// MOSTRAR/OCULTAR LOADING
-// ============================================
-function showLoading(show) {
-  const loader = document.getElementById('loading-indicator');
-  if (loader) {
-    loader.style.display = show ? 'flex' : 'none';
   }
-}
 
-// ============================================
-// INICIALIZAR AL CARGAR EL DOM
-// ============================================
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initIndicesDashboard);
-} else {
-  initIndicesDashboard();
-}
+  // Error state
+  function showError(message) {
+    const container = document.getElementById(CONTAINER_ID);
+    if (!container) return;
 
-console.log("✅ indices.js cargado correctamente");
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'chart-error';
+    errorDiv.innerHTML = `
+      <p style="margin-bottom: 0.5rem;">❌ ${message}</p>
+      <button onclick="location.reload()" style="
+        padding: 0.5rem 1rem;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+      ">
+        Reintentar
+      </button>
+    `;
+    container.appendChild(errorDiv);
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  console.log('✅ indices.js cargado correctamente');
+
+})();
