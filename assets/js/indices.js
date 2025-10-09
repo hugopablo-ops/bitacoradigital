@@ -3,9 +3,9 @@
   'use strict';
 
   const SERIES_CONFIG = {
-    spy: { name: 'SPY', color: '#3b82f6', ticker: 'spy.us' },
-    ewg: { name: 'EWG', color: '#10b981', ticker: 'ewg.us' },
-    ewj: { name: 'EWJ', color: '#f59e0b', ticker: 'ewj.us' }
+    spy: { name: 'SPY', color: '#3b82f6', ticker: 'spy.us', unit: '$' },
+    ewg: { name: 'EWG', color: '#10b981', ticker: 'ewg.us', unit: '$' },
+    ewj: { name: 'EWJ', color: '#f59e0b', ticker: 'ewj.us', unit: '$' }
   };
 
   let state = {
@@ -13,6 +13,8 @@
     period: 'YTD',
     mode: 'Base100',
     rawData: {},
+    filteredData: {},
+    t0Values: {},
     chart: null,
     seriesObjects: {}
   };
@@ -32,7 +34,7 @@
       createChart(container);
       updateChart();
       hideLoading();
-      console.log('✅ Índices cargados correctamente');
+      console.log('✅ Índices cargados');
     } catch (error) {
       console.error('❌ Error Índices:', error);
       showError(container, 'Error al cargar índices');
@@ -42,7 +44,6 @@
   function setupControls() {
     const card = document.getElementById('card-indices');
     
-    // Series toggles
     card.querySelectorAll('.btn-series').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const series = e.currentTarget.dataset.series;
@@ -60,7 +61,6 @@
       });
     });
 
-    // Period toggles
     card.querySelectorAll('[data-period]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         card.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
@@ -70,7 +70,6 @@
       });
     });
 
-    // Mode toggles
     card.querySelectorAll('[data-mode]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         card.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
@@ -129,20 +128,18 @@
     return data.filter(d => new Date(d.time) >= cutoff);
   }
 
-  function normalizeData(data) {
-    const filtered = filterByPeriod(data);
-    if (!filtered.length) return [];
+  function transformData(data, t0) {
+    if (!data || !data.length) return [];
 
     if (state.mode === 'Real') {
-      return filtered;
+      return data;
     }
 
-    const first = filtered[0].value;
-    return filtered.map(d => {
+    return data.map(d => {
       const value = state.mode === 'Base100' 
-        ? (d.value / first) * 100
-        : ((d.value - first) / first) * 100;
-      return { time: d.time, value, originalValue: d.value };
+        ? (d.value / t0) * 100
+        : ((d.value / t0) - 1) * 100;
+      return { time: d.time, value, realValue: d.value };
     });
   }
 
@@ -152,14 +149,15 @@
       grid: { vertLines: { color: '#1c2636' }, horzLines: { color: '#1c2636' } },
       crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
       rightPriceScale: { borderColor: '#1c2636' },
+      leftPriceScale: { borderColor: '#1c2636' },
       timeScale: { borderColor: '#1c2636', timeVisible: true, secondsVisible: false },
       handleScroll: { mouseWheel: false, pressedMouseMove: false },
       handleScale: { axisPressedMouseMove: false, mouseWheel: false, pinch: false }
     });
 
-    // Custom tooltip
+    // Enhanced tooltip
     const tooltip = document.createElement('div');
-    tooltip.style = `position:absolute;display:none;padding:8px 12px;background:#1a2434;border:1px solid #2e3e55;border-radius:6px;color:#dbe4f3;font-size:12px;pointer-events:none;z-index:10;`;
+    tooltip.style = `position:absolute;display:none;padding:10px 14px;background:#1a2434;border:1px solid #2e3e55;border-radius:8px;color:#dbe4f3;font-size:12px;pointer-events:none;z-index:10;line-height:1.6;min-width:200px;`;
     container.appendChild(tooltip);
 
     state.chart.subscribeCrosshairMove((param) => {
@@ -168,23 +166,38 @@
         return;
       }
 
-      const data = state.activeSeries
-        .map(id => {
-          const series = state.seriesObjects[id];
-          const price = param.seriesData.get(series);
-          return price ? { id, price: price.value, config: SERIES_CONFIG[id] } : null;
-        })
-        .filter(Boolean);
+      const dateStr = new Date(param.time * 1000).toISOString().split('T')[0];
+      let html = `<div style="font-weight:600;margin-bottom:8px;color:#fff">${dateStr}</div>`;
 
-      if (data.length) {
-        tooltip.innerHTML = data.map(d => 
-          `<div style="margin:2px 0"><span style="color:${d.config.color}">●</span> ${d.config.name}: <strong>${d.price.toFixed(2)}</strong></div>`
-        ).join('');
-        
-        tooltip.style.display = 'block';
-        tooltip.style.left = param.point.x + 15 + 'px';
-        tooltip.style.top = param.point.y + 15 + 'px';
-      }
+      state.activeSeries.forEach(id => {
+        const series = state.seriesObjects[id];
+        const price = param.seriesData.get(series);
+        if (!price) return;
+
+        const config = SERIES_CONFIG[id];
+        const t0 = state.t0Values[id];
+        const realValue = state.filteredData[id].find(d => d.time === param.time)?.value || price.value;
+        const base100 = (realValue / t0) * 100;
+        const percent = ((realValue / t0) - 1) * 100;
+
+        html += `
+          <div style="margin:6px 0;padding:4px 0;border-top:1px solid #2e3e55">
+            <div style="color:${config.color};font-weight:600;margin-bottom:4px">
+              <span style="font-size:14px">●</span> ${config.name}
+            </div>
+            <div style="margin-left:12px;font-size:11px;color:#96a3b7">
+              <div>Real: <strong style="color:#dbe4f3">${config.unit}${realValue.toFixed(2)}</strong></div>
+              <div>Base100: <strong style="color:#dbe4f3">${base100.toFixed(2)}</strong></div>
+              <div>%: <strong style="color:${percent >= 0 ? '#10b981' : '#ef4444'}">${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%</strong></div>
+            </div>
+          </div>
+        `;
+      });
+
+      tooltip.innerHTML = html;
+      tooltip.style.display = 'block';
+      tooltip.style.left = Math.min(param.point.x + 15, container.clientWidth - tooltip.offsetWidth - 10) + 'px';
+      tooltip.style.top = Math.min(param.point.y + 15, container.clientHeight - tooltip.offsetHeight - 10) + 'px';
     });
   }
 
@@ -195,32 +208,63 @@
     Object.values(state.seriesObjects).forEach(s => state.chart.removeSeries(s));
     state.seriesObjects = {};
 
+    // Configure price scales based on mode
+    if (state.mode === 'Real') {
+      state.chart.applyOptions({
+        rightPriceScale: { visible: true },
+        leftPriceScale: { visible: false }
+      });
+    } else {
+      state.chart.applyOptions({
+        rightPriceScale: { visible: true },
+        leftPriceScale: { visible: false }
+      });
+    }
+
     // Add active series
-    state.activeSeries.forEach(id => {
+    state.activeSeries.forEach((id, idx) => {
       const config = SERIES_CONFIG[id];
       const raw = state.rawData[id];
       if (!raw || !raw.length) return;
 
-      const normalized = normalizeData(raw);
-      if (!normalized.length) return;
+      const filtered = filterByPeriod(raw);
+      if (!filtered.length) return;
+
+      state.filteredData[id] = filtered;
+      state.t0Values[id] = filtered[0].value;
+
+      const transformed = transformData(filtered, state.t0Values[id]);
+      if (!transformed.length) return;
+
+      // Assign price scale
+      let priceScaleId = 'right';
+      if (state.mode === 'Real') {
+        priceScaleId = ['right', 'left', 'right'][idx % 3];
+      }
 
       const series = state.chart.addLineSeries({
         color: config.color,
         lineWidth: 2,
         title: config.name,
+        priceScaleId,
         priceFormat: {
           type: 'custom',
           formatter: (price) => {
-            if (state.mode === 'Real') return '$' + price.toFixed(2);
+            if (state.mode === 'Real') return config.unit + price.toFixed(2);
             if (state.mode === 'Base100') return price.toFixed(2);
             return price.toFixed(2) + '%';
           }
         }
       });
 
-      series.setData(normalized);
+      series.setData(transformed);
       state.seriesObjects[id] = series;
     });
+
+    // Show/hide left scale for Real mode with multiple series
+    if (state.mode === 'Real' && state.activeSeries.length > 1) {
+      state.chart.applyOptions({ leftPriceScale: { visible: true } });
+    }
 
     state.chart.timeScale().fitContent();
   }
