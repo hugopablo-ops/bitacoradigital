@@ -29,10 +29,11 @@
     .hero{padding:56px 0 26px;border-bottom:1px solid #0b1119}
     .hero__banner{text-align:center;margin-bottom:32px}
     .hero__banner img{max-width:280px;height:auto}
-    .hero__copy{max-width:800px;margin:0 auto;text-align:center}
-    .hero__copy h1{font-size:40px;margin:.2rem 0 10px}
-    .accent{color:var(--accent)}
-    .muted{color:var(--muted)}
+    .hero__copy{max-width:900px;margin:0 auto;text-align:center}
+    .hero__copy h1{font-size:48px;margin:.2rem 0 16px;line-height:1.2}
+    .hero__copy h1 .accent{color:var(--accent)}
+    .hero__copy .description{color:#b7c3d9;font-size:17px;line-height:1.6;margin-bottom:24px}
+    .hero__copy .description strong{color:#dbe4f3;font-weight:600}
     .hero__nav{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;justify-content:center}
     .btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border-radius:999px;border:1px solid #2a394e;background:transparent;color:#cfe3ff;font-size:15px;font-weight:500;transition:all 0.2s}
     .btn:hover{border-color:#4b5d7a;transform:translateY(-1px)}
@@ -95,7 +96,8 @@
 
     @media (max-width:680px){
       .bd-chart{height:320px}
-      .hero__copy h1{font-size:28px}
+      .hero__copy h1{font-size:32px}
+      .hero__copy .description{font-size:15px}
       .btn-ctrl{padding:6px 10px;font-size:12.5px}
       .hero__banner img{max-width:200px}
       .section__title{font-size:24px}
@@ -167,7 +169,8 @@
         <img src="assets/banner.png" alt="Bitácora Digital - Navegando por el futuro de las IA y Finanzas">
       </div>
       <div class="hero__copy">
-        <p class="muted">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: individuos capacitados para integrar finanzas y tecnología.</p>
+        <h1>Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
+        <p class="description">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: Individuos y organizaciones capacitados para integrar finanzas y tecnología en las nuevas tendencias de nuestros tiempos.</p>
         <div class="hero__nav">
           <a class="btn btn--primary" href="#podcast">Escuchar Podcast</a>
           <a class="btn" href="#analytic">Analítica/Dashboards</a>
@@ -180,7 +183,6 @@
     </div>
   </section>
 
-  <!-- SECCIÓN 1: PODCAST -->
   <section id="podcast" class="section">
     <div class="container">
       <h2 class="section__title">Podcast</h2>
@@ -193,7 +195,6 @@
     </div>
   </section>
 
-  <!-- SECCIÓN 2: ANALÍTICA/DASHBOARDS -->
   <section id="analytic" class="section">
     <div class="container">
       <h2 class="section__title">Dashboards comparativos</h2>
@@ -342,7 +343,6 @@
     </div>
   </section>
 
-  <!-- SECCIÓN 3: INTELIGENCIA ARTIFICIAL -->
   <section id="ia" class="section section--placeholder">
     <div class="container">
       <h2 class="section__title">Inteligencia Artificial</h2>
@@ -350,7 +350,6 @@
     </div>
   </section>
 
-  <!-- SECCIÓN 4: FINTECH + TRADFI -->
   <section id="fintech" class="section section--placeholder">
     <div class="container">
       <h2 class="section__title">Fintech + TradFi</h2>
@@ -358,7 +357,6 @@
     </div>
   </section>
 
-  <!-- SECCIÓN 5: WEB3 -->
   <section id="web3" class="section section--placeholder">
     <div class="container">
       <h2 class="section__title">Web3</h2>
@@ -366,7 +364,6 @@
     </div>
   </section>
 
-  <!-- SECCIÓN 6: EDITORIAL/ACTUALIDAD -->
   <section id="editorial" class="section section--placeholder">
     <div class="container">
       <h2 class="section__title">Editorial/Actualidad</h2>
