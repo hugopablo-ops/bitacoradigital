@@ -7,7 +7,6 @@
   <meta name="description" content="Dashboards comparativos (TradFi, Índices, Tech, Crypto, Commodities) + Podcast. Educación aplicada en Web3, IA, Analítica, DeFi, TradFi y Fintech." />
   <link rel="icon" href="assets/favicon.svg" />
 
-  <!-- UI base -->
   <style>
     :root{
       --bg:#0f1620; --card:#141c27; --line:#243143; --text:#dbe4f3; --muted:#96a3b7;
@@ -19,7 +18,7 @@
       line-height:1.55}
     a{color:inherit;text-decoration:none}
     .container{max-width:1200px;margin:0 auto;padding:0 16px}
-    .nav{position:sticky;top:0;z-index:20;background:rgba(8,12,18,.7);backdrop-filter: blur(6px); border-bottom:1px solid #0b1119}
+    .nav{position:sticky;top:0;z-index:20;background:rgba(8,12,18,.7);backdrop-filter:blur(6px);border-bottom:1px solid #0b1119}
     .nav__inner{display:flex;align-items:center;justify-content:space-between;height:56px}
     .brand{display:flex;align-items:center;gap:10px;font-weight:600}
     .brand__logo{width:24px;height:24px}
@@ -27,7 +26,7 @@
     .nav__links a:hover{color:#fff}
 
     .hero{padding:56px 0 26px;border-bottom:1px solid #0b1119}
-    .hero__inner{display:grid;grid-template-columns:1.2fr .8fr; gap:20px}
+    .hero__inner{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}
     .hero__copy h1{font-size:40px;margin:.2rem 0 10px}
     .accent{color:var(--accent)}
     .muted{color:var(--muted)}
@@ -40,26 +39,61 @@
 
     .section{padding:28px 0 10px}
     .bd-title{font-size:22px;margin:0 0 4px}
-    .bd-subtitle{color:var(--muted);margin:0 0 18px}
+    .bd-subtitle{color:var(--muted);margin:0 0 16px}
     .bd-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
-    @media (max-width:1024px){ .bd-grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:680px){ .bd-grid{grid-template-columns:1fr}}
-    .bd-card{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius); padding:12px; cursor:pointer; position:relative}
-    .bd-card:hover{border-color:#2e3e55}
-    .bd-card.disabled{cursor:default;opacity:0.6}
+    @media (max-width:1024px){.bd-grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:680px){.bd-grid{grid-template-columns:1fr}}
+    .bd-card{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius);padding:12px;position:relative}
     .bd-chart{width:100%;height:420px;position:relative}
-    
-    /* Altura adaptativa móvil */
-    @media (max-width:680px){ 
+
+    /* Controles */
+    .bd-controls{margin:0 0 14px}
+    .bd-controls__row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+    .bd-controls__row:last-child{margin-bottom:0}
+
+    .btn-ctrl{
+      padding:7px 13px;
+      border-radius:8px;
+      border:1px solid #243143;
+      background:transparent;
+      color:#96a3b7;
+      font-size:13.5px;
+      font-weight:500;
+      cursor:pointer;
+      transition:all 0.2s;
+      font-family:inherit;
+    }
+    .btn-ctrl:hover{
+      border-color:#2e3e55;
+      background:#1a2434;
+    }
+    .btn-ctrl.active{
+      border-color:#1f9df2;
+      background:#1f9df2;
+      color:#0f1620;
+    }
+
+    .btn-series{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      border-radius:20px;
+    }
+    .btn-series .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      flex-shrink:0;
+    }
+
+    @media (max-width:680px){
       .bd-chart{height:320px}
       .hero__copy h1{font-size:28px}
       .hero__inner{grid-template-columns:1fr}
       .chips{justify-content:flex-start}
+      .btn-ctrl{padding:6px 10px;font-size:12.5px}
     }
-    
-    .bd-note{color:var(--muted);font-size:.92rem;margin-top:6px}
-    
-    /* Loader mejorado */
+
     .bd-loading{
       display:flex;
       flex-direction:column;
@@ -78,10 +112,8 @@
       border-radius:50%;
       animation:spin 1s linear infinite;
     }
-    @keyframes spin{
-      to{transform:rotate(360deg)}
-    }
-    
+    @keyframes spin{to{transform:rotate(360deg)}}
+
     .bd-error{padding:1.5rem;color:#f56565;text-align:center;line-height:1.6}
     .bd-retry{
       margin-top:12px;
@@ -98,17 +130,11 @@
     .footer__inner{display:flex;justify-content:space-between;align-items:center}
   </style>
 
-  <!-- Lightweight Charts (UNA sola vez) -->
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  
-  <!-- Configuración global del proxy -->
-  <script>
-    window.__BD_PROXY = 'https://tradfi.hugopablo.workers.dev/?url=';
-  </script>
+  <script>window.__BD_PROXY = 'https://tradfi.hugopablo.workers.dev/?url=';</script>
 </head>
 <body>
 
-  <!-- NAV -->
   <header class="nav">
     <div class="container nav__inner">
       <div class="brand">
@@ -122,7 +148,6 @@
     </div>
   </header>
 
-  <!-- HERO -->
   <section class="hero">
     <div class="container hero__inner">
       <div class="hero__copy">
@@ -142,56 +167,154 @@
     </div>
   </section>
 
-  <!-- DASHBOARDS -->
   <section id="analytic" class="section">
     <div class="container">
       <h2 class="bd-title">Dashboards comparativos</h2>
       <p class="bd-subtitle">Series mensuales, <em>logarítmicas</em> y Base 100, sincronizadas.</p>
 
       <div class="bd-grid">
-        <!-- TradFi Chile YTD -->
+        <!-- TradFi Chile -->
         <article class="bd-card" id="card-chile">
           <h3 class="bd-title">TradFi · Chile — UF, USD/CLP e IPSA — YTD (valores reales)</h3>
           <p class="bd-subtitle">Formas superpuestas, ejes independientes; tooltip con valores reales.</p>
+
+          <div class="bd-controls">
+            <div class="bd-controls__row">
+              <button class="btn-ctrl btn-series active" data-series="uf">
+                <span class="dot" style="background:#3b82f6"></span>
+                UF
+              </button>
+              <button class="btn-ctrl btn-series active" data-series="usd">
+                <span class="dot" style="background:#f59e0b"></span>
+                USD/CLP
+              </button>
+              <button class="btn-ctrl btn-series active" data-series="ipsa">
+                <span class="dot" style="background:#a855f7"></span>
+                IPSA
+              </button>
+            </div>
+
+            <div class="bd-controls__row">
+              <button class="btn-ctrl" data-period="1M">1M</button>
+              <button class="btn-ctrl" data-period="3M">3M</button>
+              <button class="btn-ctrl" data-period="6M">6M</button>
+              <button class="btn-ctrl active" data-period="YTD">YTD</button>
+              <button class="btn-ctrl" data-period="1Y">1Y</button>
+              <button class="btn-ctrl" data-period="All">All</button>
+            </div>
+
+            <div class="bd-controls__row">
+              <button class="btn-ctrl" data-mode="Real">Real</button>
+              <button class="btn-ctrl active" data-mode="Base100">Base100</button>
+              <button class="btn-ctrl" data-mode="%">%</button>
+            </div>
+          </div>
+
           <div id="c-chile" class="bd-chart">
             <div class="bd-loading">
               <div class="bd-spinner"></div>
               <div>Cargando datos YTD...</div>
             </div>
           </div>
-          <div id="c-chile-note" class="bd-note" style="display:none"></div>
         </article>
 
-        <!-- Índices Internacionales YTD -->
+        <!-- Índices -->
         <article class="bd-card" id="card-indices">
           <h3 class="bd-title">Índices — SPY vs EWG vs EWJ — YTD (valores reales)</h3>
           <p class="bd-subtitle">S&P 500, Alemania, Japón · Formas superpuestas, ejes independientes</p>
+
+          <div class="bd-controls">
+            <div class="bd-controls__row">
+              <button class="btn-ctrl btn-series active" data-series="spy">
+                <span class="dot" style="background:#3b82f6"></span>
+                SPY
+              </button>
+              <button class="btn-ctrl btn-series active" data-series="ewg">
+                <span class="dot" style="background:#10b981"></span>
+                EWG
+              </button>
+              <button class="btn-ctrl btn-series active" data-series="ewj">
+                <span class="dot" style="background:#f59e0b"></span>
+                EWJ
+              </button>
+            </div>
+
+            <div class="bd-controls__row">
+              <button class="btn-ctrl" data-period="1M">1M</button>
+              <button class="btn-ctrl" data-period="3M">3M</button>
+              <button class="btn-ctrl" data-period="6M">6M</button>
+              <button class="btn-ctrl active" data-period="YTD">YTD</button>
+              <button class="btn-ctrl" data-period="1Y">1Y</button>
+              <button class="btn-ctrl" data-period="All">All</button>
+            </div>
+
+            <div class="bd-controls__row">
+              <button class="btn-ctrl" data-mode="Real">Real</button>
+              <button class="btn-ctrl active" data-mode="Base100">Base100</button>
+              <button class="btn-ctrl" data-mode="%">%</button>
+            </div>
+          </div>
+
           <div id="c-indices" class="bd-chart">
             <div class="bd-loading">
               <div class="bd-spinner"></div>
               <div>Cargando índices YTD...</div>
             </div>
           </div>
-          <div id="c-indices-note" class="bd-note" style="display:none"></div>
         </article>
 
-        <!-- Commodities YTD -->
+        <!-- Commodities -->
         <article class="bd-card" id="card-commodities">
           <h3 class="bd-title">Commodities — Oro vs Plata vs Cobre vs Litio — YTD (valores reales)</h3>
           <p class="bd-subtitle">Comparación Year-to-Date de metales preciosos e industriales</p>
+
+          <div class="bd-controls">
+            <div class="bd-controls__row">
+              <button class="btn-ctrl btn-series active" data-series="gold">
+                <span class="dot" style="background:#fbbf24"></span>
+                Oro
+              </button>
+              <button class="btn-ctrl btn-series active" data-series="silver">
+                <span class="dot" style="background:#9ca3af"></span>
+                Plata
+              </button>
+              <button class="btn-ctrl btn-series active" data-series="copper">
+                <span class="dot" style="background:#f97316"></span>
+                Cobre
+              </button>
+              <button class="btn-ctrl btn-series active" data-series="lithium">
+                <span class="dot" style="background:#06b6d4"></span>
+                Litio
+              </button>
+            </div>
+
+            <div class="bd-controls__row">
+              <button class="btn-ctrl" data-period="1M">1M</button>
+              <button class="btn-ctrl" data-period="3M">3M</button>
+              <button class="btn-ctrl" data-period="6M">6M</button>
+              <button class="btn-ctrl active" data-period="YTD">YTD</button>
+              <button class="btn-ctrl" data-period="1Y">1Y</button>
+              <button class="btn-ctrl" data-period="All">All</button>
+            </div>
+
+            <div class="bd-controls__row">
+              <button class="btn-ctrl active" data-mode="Real">Real</button>
+              <button class="btn-ctrl" data-mode="Base100">Base100</button>
+              <button class="btn-ctrl" data-mode="%">%</button>
+            </div>
+          </div>
+
           <div id="c-commodities" class="bd-chart">
             <div class="bd-loading">
               <div class="bd-spinner"></div>
               <div>Cargando commodities YTD...</div>
             </div>
           </div>
-          <div id="c-commodities-note" class="bd-note" style="display:none"></div>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- PODCAST -->
   <section id="podcast" class="section">
     <div class="container">
       <h2 class="bd-title">Podcast</h2>
@@ -203,7 +326,6 @@
     </div>
   </section>
 
-  <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer__inner">
       <span class="muted">© 2025 Bitácora Digital</span>
@@ -214,7 +336,6 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
   <script src="assets/js/app.js"></script>
   <script src="assets/js/indices.js"></script>
   <script src="assets/js/commodities.js"></script>
