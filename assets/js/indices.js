@@ -1,678 +1,254 @@
-(() => {
-/* Bitácora Digital - app.js (Home) - TradFi Chile
-   UF, USD/CLP, IPSA (proxy ECH)
-   Layout limpio con controles externos
-*/
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-// === CONFIGURACIÓN ===
-const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
-const COLORS = {
-  uf: '#63b3ed',
-  usd: '#f6ad55', 
-  ipsa: '#9f7aea'
+const IndicesDashboard = () => {
+  const [activeIndices, setActiveIndices] = useState(['SPY', 'EWG', 'EWJ']);
+  const [timeRange, setTimeRange] = useState('YTD');
+  const [viewMode, setViewMode] = useState('Base100');
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Configuración de índices disponibles
+  const indices = [
+    { id: 'SPY', name: 'S&P 500', color: '#3b82f6' },
+    { id: 'EWG', name: 'Alemania', color: '#10b981' },
+    { id: 'EWJ', name: 'Japón', color: '#f59e0b' }
+  ];
+
+  // Rangos de tiempo
+  const timeRanges = [
+    { id: '1M', label: '1M' },
+    { id: '3M', label: '3M' },
+    { id: '6M', label: '6M' },
+    { id: 'YTD', label: 'YTD' },
+    { id: '1Y', label: '1Y' },
+    { id: 'All', label: 'All' }
+  ];
+
+  // Simulación de datos (reemplazar con API real)
+  useEffect(() => {
+    setLoading(true);
+    // Simular llamada a API
+    setTimeout(() => {
+      const mockData = generateMockData(timeRange);
+      setData(mockData);
+      setLoading(false);
+    }, 800);
+  }, [timeRange, activeIndices]);
+
+  const generateMockData = (range) => {
+    const points = range === '1M' ? 20 : range === '3M' ? 60 : range === '6M' ? 120 : range === 'YTD' ? 200 : range === '1Y' ? 250 : 500;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - points);
+
+    return Array.from({ length: points }, (_, i) => {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      
+      const baseValue = 100;
+      const volatility = 15;
+      
+      return {
+        date: date.toLocaleDateString('es-CL', { month: 'short', day: 'numeric' }),
+        fullDate: date,
+        SPY: baseValue + Math.sin(i / 10) * volatility + (i / 5) + Math.random() * 5,
+        EWG: baseValue + Math.cos(i / 12) * (volatility * 0.8) + (i / 6) + Math.random() * 4,
+        EWJ: baseValue + Math.sin(i / 8) * (volatility * 1.2) + (i / 7) + Math.random() * 6
+      };
+    });
+  };
+
+  const toggleIndex = (indexId) => {
+    setActiveIndices(prev => 
+      prev.includes(indexId) 
+        ? prev.filter(id => id !== indexId)
+        : [...prev, indexId]
+    );
+  };
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (!active || !payload) return null;
+
+    return (
+      <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-xl">
+        <p className="text-gray-400 text-xs mb-2">{payload[0]?.payload?.date}</p>
+        {payload.map((entry, index) => (
+          <div key={index} className="flex items-center justify-between gap-4 mb-1">
+            <span className="text-xs font-medium" style={{ color: entry.color }}>
+              {entry.name}
+            </span>
+            <span className="text-xs font-bold text-white">
+              {viewMode === 'Base100' 
+                ? entry.value.toFixed(2) 
+                : `${((entry.value - 100)).toFixed(2)}%`}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="bg-gray-950 min-h-screen text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">
+            Índices — SPY vs EWG vs EWJ — YTD (valores reales)
+          </h1>
+          <p className="text-gray-400 text-sm">
+            S&P 500, Alemania, Japón · Formas superpuestas, ejes independientes
+          </p>
+        </div>
+
+        {/* Controles de Índices */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          {indices.map(index => (
+            <button
+              key={index.id}
+              onClick={() => toggleIndex(index.id)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                activeIndices.includes(index.id)
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              }`}
+            >
+              {index.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Controles de Tiempo */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {timeRanges.map(range => (
+            <button
+              key={range.id}
+              onClick={() => setTimeRange(range.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                timeRange === range.id
+                  ? 'bg-cyan-500 text-gray-900'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              }`}
+            >
+              {range.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Controles de Vista */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setViewMode('Real')}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              viewMode === 'Real'
+                ? 'bg-emerald-500 text-gray-900'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            }`}
+          >
+            Real
+          </button>
+          <button
+            onClick={() => setViewMode('Base100')}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              viewMode === 'Base100'
+                ? 'bg-emerald-500 text-gray-900'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            }`}
+          >
+            Base100
+          </button>
+          <button
+            onClick={() => setViewMode('%')}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              viewMode === '%'
+                ? 'bg-emerald-500 text-gray-900'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            }`}
+          >
+            %
+          </button>
+        </div>
+
+        {/* Gráfico */}
+        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+          {loading ? (
+            <div className="h-96 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-400 text-sm">Cargando índices {timeRange}...</p>
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#9ca3af"
+                  style={{ fontSize: '12px' }}
+                  tick={{ fill: '#9ca3af' }}
+                />
+                <YAxis 
+                  stroke="#9ca3af"
+                  style={{ fontSize: '12px' }}
+                  tick={{ fill: '#9ca3af' }}
+                  domain={['auto', 'auto']}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="line"
+                />
+                {activeIndices.map(indexId => {
+                  const index = indices.find(i => i.id === indexId);
+                  return (
+                    <Line
+                      key={indexId}
+                      type="monotone"
+                      dataKey={indexId}
+                      name={index.name}
+                      stroke={index.color}
+                      strokeWidth={2}
+                      dot={false}
+                      animationDuration={1000}
+                    />
+                  );
+                })}
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Footer con métricas */}
+        <div className="mt-6 grid grid-cols-3 gap-4">
+          {activeIndices.map(indexId => {
+            const index = indices.find(i => i.id === indexId);
+            const lastValue = data[data.length - 1]?.[indexId] || 100;
+            const firstValue = data[0]?.[indexId] || 100;
+            const change = ((lastValue - firstValue) / firstValue * 100).toFixed(2);
+            
+            return (
+              <div key={indexId} className="bg-gray-900 rounded-lg p-4 border border-gray-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: index.color }}
+                  ></div>
+                  <h3 className="font-semibold text-sm">{index.name}</h3>
+                </div>
+                <p className="text-2xl font-bold mb-1">{lastValue.toFixed(2)}</p>
+                <p className={`text-sm ${change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {change >= 0 ? '+' : ''}{change}% {timeRange}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </div>
+  );
 };
 
-// Estado global
-let chartInstance = null;
-let seriesInstances = {};
-let rawData = { uf: [], usd: [], ipsa: [] };
-let currentMode = 'base100';
-let currentPeriod = 'YTD';
-let seriesVisibility = { uf: true, usd: true, ipsa: true };
-
-// === UTILIDADES ===
-function getDateRange(period) {
-  const now = new Date();
-  let start;
-  
-  switch(period) {
-    case '1M':
-      start = new Date(now);
-      start.setMonth(start.getMonth() - 1);
-      break;
-    case '3M':
-      start = new Date(now);
-      start.setMonth(start.getMonth() - 3);
-      break;
-    case '6M':
-      start = new Date(now);
-      start.setMonth(start.getMonth() - 6);
-      break;
-    case 'YTD':
-      start = new Date(now.getFullYear(), 0, 1);
-      break;
-    case '1Y':
-      start = new Date(now);
-      start.setFullYear(start.getFullYear() - 1);
-      break;
-    case 'All':
-      start = new Date(now);
-      start.setFullYear(start.getFullYear() - 15);
-      break;
-    default:
-      start = new Date(now.getFullYear(), 0, 1);
-  }
-  
-  return {
-    start: start.toISOString().split('T')[0],
-    end: now.toISOString().split('T')[0]
-  };
-}
-
-function parseDate(dateStr) {
-  const d = new Date(dateStr);
-  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-}
-
-function forwardFill(data, maxGap = 2) {
-  if (!data.length) return data;
-  const filled = [data[0]];
-  
-  for (let i = 1; i < data.length; i++) {
-    const prev = filled[filled.length - 1];
-    const curr = data[i];
-    const prevDate = new Date(prev.time);
-    const currDate = new Date(curr.time);
-    const daysDiff = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24));
-    
-    if (daysDiff > 1 && daysDiff <= maxGap + 1) {
-      for (let j = 1; j < daysDiff; j++) {
-        const fillDate = new Date(prevDate);
-        fillDate.setDate(fillDate.getDate() + j);
-        filled.push({
-          time: fillDate.toISOString().split('T')[0],
-          value: prev.value
-        });
-      }
-    }
-    filled.push(curr);
-  }
-  return filled;
-}
-
-function mergeSeries(uf, usd, ipsa) {
-  const allDates = new Set([
-    ...uf.map(p => p.time),
-    ...usd.map(p => p.time),
-    ...ipsa.map(p => p.time)
-  ]);
-  
-  const dates = Array.from(allDates).sort();
-  const ufMap = new Map(uf.map(p => [p.time, p.value]));
-  const usdMap = new Map(usd.map(p => [p.time, p.value]));
-  const ipsaMap = new Map(ipsa.map(p => [p.time, p.value]));
-  
-  const merged = { uf: [], usd: [], ipsa: [] };
-  
-  dates.forEach(date => {
-    if (ufMap.has(date)) merged.uf.push({ time: date, value: ufMap.get(date) });
-    if (usdMap.has(date)) merged.usd.push({ time: date, value: usdMap.get(date) });
-    if (ipsaMap.has(date)) merged.ipsa.push({ time: date, value: ipsaMap.get(date) });
-  });
-  
-  return merged;
-}
-
-function toBase100(arr) {
-  if (!arr?.length) return arr;
-  const t0 = arr[0].value;
-  return arr.map(p => ({ time: p.time, value: (p.value / t0) * 100 }));
-}
-
-function toDeltaPct(arr) {
-  if (!arr?.length) return arr;
-  const t0 = arr[0].value;
-  return arr.map(p => ({ time: p.time, value: ((p.value - t0) / t0) * 100 }));
-}
-
-async function fetchWithTimeout(url, options = {}, timeout = 30000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') throw new Error(`Timeout (${timeout}ms)`);
-    throw error;
-  }
-}
-
-// === MINDICADOR ===
-async function fetchMindicador(tipo, period) {
-  console.log(`\n📡 Mindicador: ${tipo} (periodo: ${period})`);
-  
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 15 }, (_, i) => currentYear - i);
-  
-  try {
-    const yearlyData = await Promise.all(
-      years.map(async (year) => {
-        const url = `https://mindicador.cl/api/${tipo}/${year}`;
-        
-        try {
-          const response = await fetchWithTimeout(url, { cache: 'no-store' }, 30000);
-          if (!response.ok) return [];
-          
-          const json = await response.json();
-          if (!json.serie || !Array.isArray(json.serie)) return [];
-          
-          return json.serie.map(x => {
-            const d = parseDate(x.fecha);
-            return {
-              time: d.toISOString().split('T')[0],
-              value: Number(x.valor)
-            };
-          });
-        } catch (err) {
-          return [];
-        }
-      })
-    );
-    
-    const allPoints = yearlyData.flat();
-    if (allPoints.length === 0) throw new Error('No se obtuvieron datos');
-    
-    const { start, end } = getDateRange(period);
-    const filteredPoints = allPoints
-      .filter(p => p.time >= start && p.time <= end)
-      .sort((a, b) => a.time.localeCompare(b.time));
-    
-    const byDate = {};
-    filteredPoints.forEach(p => { byDate[p.time] = p.value; });
-    const uniquePoints = Object.entries(byDate).map(([time, value]) => ({ time, value }));
-    
-    console.log(`   ✅ ${uniquePoints.length} puntos`);
-    return forwardFill(uniquePoints);
-    
-  } catch (error) {
-    console.error(`   ❌ Error: ${error.message}`);
-    throw error;
-  }
-}
-
-// === STOOQ ===
-async function fetchStooq(ticker, period) {
-  console.log(`\n📡 Stooq: ${ticker} (periodo: ${period})`);
-  
-  const { start, end } = getDateRange(period);
-  const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
-  const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
-  
-  try {
-    const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' }, 30000);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const csv = await response.text();
-    if (csv.length < 50) throw new Error('CSV vacío');
-    
-    const lines = csv.trim().split(/\r?\n/);
-    const header = lines[0];
-    
-    if (!header.includes('Date') || !header.includes('Close')) {
-      throw new Error('CSV sin columnas Date/Close');
-    }
-    
-    const points = [];
-    for (const line of lines.slice(1)) {
-      const [date, , , , close] = line.split(',');
-      if (!date || !close) continue;
-      
-      const value = Number(close);
-      if (!Number.isFinite(value)) continue;
-      
-      if (date >= start && date <= end) {
-        points.push({ time: date, value });
-      }
-    }
-    
-    if (points.length === 0) throw new Error('No hay datos en el rango');
-    
-    const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
-    console.log(`   ✅ ${sorted.length} puntos`);
-    return forwardFill(sorted);
-    
-  } catch (error) {
-    console.error(`   ❌ Error: ${error.message}`);
-    throw error;
-  }
-}
-
-// === GRÁFICO ===
-function createChart(container, mode) {
-  const isReal = mode === 'real';
-  
-  const chart = LightweightCharts.createChart(container, {
-    layout: {
-      background: { type: 'solid', color: 'transparent' },
-      textColor: '#cfe0ff'
-    },
-    rightPriceScale: {
-      borderColor: '#233048',
-      visible: true,
-      scaleMargins: { top: 0.1, bottom: 0.1 }
-    },
-    leftPriceScale: {
-      borderColor: '#233048',
-      visible: isReal,
-      scaleMargins: { top: 0.1, bottom: 0.1 }
-    },
-    timeScale: {
-      borderColor: '#233048',
-      rightOffset: 3,
-      timeVisible: true
-    },
-    grid: {
-      vertLines: { color: '#1a2434' },
-      horzLines: { color: '#1a2434' }
-    },
-    localization: { locale: 'es-CL' },
-    crosshair: {
-      mode: LightweightCharts.CrosshairMode.Normal,
-      vertLine: {
-        width: 1,
-        color: '#4a5568',
-        style: LightweightCharts.LineStyle.Solid
-      },
-      horzLine: { visible: false }
-    },
-    handleScroll: {
-      mouseWheel: true,
-      pressedMouseMove: true
-    },
-    handleScale: {
-      axisPressedMouseMove: true,
-      mouseWheel: true,
-      pinch: true
-    }
-  });
-  
-  return chart;
-}
-
-function createSeries(chart, label, color, priceScaleId = 'right') {
-  return chart.addLineSeries({
-    color,
-    lineWidth: 2.5,
-    priceScaleId,
-    title: label,
-    crosshairMarkerVisible: true,
-    crosshairMarkerRadius: 4,
-    lastValueVisible: true,
-    priceLineVisible: false
-  });
-}
-
-// === TOOLTIP ===
-function setupTooltip(container, chart, mode) {
-  const tooltip = document.createElement('div');
-  tooltip.style.cssText = `
-    position: absolute;
-    display: none;
-    padding: 14px 16px;
-    background: rgba(15, 22, 32, 0.98);
-    border: 1px solid #2a3f5f;
-    border-radius: 10px;
-    color: #dbe4f3;
-    font-size: 13px;
-    line-height: 1.8;
-    pointer-events: none;
-    z-index: 1000;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    min-width: 240px;
-  `;
-  container.appendChild(tooltip);
-  
-  const fmtReal = new Intl.NumberFormat('es-CL', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2
-  });
-  
-  const fmtMetric = new Intl.NumberFormat('es-CL', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-    signDisplay: mode === 'deltapct' ? 'always' : 'auto'
-  });
-  
-  chart.subscribeCrosshairMove(param => {
-    if (!param.time || param.point.x < 0 || param.point.y < 0) {
-      tooltip.style.display = 'none';
-      return;
-    }
-    
-    const dateStr = new Date(param.time).toLocaleDateString('es-CL', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    
-    let html = `<div style="font-weight:600;margin-bottom:10px;color:#fff;border-bottom:1px solid #2a3f5f;padding-bottom:6px">${dateStr}</div>`;
-    
-    const series = [
-      { key: 'uf', label: 'UF', color: COLORS.uf },
-      { key: 'usd', label: 'USD/CLP', color: COLORS.usd },
-      { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa }
-    ];
-    
-    series.forEach(s => {
-      if (!seriesVisibility[s.key]) return;
-      
-      const chartData = param.seriesData.get(seriesInstances[s.key]);
-      if (!chartData || chartData.value === undefined) return;
-      
-      const rawPoint = rawData[s.key].find(p => p.time === param.time);
-      const realValue = rawPoint ? rawPoint.value : null;
-      
-      let metricValue = '—';
-      let metricLabel = '';
-      
-      if (mode === 'base100') {
-        metricValue = fmtMetric.format(chartData.value);
-        metricLabel = 'Base100';
-      } else if (mode === 'deltapct') {
-        metricValue = fmtMetric.format(chartData.value) + '%';
-        metricLabel = 'Δ%';
-      }
-      
-      let realFormatted = '—';
-      if (realValue !== null) {
-        if (s.key === 'ipsa') {
-          realFormatted = fmtReal.format(realValue) + ' pts';
-        } else {
-          realFormatted = '$' + fmtReal.format(realValue);
-        }
-      }
-      
-      html += `
-        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-          <span style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
-          <span style="font-weight:500;color:#96a3b7;min-width:65px">${s.label}:</span>
-          ${metricLabel ? `<span style="color:#cbd5e0;font-size:11px;min-width:50px">${metricValue}</span>` : ''}
-          <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
-            ${realFormatted}
-          </span>
-        </div>
-      `;
-    });
-    
-    tooltip.innerHTML = html;
-    tooltip.style.display = 'block';
-    
-    const x = Math.min(param.point.x + 20, container.clientWidth - tooltip.offsetWidth - 20);
-    const y = Math.max(param.point.y - tooltip.offsetHeight - 20, 10);
-    
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
-  });
-}
-
-// === CONTROLES EXTERNOS ===
-function addControlsBar(containerParent) {
-  const controlsBar = document.createElement('div');
-  controlsBar.id = 'controls-bar-chile';
-  controlsBar.style.cssText = `
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background: rgba(15, 22, 32, 0.6);
-    border-radius: 10px;
-    margin-bottom: 16px;
-    gap: 16px;
-    flex-wrap: wrap;
-    border: 1px solid #1a2434;
-  `;
-  
-  // Lado izquierdo: Leyenda
-  const leftSide = document.createElement('div');
-  leftSide.style.cssText = `display: flex; gap: 12px; align-items: center;`;
-  
-  const items = [
-    { key: 'uf', label: 'UF', color: COLORS.uf },
-    { key: 'usd', label: 'USD/CLP', color: COLORS.usd },
-    { key: 'ipsa', label: 'IPSA', color: COLORS.ipsa }
-  ];
-  
-  items.forEach(item => {
-    const btn = document.createElement('button');
-    btn.style.cssText = `
-      display: flex; align-items: center; gap: 6px; padding: 6px 12px;
-      background: transparent; border: 1px solid ${item.color}; border-radius: 6px;
-      color: ${item.color}; font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s; opacity: ${seriesVisibility[item.key] ? '1' : '0.35'};
-    `;
-    
-    const dot = document.createElement('span');
-    dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${item.color}; display: block;`;
-    
-    btn.appendChild(dot);
-    btn.appendChild(document.createTextNode(item.label));
-    
-    btn.onclick = () => {
-      seriesVisibility[item.key] = !seriesVisibility[item.key];
-      seriesInstances[item.key].applyOptions({ visible: seriesVisibility[item.key] });
-      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.35';
-    };
-    
-    leftSide.appendChild(btn);
-  });
-  
-  // Lado derecho: Controles
-  const rightSide = document.createElement('div');
-  rightSide.style.cssText = `display: flex; gap: 12px; align-items: center; flex-wrap: wrap;`;
-  
-  // Selector de Periodo
-  const periodGroup = document.createElement('div');
-  periodGroup.style.cssText = `
-    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
-    border-radius: 8px; border: 1px solid #233048;
-  `;
-  
-  const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
-  periods.forEach(p => {
-    const btn = document.createElement('button');
-    const isActive = currentPeriod === p;
-    btn.style.cssText = `
-      padding: 8px 14px; background: ${isActive ? '#1f9df2' : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
-      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
-      min-width: 48px; text-align: center;
-    `;
-    btn.textContent = p;
-    btn.onmouseover = () => {
-      if (currentPeriod !== p) { btn.style.background = 'rgba(31, 157, 242, 0.2)'; btn.style.color = '#1f9df2'; }
-    };
-    btn.onmouseout = () => {
-      if (currentPeriod !== p) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
-    };
-    btn.onclick = () => switchPeriod(p);
-    periodGroup.appendChild(btn);
-  });
-  rightSide.appendChild(periodGroup);
-  
-  // Separador
-  const sep = document.createElement('div');
-  sep.style.cssText = `width: 1px; height: 32px; background: #233048;`;
-  rightSide.appendChild(sep);
-  
-  // Selector de Modo
-  const modeGroup = document.createElement('div');
-  modeGroup.style.cssText = `
-    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
-    border-radius: 8px; border: 1px solid #233048;
-  `;
-  
-  const modes = [
-    { id: 'real', label: 'Real', color: '#10b981' },
-    { id: 'base100', label: 'Base100', color: '#3b82f6' },
-    { id: 'deltapct', label: '%', color: '#8b5cf6' }
-  ];
-  
-  modes.forEach(m => {
-    const btn = document.createElement('button');
-    const isActive = currentMode === m.id;
-    btn.style.cssText = `
-      padding: 8px 14px; background: ${isActive ? m.color : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
-      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
-      min-width: 68px; text-align: center;
-    `;
-    btn.textContent = m.label;
-    btn.onmouseover = () => {
-      if (currentMode !== m.id) { btn.style.background = `${m.color}30`; btn.style.color = m.color; }
-    };
-    btn.onmouseout = () => {
-      if (currentMode !== m.id) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
-    };
-    btn.onclick = () => switchMode(m.id);
-    modeGroup.appendChild(btn);
-  });
-  rightSide.appendChild(modeGroup);
-  
-  controlsBar.appendChild(leftSide);
-  controlsBar.appendChild(rightSide);
-  containerParent.insertBefore(controlsBar, containerParent.firstChild);
-}
-
-function switchMode(newMode) {
-  if (newMode === currentMode) return;
-  currentMode = newMode;
-  renderChart();
-}
-
-function switchPeriod(newPeriod) {
-  if (newPeriod === currentPeriod) return;
-  currentPeriod = newPeriod;
-  loadData();
-}
-
-// === RENDERIZAR ===
-function renderChart() {
-  const containerParent = document.getElementById('c-chile').parentElement;
-  const container = document.getElementById('c-chile');
-  
-  if (!container || !rawData.uf.length) return;
-  
-  const oldControls = document.getElementById('controls-bar-chile');
-  if (oldControls) oldControls.remove();
-  
-  container.innerHTML = '';
-  chartInstance = createChart(container, currentMode);
-  
-  let ufData, usdData, ipsaData;
-  
-  if (currentMode === 'base100') {
-    ufData = toBase100(rawData.uf);
-    usdData = toBase100(rawData.usd);
-    ipsaData = toBase100(rawData.ipsa);
-    
-    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'right');
-    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
-    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
-    
-  } else if (currentMode === 'deltapct') {
-    ufData = toDeltaPct(rawData.uf);
-    usdData = toDeltaPct(rawData.usd);
-    ipsaData = toDeltaPct(rawData.ipsa);
-    
-    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'right');
-    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
-    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
-    
-  } else {
-    ufData = rawData.uf;
-    usdData = rawData.usd;
-    ipsaData = rawData.ipsa;
-    
-    seriesInstances.uf = createSeries(chartInstance, 'UF', COLORS.uf, 'left');
-    seriesInstances.usd = createSeries(chartInstance, 'USD/CLP', COLORS.usd, 'right');
-    seriesInstances.ipsa = createSeries(chartInstance, 'IPSA', COLORS.ipsa, 'right');
-  }
-  
-  seriesInstances.uf.setData(ufData);
-  seriesInstances.usd.setData(usdData);
-  seriesInstances.ipsa.setData(ipsaData);
-  
-  Object.keys(seriesVisibility).forEach(key => {
-    seriesInstances[key].applyOptions({ visible: seriesVisibility[key] });
-  });
-  
-  setupTooltip(container, chartInstance, currentMode);
-  addControlsBar(containerParent);
-  chartInstance.timeScale().fitContent();
-  
-  container.onclick = (e) => {
-    if (e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
-    window.location.href = '/detail/tradfi-cl';
-  };
-}
-
-// === CARGAR DATOS ===
-async function loadData() {
-  const container = document.getElementById('c-chile');
-  const noteEl = document.getElementById('c-chile-note');
-  
-  if (!container) {
-    console.warn('❌ Contenedor #c-chile no encontrado');
-    return;
-  }
-  
-  try {
-    console.log(`\n🚀 === CARGANDO TRADFI CHILE (${currentPeriod}) ===`);
-    
-    container.innerHTML = `
-      <div class="bd-loading">
-        <div class="bd-spinner"></div>
-        <div>Cargando ${currentPeriod}...</div>
-      </div>
-    `;
-    
-    const [uf, usd, ipsa] = await Promise.all([
-      fetchMindicador('uf', currentPeriod),
-      fetchMindicador('dolar', currentPeriod),
-      fetchStooq('ech.us', currentPeriod)
-    ]);
-    
-    console.log('\n✅ Datos cargados');
-    
-    const merged = mergeSeries(uf, usd, ipsa);
-    rawData = merged;
-    
-    console.log('\n📊 Renderizando gráfico...');
-    renderChart();
-    console.log('✅ ¡Gráfico renderizado!\n');
-    
-    if (noteEl) noteEl.style.display = 'none';
-    
-  } catch (error) {
-    console.error('\n❌ ERROR:', error);
-    
-    container.innerHTML = `
-      <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
-        <strong>Error al cargar datos (${currentPeriod})</strong><br>
-        <small style="color:#cbd5e0">${error.message}</small>
-      </div>
-    `;
-    
-    if (noteEl) {
-      noteEl.textContent = `Error: ${error.message}`;
-      noteEl.style.display = 'block';
-      noteEl.style.color = '#f56565';
-    }
-  }
-}
-
-// === INIT ===
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadData);
-} else {
-  loadData();
-}
-
-})();
+export default IndicesDashboard;
