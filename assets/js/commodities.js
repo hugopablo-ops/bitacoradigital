@@ -1,622 +1,449 @@
-(() => {
-/* Bitácora Digital - Commodities
-   Oro (GLD), Plata (SLV), Cobre (COPX), Litio (ALB)
-   Layout limpio con controles externos
-*/
+// ============================================
+// Commodities Dashboard
+// Oro (IAU), Plata (SLV), Cobre (COPX), Litio (LIT)
+// Todos vía Stooq proxy
+// ============================================
 
-// === CONFIGURACIÓN ===
-const STOOQ_PROXY = window.__BD_PROXY || 'https://tradfi.hugopablo.workers.dev/?url=';
-const COLORS = {
-  gold: '#FFD700',
-  silver: '#C0C0C0',
-  copper: '#B87333',
-  lithium: '#7DF9FF'
-};
+(function() {
+  'use strict';
 
-// Estado global
-let chartInstance = null;
-let seriesInstances = {};
-let rawData = { gold: [], silver: [], copper: [], lithium: [] };
-let currentMode = 'real';
-let currentPeriod = 'YTD';
-let seriesVisibility = { gold: true, silver: true, copper: true, lithium: true };
+  console.log('=== CARGANDO COMMODITIES (YTD) ===');
 
-// === UTILIDADES ===
-function getDateRange(period) {
-  const now = new Date();
-  let start;
-  
-  switch(period) {
-    case '1M':
-      start = new Date(now);
-      start.setMonth(start.getMonth() - 1);
-      break;
-    case '3M':
-      start = new Date(now);
-      start.setMonth(start.getMonth() - 3);
-      break;
-    case '6M':
-      start = new Date(now);
-      start.setMonth(start.getMonth() - 6);
-      break;
-    case 'YTD':
-      start = new Date(now.getFullYear(), 0, 1);
-      break;
-    case '1Y':
-      start = new Date(now);
-      start.setFullYear(start.getFullYear() - 1);
-      break;
-    case 'All':
-      start = new Date(now);
-      start.setFullYear(start.getFullYear() - 15);
-      break;
-    default:
-      start = new Date(now.getFullYear(), 0, 1);
-  }
-  
-  return {
-    start: start.toISOString().split('T')[0],
-    end: now.toISOString().split('T')[0]
+  const DASHBOARD_ID = 'commodities';
+  const CONTAINER_ID = 'c-commod';
+  const DETAIL_URL = '/detail/commodities';
+
+  // Configuración de series
+  // Nota: Usando ETFs como proxies para los commodities
+  const SERIES_CONFIG = {
+    gold: { 
+      name: 'Oro (IAU)', 
+      color: '#fbbf24',
+      ticker: 'iau.us',
+      description: 'iShares Gold Trust ETF'
+    },
+    silver: { 
+      name: 'Plata (SLV)', 
+      color: '#9ca3af',
+      ticker: 'slv.us',
+      description: 'iShares Silver Trust ETF'
+    },
+    copper: { 
+      name: 'Cobre (COPX)', 
+      color: '#f97316',
+      ticker: 'copx.us',
+      description: 'Global X Copper Miners ETF'
+    },
+    lithium: { 
+      name: 'Litio (LIT)', 
+      color: '#06b6d4',
+      ticker: 'lit.us',
+      description: 'Global X Lithium & Battery ETF'
+    }
   };
-}
 
-function forwardFill(data, maxGap = 2) {
-  if (!data.length) return data;
-  const filled = [data[0]];
-  
-  for (let i = 1; i < data.length; i++) {
-    const prev = filled[filled.length - 1];
-    const curr = data[i];
-    const prevDate = new Date(prev.time);
-    const currDate = new Date(curr.time);
-    const daysDiff = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24));
-    
-    if (daysDiff > 1 && daysDiff <= maxGap + 1) {
-      for (let j = 1; j < daysDiff; j++) {
-        const fillDate = new Date(prevDate);
-        fillDate.setDate(fillDate.getDate() + j);
-        filled.push({
-          time: fillDate.toISOString().split('T')[0],
-          value: prev.value
-        });
-      }
+  // Estado del dashboard
+  let state = {
+    activeSeries: ['gold', 'silver', 'copper', 'lithium'],
+    period: 'YTD',
+    mode: 'Real',
+    data: {},
+    chart: null,
+    chartSeries: {}
+  };
+
+  // Inicialización
+  function init() {
+    const container = document.getElementById(CONTAINER_ID);
+    if (!container) {
+      console.error(`❌ No se encontró el contenedor #${CONTAINER_ID}`);
+      return;
     }
-    filled.push(curr);
+
+    console.log(`✅ Contenedor encontrado: #${CONTAINER_ID}`);
+    setupEventListeners();
+    loadAllData();
   }
-  return filled;
-}
 
-function mergeSeries(gold, silver, copper, lithium) {
-  const allDates = new Set([
-    ...gold.map(p => p.time),
-    ...silver.map(p => p.time),
-    ...copper.map(p => p.time),
-    ...lithium.map(p => p.time)
-  ]);
-  
-  const dates = Array.from(allDates).sort();
-  const goldMap = new Map(gold.map(p => [p.time, p.value]));
-  const silverMap = new Map(silver.map(p => [p.time, p.value]));
-  const copperMap = new Map(copper.map(p => [p.time, p.value]));
-  const lithiumMap = new Map(lithium.map(p => [p.time, p.value]));
-  
-  const merged = { gold: [], silver: [], copper: [], lithium: [] };
-  
-  dates.forEach(date => {
-    if (goldMap.has(date)) merged.gold.push({ time: date, value: goldMap.get(date) });
-    if (silverMap.has(date)) merged.silver.push({ time: date, value: silverMap.get(date) });
-    if (copperMap.has(date)) merged.copper.push({ time: date, value: copperMap.get(date) });
-    if (lithiumMap.has(date)) merged.lithium.push({ time: date, value: lithiumMap.get(date) });
-  });
-  
-  return merged;
-}
+  // Event Listeners
+  function setupEventListeners() {
+    const card = document.querySelector(`[data-dashboard="${DASHBOARD_ID}"]`);
+    if (!card) {
+      console.error(`❌ No se encontró la tarjeta [data-dashboard="${DASHBOARD_ID}"]`);
+      return;
+    }
 
-function toBase100(arr) {
-  if (!arr?.length) return arr;
-  const t0 = arr[0].value;
-  return arr.map(p => ({ time: p.time, value: (p.value / t0) * 100 }));
-}
-
-function toDeltaPct(arr) {
-  if (!arr?.length) return arr;
-  const t0 = arr[0].value;
-  return arr.map(p => ({ time: p.time, value: ((p.value - t0) / t0) * 100 }));
-}
-
-async function fetchWithTimeout(url, options = {}, timeout = 30000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
+    // Series toggles
+    card.querySelectorAll('.btn-series').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const series = e.currentTarget.dataset.series;
+        toggleSeries(series);
+        e.currentTarget.classList.toggle('active');
+      });
     });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') throw new Error(`Timeout (${timeout}ms)`);
-    throw error;
-  }
-}
 
-// === STOOQ ===
-async function fetchCommodity(ticker, name, period) {
-  console.log(`\n📡 Commodity: ${name} (${ticker}) - ${period}`);
-  const { start, end } = getDateRange(period);
-  const realUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
-  const proxyUrl = STOOQ_PROXY + encodeURIComponent(realUrl);
-  
-  try {
-    const response = await fetchWithTimeout(proxyUrl, { cache: 'no-store' }, 30000);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    // Period toggles
+    card.querySelectorAll('.btn-period').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        card.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        state.period = e.currentTarget.dataset.period;
+        updateChart();
+      });
+    });
+
+    // Mode toggles
+    card.querySelectorAll('.btn-mode').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        card.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        state.mode = e.currentTarget.dataset.mode;
+        updateChart();
+      });
+    });
+
+    // Chart click → detail page
+    const chartContainer = document.getElementById(CONTAINER_ID);
+    if (chartContainer) {
+      chartContainer.addEventListener('click', () => {
+        window.location.href = DETAIL_URL;
+      });
+    }
+
+    console.log('✅ Event listeners configurados');
+  }
+
+  // Toggle series
+  function toggleSeries(seriesId) {
+    const idx = state.activeSeries.indexOf(seriesId);
+    if (idx > -1) {
+      state.activeSeries.splice(idx, 1);
+    } else {
+      state.activeSeries.push(seriesId);
+    }
+    updateChart();
+  }
+
+  // Cargar todos los datos
+  async function loadAllData() {
+    showLoading(true);
+    console.log('📡 Iniciando carga de commodities...');
     
+    try {
+      const promises = Object.entries(SERIES_CONFIG).map(async ([id, config]) => {
+        try {
+          console.log(`📊 Cargando ${config.name} (${config.ticker})...`);
+          const data = await fetchStooq(config.ticker);
+          console.log(`✅ ${config.name}: ${data.length} puntos cargados`);
+          return [id, data];
+        } catch (error) {
+          console.error(`❌ Error cargando ${config.name}:`, error);
+          return [id, []];
+        }
+      });
+
+      const results = await Promise.all(promises);
+      state.data = Object.fromEntries(results);
+
+      console.log('✅ Todos los datos de commodities cargados:', {
+        gold: state.data.gold?.length || 0,
+        silver: state.data.silver?.length || 0,
+        copper: state.data.copper?.length || 0,
+        lithium: state.data.lithium?.length || 0
+      });
+      
+      initChart();
+      updateChart();
+    } catch (error) {
+      console.error('❌ Error general cargando datos:', error);
+      showError('Error al cargar commodities. Por favor, recarga la página.');
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  // Fetch Stooq vía proxy
+  async function fetchStooq(ticker) {
+    if (!window.__BD_PROXY) {
+      throw new Error('Proxy no configurado. Asegúrate de definir window.__BD_PROXY');
+    }
+
+    const stooqUrl = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
+    const proxyUrl = window.__BD_PROXY + encodeURIComponent(stooqUrl);
+
+    console.log(`🔗 Fetching: ${ticker}`);
+
+    const response = await fetch(proxyUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
     const csv = await response.text();
-    if (csv.length < 50) throw new Error('CSV muy corto');
     
-    const lines = csv.trim().split(/\r?\n/);
-    const header = lines[0];
-    
-    if (!header.includes('Date') || !header.includes('Close')) {
-      throw new Error('CSV sin Date/Close');
+    if (!csv || csv.length < 50) {
+      throw new Error('CSV vacío o inválido');
     }
-    
-    const points = [];
-    for (const line of lines.slice(1)) {
-      const [date, , , , close] = line.split(',');
-      if (!date || !close) continue;
-      
-      const value = Number(close);
-      if (!Number.isFinite(value)) continue;
-      
-      if (date >= start && date <= end) {
-        points.push({ time: date, value });
-      }
-    }
-    
-    if (points.length === 0) throw new Error('No hay datos en el rango');
-    
-    const sorted = points.sort((a, b) => a.time.localeCompare(b.time));
-    console.log(`   ✅ ${sorted.length} puntos`);
-    
-    return forwardFill(sorted);
-    
-  } catch (error) {
-    console.error(`   ❌ Error ${name}: ${error.message}`);
-    throw error;
+
+    return parseStooqCSV(csv);
   }
-}
 
-// === GRÁFICO ===
-function createChart(container, mode) {
-  const isReal = mode === 'real';
-  
-  const chart = LightweightCharts.createChart(container, {
-    layout: {
-      background: { type: 'solid', color: 'transparent' },
-      textColor: '#cfe0ff'
-    },
-    rightPriceScale: {
-      borderColor: '#233048',
-      visible: true,
-      scaleMargins: { top: 0.1, bottom: 0.1 }
-    },
-    leftPriceScale: {
-      borderColor: '#233048',
-      visible: isReal,
-      scaleMargins: { top: 0.1, bottom: 0.1 }
-    },
-    timeScale: {
-      borderColor: '#233048',
-      rightOffset: 3,
-      timeVisible: true
-    },
-    grid: {
-      vertLines: { color: '#1a2434' },
-      horzLines: { color: '#1a2434' }
-    },
-    localization: { locale: 'es-CL' },
-    crosshair: {
-      mode: LightweightCharts.CrosshairMode.Normal,
-      vertLine: {
-        width: 1,
-        color: '#4a5568',
-        style: LightweightCharts.LineStyle.Solid
-      },
-      horzLine: { visible: false }
-    },
-    handleScroll: {
-      mouseWheel: true,
-      pressedMouseMove: true
-    },
-    handleScale: {
-      axisPressedMouseMove: true,
-      mouseWheel: true,
-      pinch: true
+  // Parse Stooq CSV
+  function parseStooqCSV(csv) {
+    const lines = csv.trim().split('\n');
+    
+    if (lines.length < 2) {
+      throw new Error('CSV sin datos');
     }
-  });
-  
-  return chart;
-}
 
-function createSeries(chart, label, color, priceScaleId = 'right') {
-  return chart.addLineSeries({
-    color,
-    lineWidth: 2.5,
-    priceScaleId,
-    title: label,
-    crosshairMarkerVisible: true,
-    crosshairMarkerRadius: 4,
-    lastValueVisible: true,
-    priceLineVisible: false
-  });
-}
+    const dataLines = lines.slice(1);
+    
+    const parsed = dataLines
+      .map(line => {
+        const parts = line.split(',');
+        if (parts.length < 5) return null;
 
-// === TOOLTIP ===
-function setupTooltip(container, chart, mode) {
-  const tooltip = document.createElement('div');
-  tooltip.style.cssText = `
-    position: absolute;
-    display: none;
-    padding: 14px 16px;
-    background: rgba(15, 22, 32, 0.98);
-    border: 1px solid #2a3f5f;
-    border-radius: 10px;
-    color: #dbe4f3;
-    font-size: 13px;
-    line-height: 1.8;
-    pointer-events: none;
-    z-index: 1000;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    min-width: 260px;
-  `;
-  container.appendChild(tooltip);
-  
-  const fmtReal = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-  
-  const fmtMetric = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-    signDisplay: mode === 'deltapct' ? 'always' : 'auto'
-  });
-  
-  chart.subscribeCrosshairMove(param => {
-    if (!param.time || param.point.x < 0 || param.point.y < 0) {
-      tooltip.style.display = 'none';
+        const [date, , , , close] = parts;
+        const value = parseFloat(close);
+        
+        if (isNaN(value) || !date) return null;
+        
+        return { time: date, value };
+      })
+      .filter(item => item !== null);
+
+    console.log(`📈 CSV parseado: ${parsed.length} registros válidos`);
+    
+    return parsed;
+  }
+
+  // Filtrar datos por período
+  function filterByPeriod(data) {
+    if (!data || data.length === 0) return [];
+
+    const now = new Date();
+    let cutoffDate;
+
+    switch (state.period) {
+      case '1M':
+        cutoffDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        break;
+      case '3M':
+        cutoffDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        break;
+      case '6M':
+        cutoffDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+        break;
+      case 'YTD':
+        cutoffDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      case '1Y':
+        cutoffDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        break;
+      case 'All':
+        return data;
+      default:
+        cutoffDate = new Date(now.getFullYear(), 0, 1);
+    }
+
+    return data.filter(item => new Date(item.time) >= cutoffDate);
+  }
+
+  // Normalizar datos según modo
+  function normalizeData(data) {
+    if (!data || data.length === 0) return [];
+    
+    const filtered = filterByPeriod(data);
+    if (filtered.length === 0) return [];
+
+    if (state.mode === 'Real') {
+      return filtered;
+    }
+
+    const firstValue = filtered[0].value;
+    
+    return filtered.map(item => {
+      let value;
+      if (state.mode === 'Base100') {
+        value = (item.value / firstValue) * 100;
+      } else { // %
+        value = ((item.value - firstValue) / firstValue) * 100;
+      }
+      return { time: item.time, value, originalValue: item.value };
+    });
+  }
+
+  // Inicializar chart
+  function initChart() {
+    const container = document.getElementById(CONTAINER_ID);
+    if (!container) {
+      console.error('❌ Contenedor no disponible para inicializar chart');
       return;
     }
     
-    const dateStr = new Date(param.time).toLocaleDateString('es-CL', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    if (state.chart) {
+      console.log('⚠️ Chart ya inicializado, reutilizando...');
+      return;
+    }
+
+    console.log('🎨 Inicializando Lightweight Charts...');
+
+    state.chart = LightweightCharts.createChart(container, {
+      layout: {
+        background: { color: '#0a0e1a' },
+        textColor: '#9ca3af'
+      },
+      grid: {
+        vertLines: { color: '#1f2937' },
+        horzLines: { color: '#1f2937' }
+      },
+      crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal
+      },
+      rightPriceScale: {
+        borderColor: '#1f2937',
+        visible: state.mode === 'Real'
+      },
+      leftPriceScale: {
+        borderColor: '#1f2937',
+        visible: state.mode === 'Real'
+      },
+      timeScale: {
+        borderColor: '#1f2937',
+        timeVisible: true,
+        secondsVisible: false
+      },
+      handleScroll: false,
+      handleScale: false
     });
-    
-    let html = `<div style="font-weight:600;margin-bottom:10px;color:#fff;border-bottom:1px solid #2a3f5f;padding-bottom:6px">${dateStr}</div>`;
-    
-    const series = [
-      { key: 'gold', label: 'Oro ETF (GLD)', color: COLORS.gold },
-      { key: 'silver', label: 'Plata ETF (SLV)', color: COLORS.silver },
-      { key: 'copper', label: 'Cobre ETF (COPX)', color: COLORS.copper },
-      { key: 'lithium', label: 'Litio (ALB)', color: COLORS.lithium }
-    ];
-    
-    series.forEach(s => {
-      if (!seriesVisibility[s.key]) return;
-      
-      const chartData = param.seriesData.get(seriesInstances[s.key]);
-      if (!chartData || chartData.value === undefined) return;
-      
-      const rawPoint = rawData[s.key].find(p => p.time === param.time);
-      const realValue = rawPoint ? rawPoint.value : null;
-      
-      let metricValue = '—';
-      let metricLabel = '';
-      
-      if (mode === 'base100') {
-        metricValue = fmtMetric.format(chartData.value);
-        metricLabel = 'Base100';
-      } else if (mode === 'deltapct') {
-        metricValue = fmtMetric.format(chartData.value) + '%';
-        metricLabel = 'Δ%';
-      }
-      
-      let realFormatted = '—';
-      if (realValue !== null) {
-        realFormatted = '$' + fmtReal.format(realValue);
-      }
-      
-      html += `
-        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-          <span style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
-          <span style="font-weight:500;color:#96a3b7;min-width:120px;font-size:12px">${s.label}:</span>
-          ${metricLabel ? `<span style="color:#cbd5e0;font-size:11px;min-width:45px">${metricValue}</span>` : ''}
-          <span style="margin-left:auto;font-weight:600;color:${s.color};font-variant-numeric:tabular-nums">
-            ${realFormatted}
-          </span>
-        </div>
-      `;
-    });
-    
-    tooltip.innerHTML = html;
-    tooltip.style.display = 'block';
-    
-    const x = Math.min(param.point.x + 20, container.clientWidth - tooltip.offsetWidth - 20);
-    const y = Math.max(param.point.y - tooltip.offsetHeight - 20, 10);
-    
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
-  });
-}
 
-// === CONTROLES EXTERNOS ===
-function addControlsBar(containerParent) {
-  const controlsBar = document.createElement('div');
-  controlsBar.id = 'controls-bar-commodities';
-  controlsBar.style.cssText = `
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background: rgba(15, 22, 32, 0.6);
-    border-radius: 10px;
-    margin-bottom: 16px;
-    gap: 16px;
-    flex-wrap: wrap;
-    border: 1px solid #1a2434;
-  `;
-  
-  const leftSide = document.createElement('div');
-  leftSide.style.cssText = `display: flex; gap: 10px; align-items: center; flex-wrap: wrap;`;
-  
-  const items = [
-    { key: 'gold', label: 'Oro', color: COLORS.gold },
-    { key: 'silver', label: 'Plata', color: COLORS.silver },
-    { key: 'copper', label: 'Cobre', color: COLORS.copper },
-    { key: 'lithium', label: 'Litio', color: COLORS.lithium }
-  ];
-  
-  items.forEach(item => {
-    const btn = document.createElement('button');
-    btn.style.cssText = `
-      display: flex; align-items: center; gap: 6px; padding: 6px 10px;
-      background: transparent; border: 1px solid ${item.color}; border-radius: 6px;
-      color: ${item.color}; font-size: 12px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s; opacity: ${seriesVisibility[item.key] ? '1' : '0.35'};
-    `;
-    
-    const dot = document.createElement('span');
-    dot.style.cssText = `width: 8px; height: 8px; border-radius: 50%; background: ${item.color};`;
-    
-    btn.appendChild(dot);
-    btn.appendChild(document.createTextNode(item.label));
-    
-    btn.onclick = () => {
-      seriesVisibility[item.key] = !seriesVisibility[item.key];
-      seriesInstances[item.key].applyOptions({ visible: seriesVisibility[item.key] });
-      btn.style.opacity = seriesVisibility[item.key] ? '1' : '0.35';
-    };
-    
-    leftSide.appendChild(btn);
-  });
-  
-  const rightSide = document.createElement('div');
-  rightSide.style.cssText = `display: flex; gap: 12px; align-items: center; flex-wrap: wrap;`;
-  
-  const periodGroup = document.createElement('div');
-  periodGroup.style.cssText = `
-    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
-    border-radius: 8px; border: 1px solid #233048;
-  `;
-  
-  const periods = ['1M', '3M', '6M', 'YTD', '1Y', 'All'];
-  periods.forEach(p => {
-    const btn = document.createElement('button');
-    const isActive = currentPeriod === p;
-    btn.style.cssText = `
-      padding: 8px 14px; background: ${isActive ? '#1f9df2' : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
-      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
-      min-width: 48px; text-align: center;
-    `;
-    btn.textContent = p;
-    btn.onmouseover = () => {
-      if (currentPeriod !== p) { btn.style.background = 'rgba(31, 157, 242, 0.2)'; btn.style.color = '#1f9df2'; }
-    };
-    btn.onmouseout = () => {
-      if (currentPeriod !== p) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
-    };
-    btn.onclick = () => switchPeriod(p);
-    periodGroup.appendChild(btn);
-  });
-  rightSide.appendChild(periodGroup);
-  
-  const sep = document.createElement('div');
-  sep.style.cssText = `width: 1px; height: 32px; background: #233048;`;
-  rightSide.appendChild(sep);
-  
-  const modeGroup = document.createElement('div');
-  modeGroup.style.cssText = `
-    display: flex; gap: 4px; background: rgba(10, 15, 25, 0.8); padding: 4px;
-    border-radius: 8px; border: 1px solid #233048;
-  `;
-  
-  const modes = [
-    { id: 'real', label: 'Real', color: '#10b981' },
-    { id: 'base100', label: 'Base100', color: '#3b82f6' },
-    { id: 'deltapct', label: '%', color: '#8b5cf6' }
-  ];
-  
-  modes.forEach(m => {
-    const btn = document.createElement('button');
-    const isActive = currentMode === m.id;
-    btn.style.cssText = `
-      padding: 8px 14px; background: ${isActive ? m.color : 'transparent'};
-      color: ${isActive ? '#ffffff' : '#8a99b3'}; border: none; border-radius: 6px;
-      font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
-      min-width: 68px; text-align: center;
-    `;
-    btn.textContent = m.label;
-    btn.onmouseover = () => {
-      if (currentMode !== m.id) { btn.style.background = `${m.color}30`; btn.style.color = m.color; }
-    };
-    btn.onmouseout = () => {
-      if (currentMode !== m.id) { btn.style.background = 'transparent'; btn.style.color = '#8a99b3'; }
-    };
-    btn.onclick = () => switchMode(m.id);
-    modeGroup.appendChild(btn);
-  });
-  rightSide.appendChild(modeGroup);
-  
-  controlsBar.appendChild(leftSide);
-  controlsBar.appendChild(rightSide);
-  containerParent.insertBefore(controlsBar, containerParent.firstChild);
-}
-
-function switchMode(newMode) {
-  if (newMode === currentMode) return;
-  currentMode = newMode;
-  renderChart();
-}
-
-function switchPeriod(newPeriod) {
-  if (newPeriod === currentPeriod) return;
-  currentPeriod = newPeriod;
-  loadData();
-}
-
-// === RENDERIZAR ===
-function renderChart() {
-  const containerParent = document.getElementById('c-commodities').parentElement;
-  const container = document.getElementById('c-commodities');
-  
-  if (!container || !rawData.gold.length) return;
-  
-  const oldControls = document.getElementById('controls-bar-commodities');
-  if (oldControls) oldControls.remove();
-  
-  container.innerHTML = '';
-  chartInstance = createChart(container, currentMode);
-  
-  let goldData, silverData, copperData, lithiumData;
-  
-  if (currentMode === 'base100') {
-    goldData = toBase100(rawData.gold);
-    silverData = toBase100(rawData.silver);
-    copperData = toBase100(rawData.copper);
-    lithiumData = toBase100(rawData.lithium);
-    
-    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'right');
-    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
-    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
-    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
-    
-  } else if (currentMode === 'deltapct') {
-    goldData = toDeltaPct(rawData.gold);
-    silverData = toDeltaPct(rawData.silver);
-    copperData = toDeltaPct(rawData.copper);
-    lithiumData = toDeltaPct(rawData.lithium);
-    
-    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'right');
-    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
-    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
-    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
-    
-  } else {
-    goldData = rawData.gold;
-    silverData = rawData.silver;
-    copperData = rawData.copper;
-    lithiumData = rawData.lithium;
-    
-    seriesInstances.gold = createSeries(chartInstance, 'Oro', COLORS.gold, 'left');
-    seriesInstances.silver = createSeries(chartInstance, 'Plata', COLORS.silver, 'right');
-    seriesInstances.copper = createSeries(chartInstance, 'Cobre', COLORS.copper, 'right');
-    seriesInstances.lithium = createSeries(chartInstance, 'Litio', COLORS.lithium, 'right');
+    state.chart.timeScale().fitContent();
+    console.log('✅ Chart inicializado correctamente');
   }
-  
-  seriesInstances.gold.setData(goldData);
-  seriesInstances.silver.setData(silverData);
-  seriesInstances.copper.setData(copperData);
-  seriesInstances.lithium.setData(lithiumData);
-  
-  Object.keys(seriesVisibility).forEach(key => {
-    seriesInstances[key].applyOptions({ visible: seriesVisibility[key] });
-  });
-  
-  setupTooltip(container, chartInstance, currentMode);
-  addControlsBar(containerParent);
-  chartInstance.timeScale().fitContent();
-  
-  container.onclick = (e) => {
-    if (e.target.tagName && e.target.tagName.toLowerCase() === 'button') return;
-    window.location.href = '/detail/commodities';
-  };
-}
 
-// === CARGAR DATOS ===
-async function loadData() {
-  const container = document.getElementById('c-commodities');
-  const noteEl = document.getElementById('c-commodities-note');
-  
-  if (!container) return;
-  
-  try {
-    console.log(`\n🚀 === CARGANDO COMMODITIES (${currentPeriod}) ===`);
+  // Actualizar chart
+  function updateChart() {
+    if (!state.chart) {
+      console.error('❌ No hay chart disponible para actualizar');
+      return;
+    }
+
+    console.log('🔄 Actualizando chart de commodities...');
+
+    // Limpiar series existentes
+    Object.values(state.chartSeries).forEach(series => {
+      state.chart.removeSeries(series);
+    });
+    state.chartSeries = {};
+
+    // Agregar series activas
+    let seriesAdded = 0;
     
-    container.innerHTML = `
-      <div class="bd-loading">
-        <div class="bd-spinner"></div>
-        <div>Cargando ${currentPeriod}...</div>
-      </div>
-    `;
-    
-    const [gold, silver, copper, lithium] = await Promise.all([
-      fetchCommodity('gld.us', 'Oro ETF', currentPeriod),
-      fetchCommodity('slv.us', 'Plata ETF', currentPeriod),
-      fetchCommodity('copx.us', 'Cobre ETF', currentPeriod),
-      fetchCommodity('alb.us', 'Litio', currentPeriod)
-    ]);
-    
-    console.log('\n✅ Commodities cargados');
-    
-    const merged = mergeSeries(gold, silver, copper, lithium);
-    rawData = merged;
-    
-    console.log('\n📊 Renderizando commodities...');
-    renderChart();
-    console.log('✅ Commodities renderizados!\n');
-    
-    if (noteEl) noteEl.style.display = 'none';
-    
-  } catch (error) {
-    console.error('\n❌ ERROR:', error);
-    
-    container.innerHTML = `
-      <div style="padding:1.5rem;color:#f56565;text-align:center;line-height:1.6">
-        <strong>Error al cargar commodities (${currentPeriod})</strong><br>
-        <small style="color:#cbd5e0">${error.message}</small>
-      </div>
-    `;
-    
-    if (noteEl) {
-      noteEl.textContent = `Error: ${error.message}`;
-      noteEl.style.display = 'block';
-      noteEl.style.color = '#f56565';
+    state.activeSeries.forEach((seriesId, index) => {
+      const config = SERIES_CONFIG[seriesId];
+      const rawData = state.data[seriesId];
+      
+      if (!rawData || rawData.length === 0) {
+        console.warn(`⚠️ No hay datos para ${config.name}`);
+        return;
+      }
+
+      const normalizedData = normalizeData(rawData);
+      if (normalizedData.length === 0) {
+        console.warn(`⚠️ No hay datos normalizados para ${config.name}`);
+        return;
+      }
+
+      console.log(`📊 Agregando serie ${config.name}: ${normalizedData.length} puntos`);
+
+      const series = state.chart.addLineSeries({
+        color: config.color,
+        lineWidth: 2,
+        title: config.name,
+        priceScaleId: state.mode === 'Real' ? (index % 2 === 0 ? 'right' : 'left') : 'right',
+        priceFormat: {
+          type: 'custom',
+          formatter: (price) => {
+            if (state.mode === 'Real') {
+              return '$' + price.toFixed(2);
+            } else if (state.mode === 'Base100') {
+              return price.toFixed(2);
+            } else {
+              return price.toFixed(2) + '%';
+            }
+          }
+        }
+      });
+
+      series.setData(normalizedData);
+      state.chartSeries[seriesId] = series;
+      seriesAdded++;
+
+      series.applyOptions({
+        priceLineVisible: false,
+        lastValueVisible: true
+      });
+    });
+
+    console.log(`✅ ${seriesAdded} series de commodities agregadas al chart`);
+
+    // Ajustar escalas
+    state.chart.priceScale('right').applyOptions({
+      visible: state.mode === 'Real' || state.activeSeries.length > 0
+    });
+    state.chart.priceScale('left').applyOptions({
+      visible: state.mode === 'Real' && state.activeSeries.length > 1
+    });
+
+    state.chart.timeScale().fitContent();
+  }
+
+  // Loading state
+  function showLoading(show) {
+    const card = document.querySelector(`[data-dashboard="${DASHBOARD_ID}"]`);
+    if (!card) return;
+
+    const chartWrapper = card.querySelector('.card-chart');
+    if (chartWrapper) {
+      if (show) {
+        chartWrapper.classList.add('loading');
+      } else {
+        chartWrapper.classList.remove('loading');
+      }
     }
   }
-}
 
-// === INIT ===
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadData);
-} else {
-  loadData();
-}
+  // Error state
+  function showError(message) {
+    const container = document.getElementById(CONTAINER_ID);
+    if (!container) return;
+
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'chart-error';
+    errorDiv.innerHTML = `
+      <p style="margin-bottom: 0.5rem;">❌ ${message}</p>
+      <button onclick="location.reload()" style="
+        padding: 0.5rem 1rem;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+      ">
+        Reintentar
+      </button>
+    `;
+    container.appendChild(errorDiv);
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  console.log('✅ commodities.js cargado correctamente');
 
 })();
