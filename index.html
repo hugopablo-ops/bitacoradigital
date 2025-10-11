@@ -21,9 +21,11 @@
     .container{max-width:1200px;margin:0 auto;padding:0 16px}
     .nav{position:sticky;top:0;z-index:20;background:rgba(8,12,18,.7);backdrop-filter:blur(6px);border-bottom:1px solid #0b1119}
     .nav__inner{display:flex;align-items:center;justify-content:space-between;height:56px}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:600}
-    .brand__logo{width:24px;height:24px}
-    .nav__links a{margin-left:20px;color:#b7c3d9}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px}
+    .brand__logo{width:24px;height:24px;flex-shrink:0}
+    .brand__name{white-space:nowrap}
+    .nav__links{display:flex;gap:32px}
+    .nav__links a{color:#b7c3d9;font-size:15px;font-weight:500;transition:color 0.2s}
     .nav__links a:hover{color:#fff}
 
     .hero{padding:56px 0 26px;border-bottom:1px solid #0b1119}
@@ -98,6 +100,8 @@
       .hero__copy .description{font-size:15px}
       .btn-ctrl{padding:6px 10px;font-size:12.5px}
       .section__title{font-size:24px}
+      .nav__links{gap:20px}
+      .brand{font-size:14px}
     }
 
     .bd-loading{
@@ -136,6 +140,9 @@
 
     .footer{border-top:1px solid #0b1119;padding:24px 0;color:#9fb0c9;margin-top:60px}
     .footer__inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+    .footer__links{display:flex;gap:24px}
+    .footer__links a{color:#9fb0c9;transition:color 0.2s}
+    .footer__links a:hover{color:#fff}
   </style>
 
   <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
@@ -147,24 +154,19 @@
     <div class="container nav__inner">
       <div class="brand">
         <img src="assets/favicon.svg" alt="" class="brand__logo">
-        <span class="brand__name"> Digital</span>
+        <span class="brand__name">Bitácora Digital</span>
       </div>
       <nav class="nav__links">
-        <a href="#podcast">Podcast</a>
-        <a href="#analytic">Dashboards</a>
-        <a href="#ia">IA</a>
-        <a href="#fintech">Fintech</a>
-        <a href="#web3">Web3</a>
-        <a href="#editorial">Editorial</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#contacto">Contacto</a>
       </nav>
     </div>
   </header>
 
-  <!-- HERO CORREGIDO - SIN BANNER -->
   <section class="hero">
     <div class="container">
       <div class="hero__copy">
-        <h1>Podcast Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
+        <h1>Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
         <p class="description">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: Individuos y organizaciones capacitados para integrar finanzas y tecnología en las nuevas tendencias de nuestros tiempos.</p>
         <div class="hero__nav">
           <a class="btn btn--primary" href="#podcast">Escuchar Podcast</a>
@@ -354,6 +356,7 @@
 
   <section id="web3" class="section section--placeholder">
     <div class="container">
+      <h2 class="container">
       <h2 class="section__title">Web3</h2>
       <p>Próximamente: contenido sobre blockchain, DeFi y Web3</p>
     </div>
@@ -366,13 +369,28 @@
     </div>
   </section>
 
+  <section id="nosotros" class="section section--placeholder">
+    <div class="container">
+      <h2 class="section__title">Nosotros</h2>
+      <p>Próximamente: información sobre Bitácora Digital</p>
+    </div>
+  </section>
+
+  <section id="contacto" class="section section--placeholder">
+    <div class="container">
+      <h2 class="section__title">Contacto</h2>
+      <p>Próximamente: formulario de contacto</p>
+    </div>
+  </section>
+
   <footer class="footer">
     <div class="container footer__inner">
       <span class="muted">© 2025 Bitácora Digital</span>
       <div class="footer__links">
         <a href="#podcast">Podcast</a>
         <a href="#analytic">Dashboards</a>
-        <a href="#ia">IA</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#contacto">Contacto</a>
       </div>
     </div>
   </footer>
