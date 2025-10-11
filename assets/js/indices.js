@@ -1,30 +1,32 @@
-// TradFi Chile - UF, USD/CLP, IPSA (CORREGIDO)
+// Índices - SPY, EWG, EWJ (CORREGIDO)
 (function() {
   'use strict';
 
   const SERIES_CONFIG = {
-    uf: { name: 'UF', color: '#3b82f6', source: 'mindicador', ticker: 'uf', unit: 'UF' },
-    usd: { name: 'USD/CLP', color: '#f59e0b', source: 'mindicador', ticker: 'dolar', unit: '$' },
-    ipsa: { name: 'IPSA', color: '#a855f7', source: 'stooq', ticker: 'ech.us', unit: '' }
+    spy: { name: 'SPY', color: '#3b82f6', ticker: 'spy.us', unit: '$' },
+    ewg: { name: 'EWG', color: '#10b981', ticker: 'ewg.us', unit: '$' },
+    ewj: { name: 'EWJ', color: '#f59e0b', ticker: 'ewj.us', unit: '$' }
   };
 
   let state = {
-    activeSeries: ['uf', 'usd', 'ipsa'],
+    activeSeries: ['spy', 'ewg', 'ewj'],
     period: 'YTD',
     mode: 'Base100',
     rawData: {},
     filteredData: {},
     t0Values: {},
     chart: null,
-    seriesObjects: {},
-    leftScale: null,
-    rightScale: null
+    seriesObjects: {}
   };
 
   async function init() {
-    const container = document.getElementById('c-chile');
-    if (!container) return;
+    const container = document.getElementById('c-indices');
+    if (!container) {
+      console.error('❌ No se encontró #c-indices');
+      return;
+    }
 
+    console.log('📊 Iniciando Índices...');
     setupControls();
     
     try {
@@ -32,15 +34,15 @@
       createChart(container);
       updateChart();
       hideLoading();
-      console.log('✅ TradFi Chile cargado');
+      console.log('✅ Índices cargados');
     } catch (error) {
-      console.error('❌ Error TradFi Chile:', error);
-      showError(container, 'Error al cargar datos de Chile');
+      console.error('❌ Error Índices:', error);
+      showError(container, 'Error al cargar índices');
     }
   }
 
   function setupControls() {
-    const card = document.getElementById('card-chile');
+    const card = document.getElementById('card-indices');
     
     card.querySelectorAll('.btn-series').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -79,15 +81,10 @@
   }
 
   async function loadAllData() {
-    console.log('📡 Cargando datos TradFi Chile...');
-    
     for (const [id, config] of Object.entries(SERIES_CONFIG)) {
       try {
-        console.log(`Cargando ${config.name}...`);
-        const raw = config.source === 'mindicador' 
-          ? await fetchMindicador(config.ticker)
-          : await fetchStooq(config.ticker);
-        
+        console.log(`📡 Cargando ${config.name}...`);
+        const raw = await fetchStooq(config.ticker);
         state.rawData[id] = raw;
         console.log(`✅ ${config.name}: ${raw.length} puntos`);
       } catch (error) {
@@ -97,53 +94,13 @@
     }
   }
 
-  async function fetchMindicador(indicator) {
-    // Intentar obtener todo el año actual
-    const url = `https://mindicador.cl/api/${indicator}/${new Date().getFullYear()}`;
-    
-    try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        // Si falla, intentar sin año específico
-        const res2 = await fetch(`https://mindicador.cl/api/${indicator}`);
-        if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
-        const json2 = await res2.json();
-        return parseMindicadorData(json2);
-      }
-      
-      const json = await res.json();
-      return parseMindicadorData(json);
-    } catch (error) {
-      console.error('Error en fetchMindicador:', error);
-      // Fallback: intentar API sin año
-      const res = await fetch(`https://mindicador.cl/api/${indicator}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      return parseMindicadorData(json);
-    }
-  }
-
-  function parseMindicadorData(json) {
-    if (!json.serie || !Array.isArray(json.serie)) {
-      throw new Error('Formato de datos inválido');
-    }
-
-    return json.serie
-      .map(d => {
-        const date = d.fecha.split('T')[0];
-        const value = parseFloat(d.valor);
-        if (isNaN(value)) return null;
-        return { time: date, value };
-      })
-      .filter(d => d !== null)
-      .reverse(); // Ordenar de más antiguo a más reciente
-  }
-
   async function fetchStooq(ticker) {
     const url = `https://stooq.com/q/d/l/?s=${ticker}&i=d`;
     const res = await fetch(window.__BD_PROXY + encodeURIComponent(url));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const csv = await res.text();
+    if (!csv || csv.length < 50) throw new Error('CSV vacío');
+    
     return csv.trim().split('\n').slice(1)
       .map(line => {
         const [date, , , , close] = line.split(',');
@@ -255,7 +212,7 @@
             <div style="margin-left:20px;font-size:11px;color:#96a3b7">
               <div style="margin:2px 0">
                 <span style="display:inline-block;width:60px">Real:</span>
-                <strong style="color:#dbe4f3">${config.unit}${realValue.toLocaleString('es-CL', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
+                <strong style="color:#dbe4f3">${config.unit}${realValue.toFixed(2)}</strong>
               </div>
               <div style="margin:2px 0">
                 <span style="display:inline-block;width:60px">Base100:</span>
@@ -288,7 +245,7 @@
   function updateChart() {
     if (!state.chart) return;
 
-    console.log(`🔄 Actualizando chart - Modo: ${state.mode}, Período: ${state.period}`);
+    console.log(`🔄 Actualizando Índices - Modo: ${state.mode}, Período: ${state.period}`);
 
     // Limpiar series
     Object.values(state.seriesObjects).forEach(s => state.chart.removeSeries(s));
@@ -332,7 +289,6 @@
       // Asignar escala según modo
       let priceScaleId = 'right';
       if (state.mode === 'Real') {
-        // En Real: UF→left, USD/CLP→right, IPSA→left
         priceScaleId = idx % 2 === 0 ? 'left' : 'right';
       }
 
@@ -345,7 +301,7 @@
           type: 'custom',
           formatter: (price) => {
             if (state.mode === 'Real') {
-              return config.unit + price.toLocaleString('es-CL', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+              return config.unit + price.toFixed(2);
             }
             if (state.mode === 'Base100') {
               return price.toFixed(2);
@@ -365,7 +321,7 @@
   }
 
   function hideLoading() {
-    const loading = document.querySelector('#c-chile .bd-loading');
+    const loading = document.querySelector('#c-indices .bd-loading');
     if (loading) loading.style.display = 'none';
   }
 
@@ -384,6 +340,6 @@
     init();
   }
 
-  console.log('✅ app.js (TradFi Chile) cargado');
+  console.log('✅ indices.js cargado');
 
 })();
