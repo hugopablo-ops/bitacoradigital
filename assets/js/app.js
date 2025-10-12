@@ -1,4 +1,4 @@
-// TradFi Chile - UF, USD/CLP, IPSA (TOOLTIPS FUNCIONANDO)
+// TradFi Chile - UF, USD/CLP, IPSA (SIN ERRORES)
 (function() {
   'use strict';
 
@@ -195,7 +195,7 @@
       handleScale: { axisPressedMouseMove: false, mouseWheel: false, pinch: false }
     });
 
-    // Crear tooltip si no existe
+    // Crear tooltip
     if (!tooltipDiv) {
       tooltipDiv = document.createElement('div');
       tooltipDiv.style.position = 'absolute';
@@ -215,14 +215,16 @@
       container.appendChild(tooltipDiv);
     }
 
-    // Tooltip handler
+    // Tooltip handler - CORREGIDO
     state.chart.subscribeCrosshairMove(param => {
       if (!param.time || !param.point || param.point.x < 0 || param.point.y < 0) {
         tooltipDiv.style.display = 'none';
         return;
       }
 
-      const dateStr = new Date(param.time * 1000).toISOString().split('T')[0];
+      // FIX: param.time es una string en formato "YYYY-MM-DD", no timestamp
+      const dateStr = typeof param.time === 'string' ? param.time : new Date(param.time * 1000).toISOString().split('T')[0];
+      
       let html = `<div style="font-weight:bold;margin-bottom:8px;border-bottom:1px solid #555;padding-bottom:4px">${dateStr}</div>`;
 
       let hasData = false;
@@ -238,8 +240,8 @@
         const config = SERIES_CONFIG[id];
         const t0 = state.t0Values[id];
         
-        // Buscar valor real
-        const point = state.filteredData[id]?.find(d => d.time === param.time);
+        // Buscar valor real usando la fecha como string
+        const point = state.filteredData[id]?.find(d => d.time === dateStr);
         const realValue = point ? point.value : data.value;
         
         const base100 = (realValue / t0) * 100;
