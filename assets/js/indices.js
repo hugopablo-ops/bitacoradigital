@@ -1,4 +1,4 @@
-// Índices - SPY, EWG, EWJ (TOOLTIPS CORREGIDOS)
+// Índices - SPY, EWG, EWJ (TOOLTIPS FUNCIONANDO)
 (function() {
   'use strict';
 
@@ -16,9 +16,10 @@
     filteredData: {},
     t0Values: {},
     chart: null,
-    seriesObjects: {},
-    tooltip: null
+    seriesObjects: {}
   };
+
+  let tooltipDiv = null;
 
   async function init() {
     const container = document.getElementById('c-indices');
@@ -26,9 +27,6 @@
       console.error('❌ No se encontró #c-indices');
       return;
     }
-
-    // Asegurar que el contenedor tenga position relative
-    container.style.position = 'relative';
 
     console.log('📊 Iniciando Índices...');
     setupControls();
@@ -38,7 +36,7 @@
       createChart(container);
       updateChart();
       hideLoading();
-      console.log('✅ Índices cargados con tooltips');
+      console.log('✅ Índices cargados');
     } catch (error) {
       console.error('❌ Error Índices:', error);
       showError(container, 'Error al cargar índices');
@@ -161,36 +159,35 @@
       handleScale: { axisPressedMouseMove: false, mouseWheel: false, pinch: false }
     });
 
-    // Crear tooltip
-    state.tooltip = document.createElement('div');
-    state.tooltip.style.cssText = `
-      position: absolute;
-      display: none;
-      padding: 12px 16px;
-      background: rgba(10, 15, 30, 0.98);
-      border: 1px solid #2e3e55;
-      border-radius: 8px;
-      color: #dbe4f3;
-      font-size: 13px;
-      pointer-events: none;
-      z-index: 1000;
-      line-height: 1.6;
-      min-width: 240px;
-      max-width: 340px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-      font-family: inherit;
-    `;
-    container.appendChild(state.tooltip);
+    // Crear tooltip si no existe
+    if (!tooltipDiv) {
+      tooltipDiv = document.createElement('div');
+      tooltipDiv.style.position = 'absolute';
+      tooltipDiv.style.display = 'none';
+      tooltipDiv.style.padding = '12px';
+      tooltipDiv.style.background = 'rgba(0, 0, 0, 0.95)';
+      tooltipDiv.style.color = '#fff';
+      tooltipDiv.style.border = '1px solid #10b981';
+      tooltipDiv.style.borderRadius = '6px';
+      tooltipDiv.style.fontSize = '12px';
+      tooltipDiv.style.zIndex = '9999';
+      tooltipDiv.style.pointerEvents = 'none';
+      tooltipDiv.style.lineHeight = '1.6';
+      tooltipDiv.style.minWidth = '200px';
+      tooltipDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+      container.style.position = 'relative';
+      container.appendChild(tooltipDiv);
+    }
 
-    // Evento de crosshair
-    state.chart.subscribeCrosshairMove((param) => {
-      if (!param.time || param.point.x < 0 || param.point.y < 0) {
-        state.tooltip.style.display = 'none';
+    // Tooltip handler
+    state.chart.subscribeCrosshairMove(param => {
+      if (!param.time || !param.point || param.point.x < 0 || param.point.y < 0) {
+        tooltipDiv.style.display = 'none';
         return;
       }
 
       const dateStr = new Date(param.time * 1000).toISOString().split('T')[0];
-      let html = `<div style="font-weight:700;margin-bottom:10px;color:#fff;border-bottom:1px solid #2e3e55;padding-bottom:6px;font-size:14px">${dateStr}</div>`;
+      let html = `<div style="font-weight:bold;margin-bottom:8px;border-bottom:1px solid #555;padding-bottom:4px">${dateStr}</div>`;
 
       let hasData = false;
 
@@ -198,65 +195,45 @@
         const series = state.seriesObjects[id];
         if (!series) return;
 
-        const price = param.seriesData.get(series);
-        if (!price) return;
+        const data = param.seriesData.get(series);
+        if (!data || data.value === undefined) return;
 
         hasData = true;
         const config = SERIES_CONFIG[id];
         const t0 = state.t0Values[id];
         
-        const dataPoint = state.filteredData[id]?.find(d => d.time === param.time);
-        const realValue = dataPoint ? dataPoint.value : price.value;
+        // Buscar valor real
+        const point = state.filteredData[id]?.find(d => d.time === param.time);
+        const realValue = point ? point.value : data.value;
         
         const base100 = (realValue / t0) * 100;
         const percent = ((realValue / t0) - 1) * 100;
 
         html += `
-          <div style="margin:8px 0;padding:8px 0;border-top:1px solid rgba(255,255,255,0.05)">
-            <div style="color:${config.color};font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;font-size:14px">
-              <span style="font-size:16px">●</span> 
-              <span>${config.name}</span>
+          <div style="margin:6px 0;padding:6px 0;border-top:1px solid rgba(255,255,255,0.1)">
+            <div style="color:${config.color};font-weight:bold;margin-bottom:4px">
+              ● ${config.name}
             </div>
-            <div style="margin-left:24px;font-size:12px;color:#96a3b7">
-              <div style="margin:3px 0;display:flex;justify-content:space-between">
-                <span style="color:#7a8a9f">Real:</span>
-                <strong style="color:#dbe4f3;margin-left:12px">${config.unit}${realValue.toFixed(2)}</strong>
-              </div>
-              <div style="margin:3px 0;display:flex;justify-content:space-between">
-                <span style="color:#7a8a9f">Base100:</span>
-                <strong style="color:#dbe4f3;margin-left:12px">${base100.toFixed(2)}</strong>
-              </div>
-              <div style="margin:3px 0;display:flex;justify-content:space-between">
-                <span style="color:#7a8a9f">Var %:</span>
-                <strong style="color:${percent >= 0 ? '#10b981' : '#ef4444'};margin-left:12px">${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%</strong>
-              </div>
+            <div style="margin-left:16px;font-size:11px;color:#ccc">
+              <div>Real: <strong>${config.unit}${realValue.toFixed(2)}</strong></div>
+              <div>Base100: <strong>${base100.toFixed(2)}</strong></div>
+              <div>Var %: <strong style="color:${percent >= 0 ? '#10b981' : '#ef4444'}">${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%</strong></div>
             </div>
           </div>
         `;
       });
 
       if (hasData) {
-        state.tooltip.innerHTML = html;
-        state.tooltip.style.display = 'block';
+        tooltipDiv.innerHTML = html;
+        tooltipDiv.style.display = 'block';
         
-        const containerRect = container.getBoundingClientRect();
-        const tooltipRect = state.tooltip.getBoundingClientRect();
+        const x = param.point.x;
+        const y = param.point.y;
         
-        let left = param.point.x + 20;
-        let top = param.point.y + 20;
-        
-        if (left + tooltipRect.width > containerRect.width) {
-          left = param.point.x - tooltipRect.width - 20;
-        }
-        
-        if (top + tooltipRect.height > containerRect.height) {
-          top = param.point.y - tooltipRect.height - 20;
-        }
-        
-        state.tooltip.style.left = Math.max(10, left) + 'px';
-        state.tooltip.style.top = Math.max(10, top) + 'px';
+        tooltipDiv.style.left = (x + 15) + 'px';
+        tooltipDiv.style.top = (y + 15) + 'px';
       } else {
-        state.tooltip.style.display = 'none';
+        tooltipDiv.style.display = 'none';
       }
     });
 
@@ -346,7 +323,5 @@
   } else {
     init();
   }
-
-  console.log('✅ indices.js cargado');
 
 })();
