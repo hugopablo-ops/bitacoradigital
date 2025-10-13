@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nosotros - Bitácora Digital</title>
+  <title>Contacto - Bitácora Digital</title>
   <link rel="icon" href="assets/favicon.svg" />
   
   <style>
@@ -21,6 +21,8 @@
       --accent: #1f9df2;
       --accent2: #2dde9b;
       --line: #1c2636;
+      --error: #f56565;
+      --success: #48bb78;
     }
     
     body {
@@ -76,186 +78,168 @@
     
     /* CONTENIDO */
     .container {
-      max-width: 1200px;
+      max-width: 800px;
       margin: 0 auto;
       padding: 4rem 2rem;
     }
     
     .hero-section {
       text-align: center;
-      padding: 3rem 0;
-      border-bottom: 1px solid var(--line);
-      margin-bottom: 4rem;
+      padding: 2rem 0 3rem;
     }
     
     .hero-section h1 {
-      font-size: 3rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: var(--text);
     }
     
-    .hero-section .tagline {
-      font-size: 1.5rem;
-      color: var(--muted);
-      margin-bottom: 2rem;
-    }
-    
-    .hero-section .motto {
-      font-size: 1.25rem;
-      color: var(--accent2);
-      font-weight: 600;
-      padding: 1rem 2rem;
-      background: rgba(45, 222, 155, 0.1);
-      border-radius: 12px;
-      display: inline-block;
-    }
-    
-    /* SECCIONES */
-    .section {
-      margin-bottom: 4rem;
-    }
-    
-    .section h2 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: var(--accent);
-    }
-    
-    .section p {
+    .hero-section p {
       font-size: 1.125rem;
       color: var(--muted);
-      margin-bottom: 1rem;
-      line-height: 1.8;
+      max-width: 600px;
+      margin: 0 auto;
     }
     
-    .section strong {
-      color: var(--text);
-      font-weight: 600;
-    }
-    
-    /* GRID DE PILARES */
-    .pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
-    }
-    
-    .pillar-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 2rem;
-      transition: all 0.3s;
-    }
-    
-    .pillar-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(31, 157, 242, 0.2);
-    }
-    
-    .pillar-card h3 {
-      font-size: 1.25rem;
-      color: var(--accent2);
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .pillar-card p {
-      font-size: 1rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-    
-    /* EQUIPO */
-    .team-section {
+    /* FORMULARIO */
+    .form-card {
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 3rem;
-      margin-top: 3rem;
     }
     
-    .team-member {
-      display: flex;
-      gap: 2rem;
-      align-items: flex-start;
-      margin-bottom: 2rem;
+    .form-group {
+      margin-bottom: 1.5rem;
     }
     
-    .team-avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3rem;
-      font-weight: 700;
-      color: var(--bg);
-      flex-shrink: 0;
-    }
-    
-    .team-info h3 {
-      font-size: 1.5rem;
+    .form-group label {
+      display: block;
       margin-bottom: 0.5rem;
       color: var(--text);
-    }
-    
-    .team-info .role {
-      color: var(--accent);
       font-weight: 600;
-      margin-bottom: 1rem;
     }
     
-    .team-info p {
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
       font-size: 1rem;
-      color: var(--muted);
-      line-height: 1.6;
+      transition: all 0.2s;
     }
     
-    /* CTA COMPASS */
-    .compass-cta {
-      background: linear-gradient(135deg, rgba(31, 157, 242, 0.1) 0%, rgba(45, 222, 155, 0.1) 100%);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      padding: 3rem;
-      text-align: center;
-      margin-top: 4rem;
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(31, 157, 242, 0.1);
     }
     
-    .compass-cta h2 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
+    .form-group textarea {
+      min-height: 150px;
+      resize: vertical;
     }
     
-    .compass-cta p {
-      font-size: 1.125rem;
-      margin-bottom: 2rem;
+    .form-group input.error,
+    .form-group textarea.error {
+      border-color: var(--error);
     }
     
-    .compass-cta .btn {
-      display: inline-block;
-      padding: 1rem 2rem;
+    .error-message {
+      color: var(--error);
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    
+    .error-message.show {
+      display: block;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
       background: var(--accent);
       color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
       font-weight: 700;
-      border-radius: 999px;
-      text-decoration: none;
+      cursor: pointer;
       transition: all 0.3s;
+      font-family: inherit;
     }
     
-    .compass-cta .btn:hover {
+    .submit-btn:hover {
       background: var(--accent2);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(31, 157, 242, 0.4);
+    }
+    
+    .submit-btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    /* MENSAJES */
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    
+    .alert.show {
+      display: block;
+    }
+    
+    .alert-success {
+      background: rgba(72, 187, 120, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+    
+    .alert-error {
+      background: rgba(245, 101, 101, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+    
+    /* INFO ADICIONAL */
+    .info-section {
+      margin-top: 3rem;
+      padding: 2rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    
+    .info-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    
+    .info-section p {
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    
+    .info-section a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .info-section a:hover {
+      text-decoration: underline;
     }
     
     /* FOOTER */
@@ -298,18 +282,8 @@
         font-size: 2rem;
       }
       
-      .hero-section .tagline {
-        font-size: 1.125rem;
-      }
-      
-      .team-member {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-      }
-      
-      .section h2 {
-        font-size: 1.5rem;
+      .form-card {
+        padding: 2rem 1.5rem;
       }
     }
   </style>
@@ -323,7 +297,7 @@
       <nav class="nav">
         <a href="index.html#podcast">Podcast</a>
         <a href="index.html#analytic">Dashboards</a>
-        <a href="contacto.html">Contacto</a>
+        <a href="nosotros.html">Nosotros</a>
       </nav>
     </div>
   </header>
@@ -333,125 +307,92 @@
     
     <!-- HERO -->
     <section class="hero-section">
-      <h1>Bitácora Digital</h1>
-      <p class="tagline">Navegando por el futuro de las IA y Finanzas</p>
-      <p class="motto">🧭 El humano al centro</p>
-    </section>
-
-    <!-- MISIÓN -->
-    <section class="section">
-      <h2>Nuestra Misión</h2>
+      <h1>Contacto</h1>
       <p>
-        <strong>Bitácora Digital</strong> es un proyecto de educación y visión para individuos y organizaciones 
-        que buscan integrar <strong>finanzas y tecnología</strong> en las nuevas tendencias de nuestros tiempos.
-      </p>
-      <p>
-        A través de nuestro podcast, dashboards analíticos y contenido editorial, exploramos los pilares 
-        fundamentales de la transformación digital: <strong>Inteligencia Artificial, Analítica de Datos, 
-        DeFi, TradFi, Fintech e IoT</strong>.
-      </p>
-      <p>
-        Nuestro lema <strong>"el humano al centro"</strong> refleja nuestra convicción: las tecnologías 
-        son literalmente superpoderes digitales para el desarrollo humano de cara al futuro. Es el humano 
-        que, potenciándose con IA y herramientas digitales, podrá elevar su estándar de vida y toma de decisiones.
+        ¿Tienes preguntas, sugerencias o te interesa trabajar con nosotros? 
+        Estamos aquí para ayudarte.
       </p>
     </section>
 
-    <!-- PILARES -->
-    <section class="section">
-      <h2>Nuestros Pilares</h2>
+    <!-- FORMULARIO -->
+    <div class="form-card">
       
-      <div class="pillars-grid">
-        <div class="pillar-card">
-          <h3>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 6v6l4 2"/>
-            </svg>
-            Podcast Educativo
-          </h3>
-          <p>
-            Conversaciones profundas sobre Web3, IA, DeFi, TradFi y Fintech. 
-            Educación aplicada para decisiones informadas en tiempo real.
-          </p>
-        </div>
-
-        <div class="pillar-card">
-          <h3>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-            </svg>
-            Analítica en Tiempo Real
-          </h3>
-          <p>
-            Dashboards comparativos sincronizados con datos de TradFi, índices globales, 
-            tecnología, crypto y commodities.
-          </p>
-        </div>
-
-        <div class="pillar-card">
-          <h3>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            </svg>
-            Visión Estratégica
-          </h3>
-          <p>
-            Análisis de tendencias tecnológicas y financieras con perspectiva 
-            de negocios y desarrollo humano.
-          </p>
-        </div>
-
-        <div class="pillar-card">
-          <h3>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-            </svg>
-            Editorial y Actualidad
-          </h3>
-          <p>
-            Noticias curadas, calendario financiero y comentarios sobre los 
-            eventos más relevantes del ecosistema.
-          </p>
-        </div>
+      <!-- Alertas -->
+      <div id="successAlert" class="alert alert-success">
+        ✓ Mensaje enviado correctamente. Te responderemos pronto.
       </div>
-    </section>
-
-    <!-- EQUIPO -->
-    <section class="section">
-      <h2>Equipo</h2>
       
-      <div class="team-section">
-        <div class="team-member">
-          <div class="team-avatar">H</div>
-          <div class="team-info">
-            <h3>Hugo De Foms</h3>
-            <p class="role">Fundador y Host Principal</p>
-            <p>
-              Creador de Bitácora Digital, Hugo lidera la visión estratégica del proyecto 
-              y conduce el podcast semanal. Con experiencia en finanzas, tecnología y educación, 
-              Hugo traduce conceptos complejos en contenido accionable para audiencias diversas.
-            </p>
-            <p style="margin-top:1rem">
-              Su enfoque se centra en democratizar el acceso al conocimiento financiero y tecnológico, 
-              siempre con el humano al centro de la transformación digital.
-            </p>
-          </div>
-        </div>
+      <div id="errorAlert" class="alert alert-error">
+        ✗ Hubo un error al enviar el mensaje. Por favor intenta nuevamente.
       </div>
-    </section>
+      
+      <form id="contactForm">
+        
+        <div class="form-group">
+          <label for="name">Nombre completo *</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            required 
+            placeholder="Tu nombre"
+          >
+          <div class="error-message" id="nameError">Por favor ingresa tu nombre</div>
+        </div>
 
-    <!-- CTA COMPASS DIGITAL -->
-    <section class="compass-cta">
-      <h2>¿Necesitas consultoría especializada?</h2>
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            placeholder="tu@email.com"
+          >
+          <div class="error-message" id="emailError">Por favor ingresa un email válido</div>
+        </div>
+
+        <div class="form-group">
+          <label for="subject">Asunto</label>
+          <input 
+            type="text" 
+            id="subject" 
+            name="subject" 
+            placeholder="¿De qué quieres hablar?"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="message">Mensaje *</label>
+          <textarea 
+            id="message" 
+            name="message" 
+            required 
+            placeholder="Escribe tu mensaje aquí..."
+          ></textarea>
+          <div class="error-message" id="messageError">Por favor escribe un mensaje</div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Enviar mensaje
+        </button>
+        
+      </form>
+    </div>
+
+    <!-- INFO ADICIONAL -->
+    <div class="info-section">
+      <h2>Otras formas de contacto</h2>
       <p>
-        <strong>Compass Digital</strong> es el brazo de negocios de Bitácora Digital. 
-        Ofrecemos consultorías, servicios y soluciones tecnológicas adaptadas a las necesidades 
-        de individuos y organizaciones que buscan integrar IA, analítica y finanzas digitales.
+        <strong>Email directo:</strong> 
+        <a href="mailto:hugopablo@gmail.com">hugopablo@gmail.com</a>
       </p>
-      <a href="contacto.html" class="btn">Contáctanos →</a>
-    </section>
+      <p>
+        <strong>Consultoría empresarial:</strong> 
+        Si necesitas servicios de consultoría en IA, analítica o finanzas digitales, 
+        visita <a href="http://compassdigital.io" target="_blank">compassdigital.io</a>
+      </p>
+    </div>
 
   </div>
 
@@ -467,6 +408,115 @@
       </div>
     </div>
   </footer>
+
+  <script>
+    const form = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const successAlert = document.getElementById('successAlert');
+    const errorAlert = document.getElementById('errorAlert');
+    
+    // Elementos de error
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const messageInput = document.getElementById('message');
+    
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const messageError = document.getElementById('messageError');
+    
+    // Validación en tiempo real
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    
+    function showError(input, errorElement) {
+      input.classList.add('error');
+      errorElement.classList.add('show');
+    }
+    
+    function hideError(input, errorElement) {
+      input.classList.remove('error');
+      errorElement.classList.remove('show');
+    }
+    
+    // Validación al enviar
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Reset alertas
+      successAlert.classList.remove('show');
+      errorAlert.classList.remove('show');
+      
+      // Validar campos
+      let isValid = true;
+      
+      if (!nameInput.value.trim()) {
+        showError(nameInput, nameError);
+        isValid = false;
+      } else {
+        hideError(nameInput, nameError);
+      }
+      
+      if (!emailInput.value.trim() || !validateEmail(emailInput.value)) {
+        showError(emailInput, emailError);
+        isValid = false;
+      } else {
+        hideError(emailInput, emailError);
+      }
+      
+      if (!messageInput.value.trim()) {
+        showError(messageInput, messageError);
+        isValid = false;
+      } else {
+        hideError(messageInput, messageError);
+      }
+      
+      if (!isValid) return;
+      
+      // Deshabilitar botón
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+      
+      // Simular envío (aquí conectarías con tu backend)
+      try {
+        // Construir mailto link como fallback
+        const mailtoLink = `mailto:hugopablo@gmail.com?subject=${encodeURIComponent(document.getElementById('subject').value || 'Contacto desde Bitácora Digital')}&body=${encodeURIComponent(
+          `Nombre: ${nameInput.value}\nEmail: ${emailInput.value}\n\nMensaje:\n${messageInput.value}`
+        )}`;
+        
+        // Abrir cliente de email
+        window.location.href = mailtoLink;
+        
+        // Mostrar éxito
+        setTimeout(() => {
+          successAlert.classList.add('show');
+          form.reset();
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar mensaje';
+          
+          // Ocultar alerta después de 5 segundos
+          setTimeout(() => {
+            successAlert.classList.remove('show');
+          }, 5000);
+        }, 500);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        errorAlert.classList.add('show');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar mensaje';
+        
+        setTimeout(() => {
+          errorAlert.classList.remove('show');
+        }, 5000);
+      }
+    });
+    
+    // Limpiar errores al escribir
+    nameInput.addEventListener('input', () => hideError(nameInput, nameError));
+    emailInput.addEventListener('input', () => hideError(emailInput, emailError));
+    messageInput.addEventListener('input', () => hideError(messageInput, messageError));
+  </script>
 
 </body>
 </html>
