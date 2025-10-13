@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nosotros - Bitácora Digital</title>
+  <link rel="icon" href="assets/favicon.svg" />
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg: #0f1620;
+      --card: #141c27;
+      --text: #dbe4f3;
+      --muted: #96a3b7;
+      --accent: #1f9df2;
+      --accent2: #2dde9b;
+      --line: #1c2636;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    /* HEADER */
+    .header {
+      background: rgba(8, 12, 18, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .logo:hover {
+      color: var(--accent);
+    }
+    
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 2rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav a:hover {
+      color: var(--accent);
+    }
+    
+    /* CONTENIDO */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+    
+    .hero-section {
+      text-align: center;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 4rem;
+    }
+    
+    .hero-section h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero-section .tagline {
+      font-size: 1.5rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+    
+    .hero-section .motto {
+      font-size: 1.25rem;
+      color: var(--accent2);
+      font-weight: 600;
+      padding: 1rem 2rem;
+      background: rgba(45, 222, 155, 0.1);
+      border-radius: 12px;
+      display: inline-block;
+    }
+    
+    /* SECCIONES */
+    .section {
+      margin-bottom: 4rem;
+    }
+    
+    .section h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    
+    .section p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      line-height: 1.8;
+    }
+    
+    .section strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    
+    /* GRID DE PILARES */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .pillar-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: all 0.3s;
+    }
+    
+    .pillar-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(31, 157, 242, 0.2);
+    }
+    
+    .pillar-card h3 {
+      font-size: 1.25rem;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .pillar-card p {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    
+    /* EQUIPO */
+    .team-section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 3rem;
+      margin-top: 3rem;
+    }
+    
+    .team-member {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+    }
+    
+    .team-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--bg);
+      flex-shrink: 0;
+    }
+    
+    .team-info h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    
+    .team-info .role {
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .team-info p {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    
+    /* CTA COMPASS */
+    .compass-cta {
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.1) 0%, rgba(45, 222, 155, 0.1) 100%);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 3rem;
+      text-align: center;
+      margin-top: 4rem;
+    }
+    
+    .compass-cta h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .compass-cta p {
+      font-size: 1.125rem;
+      margin-bottom: 2rem;
+    }
+    
+    .compass-cta .btn {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 700;
+      border-radius: 999px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .compass-cta .btn:hover {
+      background: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(31, 157, 242, 0.4);
+    }
+    
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0;
+      color: #9fb0c9;
+      margin-top: 60px;
+    }
+    
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .footer-links a {
+      color: #9fb0c9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: #fff;
+    }
+    
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .hero-section h1 {
+        font-size: 2rem;
+      }
+      
+      .hero-section .tagline {
+        font-size: 1.125rem;
+      }
+      
+      .team-member {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      
+      .section h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">← Bitácora Digital</a>
+      <nav class="nav">
+        <a href="index.html#podcast">Podcast</a>
+        <a href="index.html#analytic">Dashboards</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="container">
+    
+    <!-- HERO -->
+    <section class="hero-section">
+      <h1>Bitácora Digital</h1>
+      <p class="tagline">Navegando por el futuro de las IA y Finanzas</p>
+      <p class="motto">🧭 El humano al centro</p>
+    </section>
+
+    <!-- MISIÓN -->
+    <section class="section">
+      <h2>Nuestra Misión</h2>
+      <p>
+        <strong>Bitácora Digital</strong> es un proyecto de educación y visión para individuos y organizaciones 
+        que buscan integrar <strong>finanzas y tecnología</strong> en las nuevas tendencias de nuestros tiempos.
+      </p>
+      <p>
+        A través de nuestro podcast, dashboards analíticos y contenido editorial, exploramos los pilares 
+        fundamentales de la transformación digital: <strong>Inteligencia Artificial, Analítica de Datos, 
+        DeFi, TradFi, Fintech e IoT</strong>.
+      </p>
+      <p>
+        Nuestro lema <strong>"el humano al centro"</strong> refleja nuestra convicción: las tecnologías 
+        son literalmente superpoderes digitales para el desarrollo humano de cara al futuro. Es el humano 
+        que, potenciándose con IA y herramientas digitales, podrá elevar su estándar de vida y toma de decisiones.
+      </p>
+    </section>
+
+    <!-- PILARES -->
+    <section class="section">
+      <h2>Nuestros Pilares</h2>
+      
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            Podcast Educativo
+          </h3>
+          <p>
+            Conversaciones profundas sobre Web3, IA, DeFi, TradFi y Fintech. 
+            Educación aplicada para decisiones informadas en tiempo real.
+          </p>
+        </div>
+
+        <div class="pillar-card">
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Analítica en Tiempo Real
+          </h3>
+          <p>
+            Dashboards comparativos sincronizados con datos de TradFi, índices globales, 
+            tecnología, crypto y commodities.
+          </p>
+        </div>
+
+        <div class="pillar-card">
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            Visión Estratégica
+          </h3>
+          <p>
+            Análisis de tendencias tecnológicas y financieras con perspectiva 
+            de negocios y desarrollo humano.
+          </p>
+        </div>
+
+        <div class="pillar-card">
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+            Editorial y Actualidad
+          </h3>
+          <p>
+            Noticias curadas, calendario financiero y comentarios sobre los 
+            eventos más relevantes del ecosistema.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- EQUIPO -->
+    <section class="section">
+      <h2>Equipo</h2>
+      
+      <div class="team-section">
+        <div class="team-member">
+          <div class="team-avatar">H</div>
+          <div class="team-info">
+            <h3>Hugo De Foms</h3>
+            <p class="role">Fundador y Host Principal</p>
+            <p>
+              Creador de Bitácora Digital, Hugo lidera la visión estratégica del proyecto 
+              y conduce el podcast semanal. Con experiencia en finanzas, tecnología y educación, 
+              Hugo traduce conceptos complejos en contenido accionable para audiencias diversas.
+            </p>
+            <p style="margin-top:1rem">
+              Su enfoque se centra en democratizar el acceso al conocimiento financiero y tecnológico, 
+              siempre con el humano al centro de la transformación digital.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA COMPASS DIGITAL -->
+    <section class="compass-cta">
+      <h2>¿Necesitas consultoría especializada?</h2>
+      <p>
+        <strong>Compass Digital</strong> es el brazo de negocios de Bitácora Digital. 
+        Ofrecemos consultorías, servicios y soluciones tecnológicas adaptadas a las necesidades 
+        de individuos y organizaciones que buscan integrar IA, analítica y finanzas digitales.
+      </p>
+      <a href="contacto.html" class="btn">Contáctanos →</a>
+    </section>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© 2025 Bitácora Digital</span>
+      <div class="footer-links">
+        <a href="index.html#podcast">Podcast</a>
+        <a href="index.html#analytic">Dashboards</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
