@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Podcast y Editorial - Bitácora Digital</title>
+  <link rel="icon" href="assets/favicon.svg" />
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg: #0f1620;
+      --card: #141c27;
+      --text: #dbe4f3;
+      --muted: #96a3b7;
+      --accent: #1f9df2;
+      --line: #1c2636;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    /* HEADER */
+    .header {
+      background: rgba(8, 12, 18, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .logo:hover {
+      color: var(--accent);
+    }
+    
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 2rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav a:hover {
+      color: var(--accent);
+    }
+    
+    /* LAYOUT PRINCIPAL */
+    .main-container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 2rem;
+      min-height: calc(100vh - 100px);
+    }
+    
+    /* COLUMNA IZQUIERDA: EPISODIOS */
+    .episodes-sidebar {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+      height: fit-content;
+      position: sticky;
+      top: 100px;
+    }
+    
+    .episodes-sidebar h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    
+    .episode-list {
+      list-style: none;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    
+    .episode-item {
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      background: var(--bg);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    
+    .episode-item:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+    }
+    
+    .episode-item.active {
+      border-color: var(--accent);
+      background: rgba(31, 157, 242, 0.1);
+    }
+    
+    .episode-number {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .episode-title {
+      font-weight: 600;
+      margin: 0.25rem 0;
+      color: var(--text);
+    }
+    
+    .episode-date {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    
+    /* COLUMNA DERECHA: EDITORIAL */
+    .editorial-section {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    /* PLAYER */
+    .player-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+    }
+    
+    .player-card iframe {
+      width: 100%;
+      border-radius: 8px;
+    }
+    
+    /* GRID SUPERIOR: PALABRAS + CALENDARIO */
+    .editorial-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    
+    .editorial-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+    }
+    
+    .editorial-card h3 {
+      font-size: 1.125rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    /* PALABRAS DE LA BITÁCORA */
+    .bitacora-text {
+      color: var(--muted);
+      line-height: 1.8;
+      max-height: 200px;
+      overflow: hidden;
+      transition: max-height 0.3s;
+    }
+    
+    .bitacora-text.expanded {
+      max-height: none;
+    }
+    
+    .read-more {
+      margin-top: 1rem;
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      display: inline-block;
+    }
+    
+    .read-more:hover {
+      text-decoration: underline;
+    }
+    
+    /* CALENDARIO */
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+    }
+    
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .calendar-day:hover {
+      background: rgba(31, 157, 242, 0.2);
+    }
+    
+    .calendar-day.event::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    
+    .calendar-day.header {
+      font-weight: 700;
+      color: var(--accent);
+      cursor: default;
+      background: transparent;
+    }
+    
+    /* CONTENIDO ADICIONAL */
+    .content-section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+    }
+    
+    .content-section h3 {
+      font-size: 1.125rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    
+    .news-item, .comment-item {
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      background: var(--bg);
+      border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
+    
+    .news-item h4 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .news-item a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+    }
+    
+    .news-item a:hover {
+      text-decoration: underline;
+    }
+    
+    .comment-author {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    
+    .comment-time {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    
+    .comment-text {
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+    
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0;
+      color: #9fb0c9;
+      margin-top: 60px;
+    }
+    
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .footer-links a {
+      color: #9fb0c9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: #fff;
+    }
+    
+    /* RESPONSIVE */
+    @media (max-width: 1200px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .episodes-sidebar {
+        position: static;
+      }
+      
+      .editorial-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">← Bitácora Digital</a>
+      <nav class="nav">
+        <a href="index.html#analytic">Dashboards</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="main-container">
+    
+    <!-- COLUMNA IZQUIERDA: EPISODIOS -->
+    <aside class="episodes-sidebar">
+      <h2>📻 Capítulos</h2>
+      <ul class="episode-list" id="episodeList">
+        <li class="episode-item active" data-episode="5" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
+          <div class="episode-number">Capítulo 5</div>
+          <div class="episode-title">Blockchain y Cripto</div>
+          <div class="episode-date">Hace 1 mes</div>
+        </li>
+        <li class="episode-item" data-episode="4" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
+          <div class="episode-number">Capítulo 4</div>
+          <div class="episode-title">DeFi: El Futuro de las Finanzas</div>
+          <div class="episode-date">Hace 2 meses</div>
+        </li>
+        <li class="episode-item" data-episode="3" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
+          <div class="episode-number">Capítulo 3</div>
+          <div class="episode-title">Inteligencia Artificial en Finanzas</div>
+          <div class="episode-date">Hace 3 meses</div>
+        </li>
+        <li class="episode-item" data-episode="2" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
+          <div class="episode-number">Capítulo 2</div>
+          <div class="episode-title">Web3 y el Internet del Valor</div>
+          <div class="episode-date">Hace 4 meses</div>
+        </li>
+        <li class="episode-item" data-episode="1" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
+          <div class="episode-number">Capítulo 1</div>
+          <div class="episode-title">Introducción a TradFi</div>
+          <div class="episode-date">Hace 5 meses</div>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- COLUMNA DERECHA: EDITORIAL -->
+    <main class="editorial-section">
+      
+      <!-- PLAYER SPOTIFY -->
+      <div class="player-card">
+        <iframe
+          id="spotifyPlayer"
+          style="border:0;width:100%;height:232px;border-radius:10px"
+          src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy">
+        </iframe>
+      </div>
+
+      <!-- GRID: PALABRAS + CALENDARIO -->
+      <div class="editorial-grid">
+        
+        <!-- PALABRAS DE LA BITÁCORA -->
+        <div class="editorial-card">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Palabras de la Bitácora
+          </h3>
+          <div class="bitacora-text" id="bitacoraText">
+            <p>
+              En este capítulo exploramos el fascinante mundo de blockchain y las criptomonedas,
+              tecnologías que están redefiniendo cómo entendemos el dinero, la confianza y las
+              transacciones en la era digital.
+            </p>
+            <p style="margin-top:1rem">
+              Desde Bitcoin hasta los contratos inteligentes de Ethereum, pasando por las innovaciones
+              en escalabilidad de redes Layer 2, analizamos cómo estas tecnologías están democratizando
+              el acceso a servicios financieros y creando nuevas oportunidades de inversión y desarrollo.
+            </p>
+            <p style="margin-top:1rem">
+              Discutimos también los desafíos regulatorios, la sostenibilidad energética de las redes proof-of-work,
+              y cómo las instituciones tradicionales están adoptando gradualmente estas tecnologías disruptivas.
+            </p>
+          </div>
+          <span class="read-more" id="readMoreBtn">Leer más ▼</span>
+        </div>
+
+        <!-- CALENDARIO FINANCIERO -->
+        <div class="editorial-card">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Calendario Financiero
+          </h3>
+          <div class="calendar">
+            <div class="calendar-day header">L</div>
+            <div class="calendar-day header">M</div>
+            <div class="calendar-day header">X</div>
+            <div class="calendar-day header">J</div>
+            <div class="calendar-day header">V</div>
+            <div class="calendar-day header">S</div>
+            <div class="calendar-day header">D</div>
+            
+            <div class="calendar-day">1</div>
+            <div class="calendar-day event" title="Fed Meeting">2</div>
+            <div class="calendar-day">3</div>
+            <div class="calendar-day">4</div>
+            <div class="calendar-day event" title="Banco Central Chile">5</div>
+            <div class="calendar-day">6</div>
+            <div class="calendar-day">7</div>
+            
+            <div class="calendar-day">8</div>
+            <div class="calendar-day">9</div>
+            <div class="calendar-day">10</div>
+            <div class="calendar-day">11</div>
+            <div class="calendar-day">12</div>
+            <div class="calendar-day event" title="CPI Report">13</div>
+            <div class="calendar-day">14</div>
+            
+            <div class="calendar-day">15</div>
+            <div class="calendar-day">16</div>
+            <div class="calendar-day">17</div>
+            <div class="calendar-day">18</div>
+            <div class="calendar-day">19</div>
+            <div class="calendar-day event" title="FOMC Minutes">20</div>
+            <div class="calendar-day">21</div>
+          </div>
+          <p style="margin-top:1rem;font-size:0.875rem;color:var(--muted)">
+            Los puntos indican eventos importantes de Fed, BCE, y Banco Central de Chile
+          </p>
+        </div>
+        
+      </div>
+
+      <!-- NOTICIAS RELACIONADAS -->
+      <div class="content-section">
+        <h3>📰 Noticias Relacionadas</h3>
+        
+        <div class="news-item">
+          <h4>Bitcoin alcanza nuevo máximo histórico</h4>
+          <p style="color:var(--muted);font-size:0.875rem;margin:0.5rem 0">
+            El precio de BTC supera los $70,000 impulsado por la adopción institucional y la aprobación de ETFs.
+          </p>
+          <a href="#" target="_blank">Leer más →</a>
+        </div>
+        
+        <div class="news-item">
+          <h4>Ethereum completa actualización Dencun</h4>
+          <p style="color:var(--muted);font-size:0.875rem;margin:0.5rem 0">
+            La red reduce costos de transacción en Layer 2 hasta en un 90% con proto-danksharding.
+          </p>
+          <a href="#" target="_blank">Leer más →</a>
+        </div>
+      </div>
+
+      <!-- COMENTARIOS -->
+      <div class="content-section">
+        <h3>💬 Comentarios</h3>
+        
+        <div class="comment-item">
+          <div class="comment-author">Carlos M.</div>
+          <div class="comment-time">Hace 2 días</div>
+          <div class="comment-text">
+            Excelente análisis sobre blockchain. Me encantó cómo explicaron la diferencia entre proof-of-work y proof-of-stake.
+          </div>
+        </div>
+        
+        <div class="comment-item">
+          <div class="comment-author">María P.</div>
+          <div class="comment-time">Hace 5 días</div>
+          <div class="comment-text">
+            ¿Podrían profundizar más en las aplicaciones de smart contracts en el próximo episodio? Tema súper interesante.
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© 2025 Bitácora Digital</span>
+      <div class="footer-links">
+        <a href="index.html#podcast">Podcast</a>
+        <a href="index.html#analytic">Dashboards</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Funcionalidad "Leer más"
+    const readMoreBtn = document.getElementById('readMoreBtn');
+    const bitacoraText = document.getElementById('bitacoraText');
+    
+    readMoreBtn.addEventListener('click', () => {
+      bitacoraText.classList.toggle('expanded');
+      readMoreBtn.textContent = bitacoraText.classList.contains('expanded') 
+        ? 'Leer menos ▲' 
+        : 'Leer más ▼';
+    });
+
+    // Selector de episodios
+    const episodeItems = document.querySelectorAll('.episode-item');
+    const spotifyPlayer = document.getElementById('spotifyPlayer');
+    
+    episodeItems.forEach(item => {
+      item.addEventListener('click', () => {
+        // Remover active de todos
+        episodeItems.forEach(i => i.classList.remove('active'));
+        
+        // Activar el clickeado
+        item.classList.add('active');
+        
+        // Cambiar el embed de Spotify
+        const spotifyId = item.dataset.spotify;
+        if (spotifyId) {
+          spotifyPlayer.src = `https://open.spotify.com/embed/show/${spotifyId}?utm_source=generator`;
+        }
+        
+        // Aquí podrías actualizar el contenido editorial dinámicamente
+        console.log('Episodio seleccionado:', item.dataset.episode);
+      });
+    });
+  </script>
+
+</body>
+</html>
