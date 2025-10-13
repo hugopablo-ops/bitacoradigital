@@ -4,57 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contacto - Bitácora Digital</title>
+  <link rel="icon" href="assets/favicon.svg" />
+  
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
+    
     :root {
       --bg: #0f1620;
       --card: #141c27;
       --text: #dbe4f3;
       --muted: #96a3b7;
       --accent: #1f9df2;
-      --accent-green: #10b981;
-      --error: #ef4444;
+      --accent2: #2dde9b;
+      --line: #1c2636;
+      --error: #f56565;
+      --success: #48bb78;
     }
-
+    
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
     }
-
+    
     /* HEADER */
     .header {
       background: rgba(8, 12, 18, 0.95);
       backdrop-filter: blur(10px);
-      border-bottom: 1px solid #1c2636;
+      border-bottom: 1px solid var(--line);
       padding: 1rem 0;
       position: sticky;
       top: 0;
       z-index: 100;
     }
-
+    
     .header-inner {
-      max-width: 1400px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 0 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
+    
     .logo {
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--text);
       text-decoration: none;
+      transition: color 0.2s;
     }
-
+    
+    .logo:hover {
+      color: var(--accent);
+    }
+    
     .nav a {
       color: var(--muted);
       text-decoration: none;
@@ -62,198 +71,218 @@
       font-weight: 500;
       transition: color 0.2s;
     }
-
+    
     .nav a:hover {
       color: var(--accent);
     }
-
+    
     /* CONTENIDO */
     .container {
       max-width: 800px;
       margin: 0 auto;
       padding: 4rem 2rem;
     }
-
+    
     .hero-section {
       text-align: center;
-      margin-bottom: 3rem;
+      padding: 2rem 0 3rem;
     }
-
+    
     .hero-section h1 {
-      font-size: 3rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
-      background: linear-gradient(135deg, var(--accent), var(--accent-green));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: var(--text);
     }
-
+    
     .hero-section p {
       font-size: 1.125rem;
       color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto;
     }
-
-    .contact-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-    }
-
-    .contact-card {
-      background: var(--card);
-      padding: 2rem;
-      border-radius: 12px;
-      border: 1px solid #1c2636;
-      text-align: center;
-      transition: all 0.3s;
-    }
-
-    .contact-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-4px);
-    }
-
-    .contact-icon {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .contact-card h3 {
-      font-size: 1.125rem;
-      margin-bottom: 0.5rem;
-      color: var(--accent);
-    }
-
-    .contact-card a {
-      color: var(--text);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .contact-card a:hover {
-      color: var(--accent);
-    }
-
+    
     /* FORMULARIO */
-    .form-section {
+    .form-card {
       background: var(--card);
-      padding: 3rem;
+      border: 1px solid var(--line);
       border-radius: 12px;
-      border: 1px solid #1c2636;
+      padding: 3rem;
     }
-
-    .form-section h2 {
-      font-size: 1.75rem;
-      margin-bottom: 1.5rem;
-      color: var(--accent);
-    }
-
+    
     .form-group {
       margin-bottom: 1.5rem;
     }
-
+    
     .form-group label {
       display: block;
       margin-bottom: 0.5rem;
-      font-weight: 600;
       color: var(--text);
+      font-weight: 600;
     }
-
-    .form-group label .required {
-      color: var(--error);
-      margin-left: 0.25rem;
-    }
-
+    
     .form-group input,
-    .form-group textarea,
-    .form-group select {
+    .form-group textarea {
       width: 100%;
-      padding: 0.875rem;
-      background: #0f1620;
-      border: 1px solid #1c2636;
+      padding: 0.875rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--line);
       border-radius: 8px;
       color: var(--text);
-      font-size: 1rem;
       font-family: inherit;
+      font-size: 1rem;
       transition: all 0.2s;
     }
-
+    
     .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
+    .form-group textarea:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(31, 157, 242, 0.1);
     }
-
+    
     .form-group textarea {
       min-height: 150px;
       resize: vertical;
     }
-
-    .form-group input::placeholder,
-    .form-group textarea::placeholder {
-      color: var(--muted);
+    
+    .form-group input.error,
+    .form-group textarea.error {
+      border-color: var(--error);
     }
-
-    .btn-submit {
-      width: 100%;
-      padding: 1rem;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .btn-submit:hover {
-      background: #1a8cd9;
-      transform: translateY(-2px);
-    }
-
-    .btn-submit:disabled {
-      background: var(--muted);
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .success-message {
-      display: none;
-      padding: 1rem;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid var(--accent-green);
-      border-radius: 8px;
-      color: var(--accent-green);
-      margin-top: 1rem;
-      text-align: center;
-    }
-
-    .success-message.show {
-      display: block;
-    }
-
+    
     .error-message {
       color: var(--error);
       font-size: 0.875rem;
-      margin-top: 0.25rem;
+      margin-top: 0.5rem;
       display: none;
     }
-
+    
     .error-message.show {
       display: block;
     }
-
+    
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+    
+    .submit-btn:hover {
+      background: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(31, 157, 242, 0.4);
+    }
+    
+    .submit-btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    /* MENSAJES */
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    
+    .alert.show {
+      display: block;
+    }
+    
+    .alert-success {
+      background: rgba(72, 187, 120, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+    
+    .alert-error {
+      background: rgba(245, 101, 101, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+    
+    /* INFO ADICIONAL */
+    .info-section {
+      margin-top: 3rem;
+      padding: 2rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    
+    .info-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    
+    .info-section p {
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    
+    .info-section a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .info-section a:hover {
+      text-decoration: underline;
+    }
+    
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0;
+      color: #9fb0c9;
+      margin-top: 60px;
+    }
+    
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .footer-links a {
+      color: #9fb0c9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: #fff;
+    }
+    
+    /* RESPONSIVE */
     @media (max-width: 768px) {
       .hero-section h1 {
         font-size: 2rem;
       }
-
-      .form-section {
+      
+      .form-card {
         padding: 2rem 1.5rem;
       }
     }
@@ -266,210 +295,227 @@
     <div class="header-inner">
       <a href="index.html" class="logo">← Bitácora Digital</a>
       <nav class="nav">
-        <a href="podcast.html">Podcast</a>
-        <a href="nosotros.html">Nosotros</a>
+        <a href="index.html#podcast">Podcast</a>
         <a href="index.html#analytic">Dashboards</a>
+        <a href="nosotros.html">Nosotros</a>
       </nav>
     </div>
   </header>
 
-  <!-- CONTENIDO -->
+  <!-- CONTENIDO PRINCIPAL -->
   <div class="container">
     
     <!-- HERO -->
-    <div class="hero-section">
-      <h1>Hablemos</h1>
+    <section class="hero-section">
+      <h1>Contacto</h1>
       <p>
-        ¿Tienes preguntas, sugerencias o quieres colaborar? 
-        Nos encantaría escucharte.
+        ¿Tienes preguntas, sugerencias o te interesa trabajar con nosotros? 
+        Estamos aquí para ayudarte.
       </p>
-    </div>
-
-    <!-- FORMAS DE CONTACTO -->
-    <div class="contact-grid">
-      <div class="contact-card">
-        <div class="contact-icon">📧</div>
-        <h3>Email</h3>
-        <a href="mailto:hola@bitacoradigital.io">hola@bitacoradigital.io</a>
-      </div>
-
-      <div class="contact-card">
-        <div class="contact-icon">🎙️</div>
-        <h3>Podcast</h3>
-        <a href="https://open.spotify.com/show/1wUiA7esT4Mx8OUA16PSyo" target="_blank">Spotify</a>
-      </div>
-
-      <div class="contact-card">
-        <div class="contact-icon">💼</div>
-        <h3>Consultoría</h3>
-        <a href="mailto:compass@bitacoradigital.io">compass@bitacoradigital.io</a>
-      </div>
-    </div>
+    </section>
 
     <!-- FORMULARIO -->
-    <div class="form-section">
-      <h2>Envíanos un Mensaje</h2>
+    <div class="form-card">
+      
+      <!-- Alertas -->
+      <div id="successAlert" class="alert alert-success">
+        ✓ Mensaje enviado correctamente. Te responderemos pronto.
+      </div>
+      
+      <div id="errorAlert" class="alert alert-error">
+        ✗ Hubo un error al enviar el mensaje. Por favor intenta nuevamente.
+      </div>
       
       <form id="contactForm">
+        
         <div class="form-group">
-          <label for="name">
-            Nombre <span class="required">*</span>
-          </label>
+          <label for="name">Nombre completo *</label>
           <input 
             type="text" 
             id="name" 
             name="name" 
-            placeholder="Tu nombre completo"
-            required
+            required 
+            placeholder="Tu nombre"
           >
           <div class="error-message" id="nameError">Por favor ingresa tu nombre</div>
         </div>
 
         <div class="form-group">
-          <label for="email">
-            Email <span class="required">*</span>
-          </label>
+          <label for="email">Email *</label>
           <input 
             type="email" 
             id="email" 
             name="email" 
+            required 
             placeholder="tu@email.com"
-            required
           >
           <div class="error-message" id="emailError">Por favor ingresa un email válido</div>
         </div>
 
         <div class="form-group">
-          <label for="subject">
-            Asunto <span class="required">*</span>
-          </label>
-          <select id="subject" name="subject" required>
-            <option value="">Selecciona un asunto</option>
-            <option value="general">Consulta General</option>
-            <option value="podcast">Sugerencia para el Podcast</option>
-            <option value="consultoría">Consultoría / Compass Digital</option>
-            <option value="colaboracion">Propuesta de Colaboración</option>
-            <option value="tecnico">Soporte Técnico</option>
-            <option value="otro">Otro</option>
-          </select>
-          <div class="error-message" id="subjectError">Por favor selecciona un asunto</div>
+          <label for="subject">Asunto</label>
+          <input 
+            type="text" 
+            id="subject" 
+            name="subject" 
+            placeholder="¿De qué quieres hablar?"
+          >
         </div>
 
         <div class="form-group">
-          <label for="message">
-            Mensaje <span class="required">*</span>
-          </label>
+          <label for="message">Mensaje *</label>
           <textarea 
             id="message" 
             name="message" 
-            placeholder="Cuéntanos en qué podemos ayudarte..."
-            required
+            required 
+            placeholder="Escribe tu mensaje aquí..."
           ></textarea>
-          <div class="error-message" id="messageError">Por favor escribe tu mensaje</div>
+          <div class="error-message" id="messageError">Por favor escribe un mensaje</div>
         </div>
 
-        <button type="submit" class="btn-submit" id="submitBtn">
-          Enviar Mensaje
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Enviar mensaje
         </button>
-
-        <div class="success-message" id="successMessage">
-          ✅ ¡Mensaje enviado con éxito! Te responderemos pronto.
-        </div>
+        
       </form>
+    </div>
+
+    <!-- INFO ADICIONAL -->
+    <div class="info-section">
+      <h2>Otras formas de contacto</h2>
+      <p>
+        <strong>Email directo:</strong> 
+        <a href="mailto:hugopablo@gmail.com">hugopablo@gmail.com</a>
+      </p>
+      <p>
+        <strong>Consultoría empresarial:</strong> 
+        Si necesitas servicios de consultoría en IA, analítica o finanzas digitales, 
+        visita <a href="http://compassdigital.io" target="_blank">compassdigital.io</a>
+      </p>
     </div>
 
   </div>
 
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© 2025 Bitácora Digital</span>
+      <div class="footer-links">
+        <a href="index.html#podcast">Podcast</a>
+        <a href="index.html#analytic">Dashboards</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </footer>
+
   <script>
-    // Manejo del formulario
     const form = document.getElementById('contactForm');
     const submitBtn = document.getElementById('submitBtn');
-    const successMessage = document.getElementById('successMessage');
-
+    const successAlert = document.getElementById('successAlert');
+    const errorAlert = document.getElementById('errorAlert');
+    
+    // Elementos de error
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const messageInput = document.getElementById('message');
+    
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const messageError = document.getElementById('messageError');
+    
+    // Validación en tiempo real
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    
+    function showError(input, errorElement) {
+      input.classList.add('error');
+      errorElement.classList.add('show');
+    }
+    
+    function hideError(input, errorElement) {
+      input.classList.remove('error');
+      errorElement.classList.remove('show');
+    }
+    
+    // Validación al enviar
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      // Validación
+      // Reset alertas
+      successAlert.classList.remove('show');
+      errorAlert.classList.remove('show');
+      
+      // Validar campos
       let isValid = true;
-      const fields = ['name', 'email', 'subject', 'message'];
       
-      fields.forEach(field => {
-        const input = document.getElementById(field);
-        const error = document.getElementById(field + 'Error');
-        
-        if (!input.value.trim()) {
-          error.classList.add('show');
-          isValid = false;
-        } else {
-          error.classList.remove('show');
-        }
-      });
-
-      // Validar email específicamente
-      const emailInput = document.getElementById('email');
-      const emailError = document.getElementById('emailError');
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      
-      if (!emailRegex.test(emailInput.value)) {
-        emailError.classList.add('show');
+      if (!nameInput.value.trim()) {
+        showError(nameInput, nameError);
         isValid = false;
+      } else {
+        hideError(nameInput, nameError);
       }
-
+      
+      if (!emailInput.value.trim() || !validateEmail(emailInput.value)) {
+        showError(emailInput, emailError);
+        isValid = false;
+      } else {
+        hideError(emailInput, emailError);
+      }
+      
+      if (!messageInput.value.trim()) {
+        showError(messageInput, messageError);
+        isValid = false;
+      } else {
+        hideError(messageInput, messageError);
+      }
+      
       if (!isValid) return;
-
-      // Simular envío (aquí conectarías tu backend o servicio como Formspree, EmailJS, etc.)
+      
+      // Deshabilitar botón
       submitBtn.disabled = true;
       submitBtn.textContent = 'Enviando...';
-
-      // Simulación de 2 segundos
-      setTimeout(() => {
-        successMessage.classList.add('show');
-        form.reset();
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar Mensaje';
-        
-        // Ocultar mensaje de éxito después de 5 segundos
-        setTimeout(() => {
-          successMessage.classList.remove('show');
-        }, 5000);
-      }, 2000);
-
-      // EN PRODUCCIÓN, reemplazar con algo como:
-      /*
-      try {
-        const formData = new FormData(form);
-        const response = await fetch('https://formspree.io/f/TU_ID', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          successMessage.classList.add('show');
-          form.reset();
-        }
-      } catch (error) {
-        alert('Error al enviar el mensaje. Por favor intenta de nuevo.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar Mensaje';
-      }
-      */
-    });
-
-    // Limpiar errores al escribir
-    ['name', 'email', 'subject', 'message'].forEach(field => {
-      const input = document.getElementById(field);
-      const error = document.getElementById(field + 'Error');
       
-      input.addEventListener('input', () => {
-        if (input.value.trim()) {
-          error.classList.remove('show');
-        }
-      });
+      // Simular envío (aquí conectarías con tu backend)
+      try {
+        // Construir mailto link como fallback
+        const mailtoLink = `mailto:hugopablo@gmail.com?subject=${encodeURIComponent(document.getElementById('subject').value || 'Contacto desde Bitácora Digital')}&body=${encodeURIComponent(
+          `Nombre: ${nameInput.value}\nEmail: ${emailInput.value}\n\nMensaje:\n${messageInput.value}`
+        )}`;
+        
+        // Abrir cliente de email
+        window.location.href = mailtoLink;
+        
+        // Mostrar éxito
+        setTimeout(() => {
+          successAlert.classList.add('show');
+          form.reset();
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar mensaje';
+          
+          // Ocultar alerta después de 5 segundos
+          setTimeout(() => {
+            successAlert.classList.remove('show');
+          }, 5000);
+        }, 500);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        errorAlert.classList.add('show');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar mensaje';
+        
+        setTimeout(() => {
+          errorAlert.classList.remove('show');
+        }, 5000);
+      }
     });
+    
+    // Limpiar errores al escribir
+    nameInput.addEventListener('input', () => hideError(nameInput, nameError));
+    emailInput.addEventListener('input', () => hideError(emailInput, emailError));
+    messageInput.addEventListener('input', () => hideError(messageInput, messageError));
   </script>
 
 </body>
