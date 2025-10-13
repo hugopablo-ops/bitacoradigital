@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nosotros - Bitácora Digital</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0f1620;
+      --card: #141c27;
+      --text: #dbe4f3;
+      --muted: #96a3b7;
+      --accent: #1f9df2;
+      --accent-green: #10b981;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* HEADER */
+    .header {
+      background: rgba(8, 12, 18, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1c2636;
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 2rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav a:hover {
+      color: var(--accent);
+    }
+
+    /* CONTENIDO */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .hero-section h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-section p {
+      font-size: 1.25rem;
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .section {
+      margin-bottom: 4rem;
+    }
+
+    .section h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+    }
+
+    .section p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      line-height: 1.8;
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .value-card {
+      background: var(--card);
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid #1c2636;
+      transition: all 0.3s;
+    }
+
+    .value-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+
+    .value-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .value-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: var(--accent);
+    }
+
+    .value-card p {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    .team-section {
+      background: var(--card);
+      padding: 3rem;
+      border-radius: 12px;
+      border: 1px solid #1c2636;
+    }
+
+    .team-member {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      align-items: flex-start;
+    }
+
+    .team-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-green));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      flex-shrink: 0;
+    }
+
+    .team-info h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .team-role {
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .team-bio {
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .cta-section {
+      text-align: center;
+      padding: 3rem;
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.1), rgba(16, 185, 129, 0.1));
+      border-radius: 12px;
+      border: 1px solid rgba(31, 157, 242, 0.2);
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .btn:hover {
+      background: #1a8cd9;
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      .hero-section h1 {
+        font-size: 2rem;
+      }
+
+      .team-member {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .section h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">← Bitácora Digital</a>
+      <nav class="nav">
+        <a href="podcast.html">Podcast</a>
+        <a href="index.html#analytic">Dashboards</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO -->
+  <div class="container">
+    
+    <!-- HERO -->
+    <div class="hero-section">
+      <h1>Sobre Bitácora Digital</h1>
+      <p>
+        Navegando por el futuro de las finanzas y la tecnología, 
+        con el humano siempre al centro
+      </p>
+    </div>
+
+    <!-- MISIÓN -->
+    <section class="section">
+      <h2>Nuestra Misión</h2>
+      <p>
+        Bitácora Digital nace con el propósito de democratizar el acceso a información de calidad 
+        sobre finanzas y tecnología. Creemos que el conocimiento es el superpoder del siglo XXI, 
+        y que cada persona merece entender cómo funcionan los sistemas que moldean su realidad económica.
+      </p>
+      <p>
+        A través de nuestro podcast, dashboards interactivos y contenido editorial, conectamos 
+        conceptos complejos de DeFi, TradFi, IA y Web3 con aplicaciones prácticas que impactan 
+        la vida de individuos y organizaciones.
+      </p>
+    </section>
+
+    <!-- VALORES -->
+    <section class="section">
+      <h2>Nuestros Valores</h2>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">🧭</div>
+          <h3>El Humano al Centro</h3>
+          <p>
+            Las tecnologías son herramientas, no fines. Ponemos a las personas y sus necesidades 
+            en el núcleo de cada análisis y recomendación.
+          </p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon">📚</div>
+          <h3>Educación Aplicada</h3>
+          <p>
+            No nos quedamos en la teoría. Cada concepto viene acompañado de ejemplos prácticos, 
+            datos reales y aplicaciones concretas.
+          </p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon">🔍</div>
+          <h3>Transparencia</h3>
+          <p>
+            Mostramos nuestras fuentes, explicamos nuestros métodos y reconocemos cuando no tenemos 
+            todas las respuestas.
+          </p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon">🌐</div>
+          <h3>Visión Global</h3>
+          <p>
+            Conectamos tendencias de TradFi, DeFi, IA y Web3 para ofrecer una perspectiva integral 
+            del ecosistema financiero-tecnológico.
+          </p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon">⚡</div>
+          <h3>Decisiones en Tiempo Real</h3>
+          <p>
+            Entregamos información actualizada y accionable para que puedas tomar decisiones 
+            informadas cuando más importa.
+          </p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon">🤝</div>
+          <h3>Comunidad</h3>
+          <p>
+            Creemos en el aprendizaje colectivo. Tu feedback, preguntas y experiencias 
+            enriquecen el contenido que creamos.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- EQUIPO -->
+    <section class="section">
+      <h2>Nuestro Equipo</h2>
+      <div class="team-section">
+        <div class="team-member">
+          <div class="team-avatar">👨‍💼</div>
+          <div class="team-info">
+            <h3>Hugo De Foms</h3>
+            <div class="team-role">Fundador y Host</div>
+            <p class="team-bio">
+              Apasionado por las finanzas, la tecnología y la educación. Con años de experiencia 
+              navegando tanto el mundo tradicional como el emergente ecosistema digital, Hugo creó 
+              Bitácora Digital para compartir insights prácticos y ayudar a otros a potenciar sus 
+              capacidades con las herramientas del futuro.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUÉ OFRECEMOS -->
+    <section class="section">
+      <h2>Qué Ofrecemos</h2>
+      <p>
+        <strong>🎙️ Podcast:</strong> Episodios semanales explorando temas de IA, DeFi, TradFi, 
+        Web3 y Fintech con análisis profundo y casos de uso reales.
+      </p>
+      <p>
+        <strong>📊 Dashboards Interactivos:</strong> Herramientas de visualización de datos 
+        comparativos para entender tendencias de mercado en tiempo real.
+      </p>
+      <p>
+        <strong>✍️ Contenido Editorial:</strong> Artículos, análisis y noticias curadas sobre 
+        los eventos más relevantes del ecosistema financiero-tecnológico.
+      </p>
+      <p>
+        <strong>💼 Compass Digital:</strong> Nuestro brazo de consultoría, ofreciendo servicios 
+        especializados para individuos y organizaciones que buscan navegar el futuro digital.
+      </p>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <h2>¿Listo para Navegar el Futuro?</h2>
+      <p>
+        Únete a nuestra comunidad y accede a contenido exclusivo, 
+        herramientas avanzadas y análisis profundo.
+      </p>
+      <a href="contacto.html" class="btn">Contáctanos</a>
+    </section>
+
+  </div>
+
+</body>
+</html>
