@@ -168,17 +168,58 @@
       <div class="hero__copy">
         <h1>Podcast Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
         <p class="description">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: Individuos y organizaciones capacitados para integrar finanzas y tecnología en las nuevas tendencias de nuestros tiempos.</p>
-        <div class="hero__nav">
-          <a class="btn btn--primary" href="#podcast">Escuchar Podcast</a>
-          <a class="btn" href="#analytic">Analítica/Dashboards</a>
-          <a class="btn" href="#ia">Inteligencia Artificial</a>
-          <a class="btn" href="#fintech">Fintech + TradFi</a>
-          <a class="btn" href="#web3">Web3</a>
-          <a class="btn" href="#editorial">Editorial/Actualidad</a>
-        </div>
-      </div>
-    </div>
-  </section>
+        <!-- REEMPLAZAR LA SECCIÓN .hero__nav EN index.html -->
+<div class="hero__nav">
+  <!-- BOTÓN PRINCIPAL: Podcast + Editorial (MÁS DESTACADO) -->
+  <a href="podcast.html" class="btn btn--podcast">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <polygon points="10 8 16 12 10 16 10 8"/>
+    </svg>
+    Podcast y Editorial
+  </a>
+  
+  <!-- BOTONES SECUNDARIOS -->
+  <a class="btn" href="#analytic">Analítica/Dashboards</a>
+  <a class="btn" href="#ia">Inteligencia Artificial</a>
+  <a class="btn" href="#fintech">Fintech + TradFi</a>
+  <a class="btn" href="#web3">Web3</a>
+</div>
+
+<!-- ESTILOS ADICIONALES PARA EL BOTÓN DESTACADO -->
+<style>
+.btn--podcast {
+  background: linear-gradient(135deg, #1f9df2 0%, #0ea5e9 100%);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 14px 28px;
+  box-shadow: 0 6px 24px rgba(31, 157, 242, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.btn--podcast:hover {
+  background: linear-gradient(135deg, #1a8cd9 0%, #0c94d4 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(31, 157, 242, 0.6);
+}
+
+.btn--podcast svg {
+  flex-shrink: 0;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 6px 24px rgba(31, 157, 242, 0.4);
+  }
+  50% {
+    box-shadow: 0 6px 32px rgba(31, 157, 242, 0.7);
+  }
+}
+</style>
 
   <section id="podcast" class="section">
     <div class="container">
@@ -384,5 +425,42 @@
   <script src="assets/js/app.js"></script>
   <script src="assets/js/indices.js"></script>
   <script src="assets/js/commodities.js"></script>
+        <!-- AGREGAR AL FINAL DE index.html, ANTES DE </body> -->
+<script>
+(function() {
+  // Hacer clickeable toda la sección del podcast
+  const podcastSection = document.getElementById('podcast');
+  if (!podcastSection) return;
+
+  // Crear overlay clickeable
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    cursor: pointer;
+    z-index: 1;
+  `;
+  
+  const podcastEmbed = podcastSection.querySelector('.podcast-embed');
+  if (podcastEmbed) {
+    podcastEmbed.style.position = 'relative';
+    podcastEmbed.appendChild(overlay);
+    
+    overlay.addEventListener('click', () => {
+      window.location.href = 'podcast.html';
+    });
+    
+    // Permitir que el iframe de Spotify funcione normalmente
+    const iframe = podcastEmbed.querySelector('iframe');
+    if (iframe) {
+      iframe.style.position = 'relative';
+      iframe.style.zIndex = '2';
+    }
+  }
+})();
+</script>
 </body>
 </html>
