@@ -62,10 +62,14 @@
       color: var(--accent);
     }
     
+    .nav {
+      display: flex;
+      gap: 2rem;
+    }
+    
     .nav a {
       color: var(--muted);
       text-decoration: none;
-      margin-left: 2rem;
       font-weight: 500;
       transition: color 0.2s;
     }
@@ -122,6 +126,7 @@
       font-size: 2rem;
       margin-bottom: 1rem;
       color: var(--accent);
+      text-align: center;
     }
     
     .section p {
@@ -311,6 +316,10 @@
       .section h2 {
         font-size: 1.5rem;
       }
+      
+      .nav {
+        gap: 1rem;
+      }
     }
   </style>
 </head>
@@ -321,8 +330,7 @@
     <div class="header-inner">
       <a href="index.html" class="logo">← Bitácora Digital</a>
       <nav class="nav">
-        <a href="index.html#podcast">Podcast</a>
-        <a href="index.html#analytic">Dashboards</a>
+        <a href="nosotros.html">Nosotros</a>
         <a href="contacto.html">Contacto</a>
       </nav>
     </div>
@@ -460,8 +468,8 @@
     <div class="footer-inner">
       <span>© 2025 Bitácora Digital</span>
       <div class="footer-links">
-        <a href="index.html#podcast">Podcast</a>
-        <a href="index.html#analytic">Dashboards</a>
+        <a href="index.html">Inicio</a>
+        <a href="podcast.html">Podcast</a>
         <a href="nosotros.html">Nosotros</a>
         <a href="contacto.html">Contacto</a>
       </div>
