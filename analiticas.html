@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bitácora Digital: Decisiones en tiempo real para negocios reales</title>
+  <meta name="description" content="Dashboards comparativos (TradFi, Índices, Tech, Crypto, Commodities) + Podcast. Educación aplicada en Web3, IA, Analítica, DeFi, TradFi y Fintech." />
+  <link rel="icon" href="assets/favicon.svg" />
+
+  <style>
+    :root{
+      --bg:#0f1620; --card:#141c27; --text:#dbe4f3; --muted:#96a3b7;
+      --accent:#2dde9b; --accent2:#4dd3ff; --gold:#f59e0b; --purple:#a855f7;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      line-height:1.55}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1200px;margin:0 auto;padding:0 16px}
+    .nav{position:sticky;top:0;z-index:20;background:rgba(8,12,18,.7);backdrop-filter:blur(6px);border-bottom:1px solid #0b1119}
+    .nav__inner{display:flex;align-items:center;justify-content:space-between;height:56px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px}
+    .brand__logo{width:24px;height:24px;flex-shrink:0}
+    .nav__links{display:flex;gap:32px}
+    .nav__links a{color:#b7c3d9;font-size:15px;font-weight:500;transition:color 0.2s}
+    .nav__links a:hover{color:#fff}
+
+    .hero{padding:56px 0 26px;border-bottom:1px solid #0b1119}
+    .hero__copy{max-width:900px;margin:0 auto;text-align:center}
+    .hero__copy h1{font-size:48px;margin:.2rem 0 16px;line-height:1.2}
+    .hero__copy h1 .accent{color:var(--accent)}
+    .hero__copy .description{color:#b7c3d9;font-size:17px;line-height:1.6;margin-bottom:24px}
+    .hero__copy .description strong{color:#dbe4f3;font-weight:600}
+    .hero__nav{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;justify-content:center}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border-radius:999px;border:1px solid #2a394e;background:transparent;color:#cfe3ff;font-size:15px;font-weight:500;transition:all 0.2s}
+    .btn:hover{border-color:#4b5d7a;transform:translateY(-1px)}
+
+    .section{padding:60px 0;border-bottom:1px solid #0b1119;cursor:pointer;transition:all 0.3s;position:relative;}
+    .section::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at center, rgba(31,157,242,0.05) 0%, transparent 70%);opacity:0;transition:opacity 0.3s;}
+    .section:hover::before{opacity:1}
+    .section:hover{transform:translateY(-2px)}
+    .section__title{font-size:32px;margin:0 0 12px;text-align:center;font-weight:700}
+    .section__subtitle{color:var(--muted);margin:0 0 40px;text-align:center;font-size:17px}
+
+    .visual-container{max-width:700px;margin:0 auto;perspective:1000px}
+    .visual-art{width:100%;height:280px;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
+    .section:hover .visual-art{transform:rotateY(2deg) rotateX(2deg)}
+
+    /* PODCAST - Micrófono vintage */
+    .podcast-mic{position:relative;width:120px;height:180px;margin:0 auto}
+    .mic-stand{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:12px;height:60px;background:linear-gradient(to bottom, #64748b, #334155);border-radius:6px}
+    .mic-base{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:60px;height:20px;background:#1e293b;border-radius:50%}
+    .mic-body{position:absolute;bottom:55px;left:50%;transform:translateX(-50%);width:80px;height:100px;background:linear-gradient(135deg, #94a3b8, #64748b);border-radius:40px 40px 15px 15px;box-shadow:inset -5px 0 10px rgba(0,0,0,0.3), inset 5px 0 10px rgba(255,255,255,0.1)}
+    .mic-grille{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:70px;height:80px;border-radius:35px 35px 10px 10px;background:repeating-linear-gradient(0deg, #475569 0px, #475569 3px, transparent 3px, transparent 6px)}
+    .headphone-left,.headphone-right{position:absolute;top:50px;width:40px;height:50px;border:4px solid #334155;border-radius:20px;background:radial-gradient(circle, #1e293b, #0f172a)}
+    .headphone-left{left:-15px;transform:rotate(-10deg)}
+    .headphone-right{right:-15px;transform:rotate(10deg)}
+    .headphone-band{position:absolute;top:40px;left:50%;transform:translateX(-50%);width:90px;height:30px;border:4px solid #334155;border-bottom:none;border-radius:45px 45px 0 0}
+
+    /* ANALYTICS - Dashboard moderno */
+    .analytics-screen{position:relative;width:400px;height:240px;margin:0 auto;background:linear-gradient(135deg, #1e293b, #0f172a);border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+    .chart-bar{position:absolute;bottom:20px;width:30px;background:linear-gradient(to top, var(--accent2), var(--accent));border-radius:4px 4px 0 0;animation:grow 2s ease-out}
+    @keyframes grow{from{height:0}to{height:var(--h)}}
+    .chart-bar:nth-child(1){left:40px;--h:60px;animation-delay:0.1s}
+    .chart-bar:nth-child(2){left:90px;--h:100px;animation-delay:0.2s}
+    .chart-bar:nth-child(3){left:140px;--h:80px;animation-delay:0.3s}
+    .chart-bar:nth-child(4){left:190px;--h:140px;animation-delay:0.4s}
+    .chart-bar:nth-child(5){left:240px;--h:110px;animation-delay:0.5s}
+    .chart-bar:nth-child(6){left:290px;--h:160px;animation-delay:0.6s}
+    .chart-line{position:absolute;top:40px;left:40px;right:40px;height:140px;border-left:2px solid rgba(148,163,184,0.3);border-bottom:2px solid rgba(148,163,184,0.3)}
+
+    /* IA - Cerebro neural */
+    .ai-brain{position:relative;width:200px;height:200px;margin:0 auto}
+    .neuron{position:absolute;width:20px;height:20px;background:radial-gradient(circle, var(--purple), #7c3aed);border-radius:50%;box-shadow:0 0 20px var(--purple);animation:pulse 3s ease-in-out infinite}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:0.7}}
+    .neuron:nth-child(1){top:100px;left:100px;animation-delay:0s}
+    .neuron:nth-child(2){top:50px;left:50px;animation-delay:0.3s}
+    .neuron:nth-child(3){top:50px;left:150px;animation-delay:0.6s}
+    .neuron:nth-child(4){top:150px;left:50px;animation-delay:0.9s}
+    .neuron:nth-child(5){top:150px;left:150px;animation-delay:1.2s}
+    .synapse{position:absolute;height:2px;background:linear-gradient(to right, transparent, var(--purple), transparent);transform-origin:left center;animation:signal 3s ease-in-out infinite}
+    @keyframes signal{0%,100%{opacity:0.3}50%{opacity:1}}
+
+    /* FINTECH - Edificio + Móvil */
+    .fintech-scene{position:relative;width:400px;height:200px;margin:0 auto}
+    .building{position:absolute;left:50px;bottom:0;width:120px;height:160px;background:linear-gradient(135deg, #f59e0b, #d97706);clip-path:polygon(20% 0, 80% 0, 100% 10%, 100% 100%, 0 100%, 0 10%)}
+    .window{position:absolute;width:15px;height:20px;background:rgba(255,255,255,0.3);border-radius:2px}
+    .window:nth-child(1){top:30px;left:15px}
+    .window:nth-child(2){top:30px;left:40px}
+    .window:nth-child(3){top:30px;left:65px}
+    .window:nth-child(4){top:30px;left:90px}
+    .window:nth-child(5){top:70px;left:15px}
+    .window:nth-child(6){top:70px;left:40px}
+    .window:nth-child(7){top:70px;left:65px}
+    .window:nth-child(8){top:70px;left:90px}
+    .phone{position:absolute;right:80px;bottom:20px;width:80px;height:140px;background:linear-gradient(135deg, #1f9df2, #0ea5e9);border-radius:12px;box-shadow:0 10px 40px rgba(31,157,242,0.4);animation:float 3s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    .phone-screen{position:absolute;top:10px;left:10px;right:10px;bottom:30px;background:rgba(255,255,255,0.1);border-radius:8px}
+    .phone-button{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:40px;height:4px;background:rgba(255,255,255,0.3);border-radius:2px}
+
+    /* WEB3 - Blockchain */
+    .blockchain{position:relative;width:500px;height:120px;margin:0 auto;display:flex;gap:20px;align-items:center}
+    .block{width:80px;height:80px;background:linear-gradient(135deg, var(--accent), #10b981);border-radius:12px;position:relative;box-shadow:0 8px 24px rgba(45,222,155,0.3);animation:blockAppear 0.5s ease-out backwards}
+    @keyframes blockAppear{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .block:nth-child(1){animation-delay:0.1s}
+    .block:nth-child(2){animation-delay:0.3s}
+    .block:nth-child(3){animation-delay:0.5s}
+    .block:nth-child(4){animation-delay:0.7s}
+    .block:nth-child(5){animation-delay:0.9s}
+    .chain-link{width:20px;height:4px;background:var(--accent);opacity:0.5}
+
+    .footer{border-top:1px solid #0b1119;padding:24px 0;color:#9fb0c9;margin-top:60px}
+    .footer__inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+    .footer__links{display:flex;gap:24px}
+    .footer__links a{color:#9fb0c9;transition:color 0.2s}
+    .footer__links a:hover{color:#fff}
+
+    @media (max-width:680px){
+      .hero__copy h1{font-size:32px}
+      .section__title{font-size:24px}
+      .visual-art{height:200px}
+      .analytics-screen{width:300px;height:180px}
+      .fintech-scene{width:300px;height:150px;transform:scale(0.8)}
+      .blockchain{width:100%;overflow-x:auto;padding:0 20px}
+      .podcast-mic{transform:scale(0.8)}
+    }
+  </style>
+</head>
+<body>
+
+  <header class="nav">
+    <div class="container nav__inner">
+      <div class="brand">
+        <img src="assets/favicon.svg" alt="" class="brand__logo">
+        <span class="brand__name">Bitácora Digital</span>
+      </div>
+      <nav class="nav__links">
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero__copy">
+        <h1>Podcast Bitácora Digital: <span class="accent">Decisiones en tiempo real</span> para negocios reales</h1>
+        <p class="description">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: Individuos y organizaciones capacitados para integrar finanzas y tecnología en las nuevas tendencias de nuestros tiempos.</p>
+        
+        <div class="hero__nav">
+          <a href="#podcast" class="btn">Podcast y Editorial</a>
+          <a href="#analytic" class="btn">Analítica/Dashboards</a>
+          <a href="#ia" class="btn">Inteligencia Artificial</a>
+          <a href="#fintech" class="btn">Fintech + TradFi</a>
+          <a href="#web3" class="btn">Web3</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PODCAST -->
+  <section id="podcast" class="section" onclick="window.location.href='podcast.html'">
+    <div class="container">
+      <h2 class="section__title">Podcast</h2>
+      <p class="section__subtitle">Conversaciones profundas sobre el futuro de las finanzas y la tecnología</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="podcast-mic">
+            <div class="headphone-band"></div>
+            <div class="headphone-left"></div>
+            <div class="headphone-right"></div>
+            <div class="mic-body">
+              <div class="mic-grille"></div>
+            </div>
+            <div class="mic-stand"></div>
+            <div class="mic-base"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYTICS -->
+  <section id="analytic" class="section" onclick="window.location.href='analiticas.html'">
+    <div class="container">
+      <h2 class="section__title">Analíticas/Dashboards</h2>
+      <p class="section__subtitle">Datos en tiempo real para decisiones informadas</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="analytics-screen">
+            <div class="chart-line"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- IA -->
+  <section id="ia" class="section" onclick="window.location.href='ia.html'">
+    <div class="container">
+      <h2 class="section__title">Inteligencia Artificial</h2>
+      <p class="section__subtitle">El poder del machine learning en finanzas</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="ai-brain">
+            <div class="neuron"></div>
+            <div class="neuron"></div>
+            <div class="neuron"></div>
+            <div class="neuron"></div>
+            <div class="neuron"></div>
+            <svg width="200" height="200" style="position:absolute;top:0;left:0">
+              <line x1="110" y1="110" x2="60" y2="60" stroke="#a855f7" stroke-width="2" opacity="0.4" class="synapse"/>
+              <line x1="110" y1="110" x2="160" y2="60" stroke="#a855f7" stroke-width="2" opacity="0.4" class="synapse" style="animation-delay:0.3s"/>
+              <line x1="110" y1="110" x2="60" y2="160" stroke="#a855f7" stroke-width="2" opacity="0.4" class="synapse" style="animation-delay:0.6s"/>
+              <line x1="110" y1="110" x2="160" y2="160" stroke="#a855f7" stroke-width="2" opacity="0.4" class="synapse" style="animation-delay:0.9s"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINTECH -->
+  <section id="fintech" class="section" onclick="window.location.href='tradfi.html'">
+    <div class="container">
+      <h2 class="section__title">Fintech + TradFi</h2>
+      <p class="section__subtitle">La convergencia entre lo tradicional y lo digital</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="fintech-scene">
+            <div class="building">
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+            </div>
+            <div class="phone">
+              <div class="phone-screen"></div>
+              <div class="phone-button"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WEB3 -->
+  <section id="web3" class="section" onclick="window.location.href='web3.html'">
+    <div class="container">
+      <h2 class="section__title">Web3</h2>
+      <p class="section__subtitle">Blockchain y el futuro descentralizado</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="blockchain">
+            <div class="block"></div>
+            <div class="chain-link"></div>
+            <div class="block"></div>
+            <div class="chain-link"></div>
+            <div class="block"></div>
+            <div class="chain-link"></div>
+            <div class="block"></div>
+            <div class="chain-link"></div>
+            <div class="block"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span>© 2025 Bitácora Digital</span>
+      <div class="footer__links">
+        <a href="podcast.html">Podcast</a>
+        <a href="analiticas.html">Dashboards</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
