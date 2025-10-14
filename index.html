@@ -9,8 +9,8 @@
 
   <style>
     :root{
-      --bg:#0f1620; --card:#141c27; --line:#243143; --text:#dbe4f3; --muted:#96a3b7;
-      --accent:#2dde9b; --accent2:#4dd3ff; --gold:#f59e0b; --radius:14px;
+      --bg:#0f1620; --card:#141c27; --text:#dbe4f3; --muted:#96a3b7;
+      --accent:#2dde9b; --accent2:#4dd3ff; --gold:#f59e0b; --purple:#a855f7;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -23,7 +23,6 @@
     .nav__inner{display:flex;align-items:center;justify-content:space-between;height:56px}
     .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px}
     .brand__logo{width:24px;height:24px;flex-shrink:0}
-    .brand__name{white-space:nowrap}
     .nav__links{display:flex;gap:32px}
     .nav__links a{color:#b7c3d9;font-size:15px;font-weight:500;transition:color 0.2s}
     .nav__links a:hover{color:#fff}
@@ -37,204 +36,97 @@
     .hero__nav{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;justify-content:center}
     .btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border-radius:999px;border:1px solid #2a394e;background:transparent;color:#cfe3ff;font-size:15px;font-weight:500;transition:all 0.2s}
     .btn:hover{border-color:#4b5d7a;transform:translateY(-1px)}
-    .btn--primary{background:#1f9df2;border-color:#1f9df2;color:#031a2a}
-    .btn--primary:hover{background:#1a8cd9}
 
-    .btn--podcast {
-      background: linear-gradient(135deg, #1f9df2 0%, #0ea5e9 100%);
-      color: #fff;
-      font-size: 17px;
-      font-weight: 700;
-      padding: 14px 28px;
-      box-shadow: 0 6px 24px rgba(31, 157, 242, 0.4);
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      animation: pulse-glow 2s ease-in-out infinite;
-    }
+    .section{padding:60px 0;border-bottom:1px solid #0b1119;cursor:pointer;transition:all 0.3s;position:relative;}
+    .section::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at center, rgba(31,157,242,0.05) 0%, transparent 70%);opacity:0;transition:opacity 0.3s;}
+    .section:hover::before{opacity:1}
+    .section:hover{transform:translateY(-2px)}
+    .section__title{font-size:32px;margin:0 0 12px;text-align:center;font-weight:700}
+    .section__subtitle{color:var(--muted);margin:0 0 40px;text-align:center;font-size:17px}
 
-    .btn--podcast:hover {
-      background: linear-gradient(135deg, #1a8cd9 0%, #0c94d4 100%);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 32px rgba(31, 157, 242, 0.6);
-    }
+    .visual-container{max-width:700px;margin:0 auto;perspective:1000px}
+    .visual-art{width:100%;height:280px;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
+    .section:hover .visual-art{transform:rotateY(2deg) rotateX(2deg)}
 
-    .btn--podcast svg {
-      flex-shrink: 0;
-    }
+    /* PODCAST - Micrófono vintage */
+    .podcast-mic{position:relative;width:120px;height:180px;margin:0 auto}
+    .mic-stand{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:12px;height:60px;background:linear-gradient(to bottom, #64748b, #334155);border-radius:6px}
+    .mic-base{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:60px;height:20px;background:#1e293b;border-radius:50%}
+    .mic-body{position:absolute;bottom:55px;left:50%;transform:translateX(-50%);width:80px;height:100px;background:linear-gradient(135deg, #94a3b8, #64748b);border-radius:40px 40px 15px 15px;box-shadow:inset -5px 0 10px rgba(0,0,0,0.3), inset 5px 0 10px rgba(255,255,255,0.1)}
+    .mic-grille{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:70px;height:80px;border-radius:35px 35px 10px 10px;background:repeating-linear-gradient(0deg, #475569 0px, #475569 3px, transparent 3px, transparent 6px)}
+    .headphone-left,.headphone-right{position:absolute;top:50px;width:40px;height:50px;border:4px solid #334155;border-radius:20px;background:radial-gradient(circle, #1e293b, #0f172a)}
+    .headphone-left{left:-15px;transform:rotate(-10deg)}
+    .headphone-right{right:-15px;transform:rotate(10deg)}
+    .headphone-band{position:absolute;top:40px;left:50%;transform:translateX(-50%);width:90px;height:30px;border:4px solid #334155;border-bottom:none;border-radius:45px 45px 0 0}
 
-    @keyframes pulse-glow {
-      0%, 100% {
-        box-shadow: 0 6px 24px rgba(31, 157, 242, 0.4);
-      }
-      50% {
-        box-shadow: 0 6px 32px rgba(31, 157, 242, 0.7);
-      }
-    }
+    /* ANALYTICS - Dashboard moderno */
+    .analytics-screen{position:relative;width:400px;height:240px;margin:0 auto;background:linear-gradient(135deg, #1e293b, #0f172a);border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+    .chart-bar{position:absolute;bottom:20px;width:30px;background:linear-gradient(to top, var(--accent2), var(--accent));border-radius:4px 4px 0 0;animation:grow 2s ease-out}
+    @keyframes grow{from{height:0}to{height:var(--h)}}
+    .chart-bar:nth-child(1){left:40px;--h:60px;animation-delay:0.1s}
+    .chart-bar:nth-child(2){left:90px;--h:100px;animation-delay:0.2s}
+    .chart-bar:nth-child(3){left:140px;--h:80px;animation-delay:0.3s}
+    .chart-bar:nth-child(4){left:190px;--h:140px;animation-delay:0.4s}
+    .chart-bar:nth-child(5){left:240px;--h:110px;animation-delay:0.5s}
+    .chart-bar:nth-child(6){left:290px;--h:160px;animation-delay:0.6s}
+    .chart-line{position:absolute;top:40px;left:40px;right:40px;height:140px;border-left:2px solid rgba(148,163,184,0.3);border-bottom:2px solid rgba(148,163,184,0.3)}
 
-    .section{padding:48px 0;border-bottom:1px solid #0b1119}
-    .section:last-of-type{border-bottom:none}
-    .section__title{font-size:28px;margin:0 0 8px;text-align:center}
-    .section__subtitle{color:var(--muted);margin:0 0 32px;text-align:center;font-size:16px}
-    .section--placeholder{min-height:400px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
-    .section--placeholder p{color:var(--muted);font-size:18px}
+    /* IA - Cerebro neural */
+    .ai-brain{position:relative;width:200px;height:200px;margin:0 auto}
+    .neuron{position:absolute;width:20px;height:20px;background:radial-gradient(circle, var(--purple), #7c3aed);border-radius:50%;box-shadow:0 0 20px var(--purple);animation:pulse 3s ease-in-out infinite}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:0.7}}
+    .neuron:nth-child(1){top:100px;left:100px;animation-delay:0s}
+    .neuron:nth-child(2){top:50px;left:50px;animation-delay:0.3s}
+    .neuron:nth-child(3){top:50px;left:150px;animation-delay:0.6s}
+    .neuron:nth-child(4){top:150px;left:50px;animation-delay:0.9s}
+    .neuron:nth-child(5){top:150px;left:150px;animation-delay:1.2s}
+    .synapse{position:absolute;height:2px;background:linear-gradient(to right, transparent, var(--purple), transparent);transform-origin:left center;animation:signal 3s ease-in-out infinite}
+    @keyframes signal{0%,100%{opacity:0.3}50%{opacity:1}}
 
-    /* FINTECH SECTION MEJORADA */
-    .fintech-section {
-      background: linear-gradient(135deg, rgba(31, 157, 242, 0.03) 0%, rgba(245, 158, 11, 0.03) 100%);
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    .fintech-section:hover {
-      background: linear-gradient(135deg, rgba(31, 157, 242, 0.08) 0%, rgba(245, 158, 11, 0.08) 100%);
-    }
-    
-    .fintech-icons {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 24px;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem 0;
-    }
-    
-    .fintech-icon {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 1rem;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      transition: all 0.3s;
-    }
-    
-    .fintech-icon:hover {
-      border-color: var(--gold);
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
-    }
-    
-    .fintech-icon-image {
-      font-size: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, rgba(31, 157, 242, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
-      border-radius: 12px;
-    }
-    
-    .fintech-icon-label {
-      font-size: 0.875rem;
-      color: var(--muted);
-      text-align: center;
-    }
+    /* FINTECH - Edificio + Móvil */
+    .fintech-scene{position:relative;width:400px;height:200px;margin:0 auto}
+    .building{position:absolute;left:50px;bottom:0;width:120px;height:160px;background:linear-gradient(135deg, #f59e0b, #d97706);clip-path:polygon(20% 0, 80% 0, 100% 10%, 100% 100%, 0 100%, 0 10%)}
+    .window{position:absolute;width:15px;height:20px;background:rgba(255,255,255,0.3);border-radius:2px}
+    .window:nth-child(1){top:30px;left:15px}
+    .window:nth-child(2){top:30px;left:40px}
+    .window:nth-child(3){top:30px;left:65px}
+    .window:nth-child(4){top:30px;left:90px}
+    .window:nth-child(5){top:70px;left:15px}
+    .window:nth-child(6){top:70px;left:40px}
+    .window:nth-child(7){top:70px;left:65px}
+    .window:nth-child(8){top:70px;left:90px}
+    .phone{position:absolute;right:80px;bottom:20px;width:80px;height:140px;background:linear-gradient(135deg, #1f9df2, #0ea5e9);border-radius:12px;box-shadow:0 10px 40px rgba(31,157,242,0.4);animation:float 3s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    .phone-screen{position:absolute;top:10px;left:10px;right:10px;bottom:30px;background:rgba(255,255,255,0.1);border-radius:8px}
+    .phone-button{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:40px;height:4px;background:rgba(255,255,255,0.3);border-radius:2px}
 
-    .bd-title{font-size:22px;margin:0 0 4px}
-    .bd-subtitle{color:var(--muted);margin:0 0 16px}
-    .bd-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
-    @media (max-width:1024px){.bd-grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:680px){.bd-grid{grid-template-columns:1fr}}
-    .bd-card{background:var(--card);border:1px solid #1c2636;border-radius:var(--radius);padding:12px;position:relative}
-    .bd-chart{width:100%;height:420px;position:relative}
-
-    .bd-controls{margin:0 0 14px}
-    .bd-controls__row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-    .bd-controls__row:last-child{margin-bottom:0}
-
-    .btn-ctrl{
-      padding:7px 13px;
-      border-radius:8px;
-      border:1px solid #243143;
-      background:transparent;
-      color:#96a3b7;
-      font-size:13.5px;
-      font-weight:500;
-      cursor:pointer;
-      transition:all 0.2s;
-      font-family:inherit;
-    }
-    .btn-ctrl:hover{
-      border-color:#2e3e55;
-      background:#1a2434;
-    }
-    .btn-ctrl.active{
-      border-color:#1f9df2;
-      background:#1f9df2;
-      color:#0f1620;
-    }
-
-    .btn-series{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      border-radius:20px;
-    }
-    .btn-series .dot{
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      flex-shrink:0;
-    }
-
-    @media (max-width:680px){
-      .bd-chart{height:320px}
-      .hero__copy h1{font-size:32px}
-      .hero__copy .description{font-size:15px}
-      .btn-ctrl{padding:6px 10px;font-size:12.5px}
-      .section__title{font-size:24px}
-      .nav__links{gap:20px}
-      .brand{font-size:14px}
-      .fintech-icons{grid-template-columns:repeat(3, 1fr);}
-    }
-
-    .bd-loading{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      height:100%;
-      color:#96a3b7;
-      text-align:center;
-      gap:16px;
-    }
-    .bd-spinner{
-      width:40px;
-      height:40px;
-      border:3px solid #1a2434;
-      border-top-color:#1f9df2;
-      border-radius:50%;
-      animation:spin 1s linear infinite;
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    .bd-error{padding:1.5rem;color:#f56565;text-align:center;line-height:1.6}
-    .bd-retry{
-      margin-top:12px;
-      padding:8px 16px;
-      background:#1f9df2;
-      color:#fff;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;
-      font-size:14px;
-    }
-
-    .podcast-embed{background:#101827;border:1px solid #1c2636;border-radius:12px;padding:10px}
+    /* WEB3 - Blockchain */
+    .blockchain{position:relative;width:500px;height:120px;margin:0 auto;display:flex;gap:20px;align-items:center}
+    .block{width:80px;height:80px;background:linear-gradient(135deg, var(--accent), #10b981);border-radius:12px;position:relative;box-shadow:0 8px 24px rgba(45,222,155,0.3);animation:blockAppear 0.5s ease-out backwards}
+    @keyframes blockAppear{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .block:nth-child(1){animation-delay:0.1s}
+    .block:nth-child(2){animation-delay:0.3s}
+    .block:nth-child(3){animation-delay:0.5s}
+    .block:nth-child(4){animation-delay:0.7s}
+    .block:nth-child(5){animation-delay:0.9s}
+    .chain-link{width:20px;height:4px;background:var(--accent);opacity:0.5}
 
     .footer{border-top:1px solid #0b1119;padding:24px 0;color:#9fb0c9;margin-top:60px}
     .footer__inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
     .footer__links{display:flex;gap:24px}
     .footer__links a{color:#9fb0c9;transition:color 0.2s}
     .footer__links a:hover{color:#fff}
-  </style>
 
-  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script>window.__BD_PROXY = 'https://tradfi.hugopablo.workers.dev/?url=';</script>
+    @media (max-width:680px){
+      .hero__copy h1{font-size:32px}
+      .section__title{font-size:24px}
+      .visual-art{height:200px}
+      .analytics-screen{width:300px;height:180px}
+      .fintech-scene{width:300px;height:150px;transform:scale(0.8)}
+      .blockchain{width:100%;overflow-x:auto;padding:0 20px}
+      .podcast-mic{transform:scale(0.8)}
+    }
+  </style>
 </head>
 <body>
 
@@ -258,246 +150,136 @@
         <p class="description">Educación aplicada basada en <strong>Web3, IA, Analítica, DeFi, TradFi y Fintech</strong>. Visión: Individuos y organizaciones capacitados para integrar finanzas y tecnología en las nuevas tendencias de nuestros tiempos.</p>
         
         <div class="hero__nav">
-          <a href="podcast.html" class="btn btn--podcast">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polygon points="10 8 16 12 10 16 10 8"/>
-            </svg>
-            Podcast y Editorial
-          </a>
-          
-          <a class="btn" href="#analytic">Analítica/Dashboards</a>
-          <a class="btn" href="ia.html">Inteligencia Artificial</a>
-          <a class="btn" href="tradfi.html">Fintech + TradFi</a>
-          <a class="btn" href="web3.html">Web3</a>
+          <a href="#podcast" class="btn">Podcast y Editorial</a>
+          <a href="#analytic" class="btn">Analítica/Dashboards</a>
+          <a href="#ia" class="btn">Inteligencia Artificial</a>
+          <a href="#fintech" class="btn">Fintech + TradFi</a>
+          <a href="#web3" class="btn">Web3</a>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="podcast" class="section">
+  <!-- PODCAST -->
+  <section id="podcast" class="section" onclick="window.location.href='podcast.html'">
     <div class="container">
       <h2 class="section__title">Podcast</h2>
-      <p class="section__subtitle">Navegando por el futuro de las IA y Finanzas</p>
-      <div class="podcast-embed">
-        <iframe style="border:0;width:100%;height:232px;border-radius:10px" loading="lazy"
-          src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+      <p class="section__subtitle">Conversaciones profundas sobre el futuro de las finanzas y la tecnología</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="podcast-mic">
+            <div class="headphone-band"></div>
+            <div class="headphone-left"></div>
+            <div class="headphone-right"></div>
+            <div class="mic-body">
+              <div class="mic-grille"></div>
+            </div>
+            <div class="mic-stand"></div>
+            <div class="mic-base"></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="analytic" class="section">
+  <!-- ANALYTICS -->
+  <section id="analytic" class="section" onclick="window.location.href='analiticas.html'">
     <div class="container">
       <h2 class="section__title">Analíticas/Dashboards</h2>
-      <p class="section__subtitle">Series mensuales, <em>logarítmicas</em> y Base 100, sincronizadas.</p>
-
-      <div class="bd-grid">
-        <!-- TradFi Chile -->
-        <article class="bd-card" id="card-chile">
-          <h3 class="bd-title">TradFi · Chile — UF, USD/CLP e IPSA — YTD (valores reales)</h3>
-          <p class="bd-subtitle">Formas superpuestas, ejes independientes; tooltip con valores reales.</p>
-
-          <div class="bd-controls">
-            <div class="bd-controls__row">
-              <button class="btn-ctrl btn-series active" data-series="uf">
-                <span class="dot" style="background:#3b82f6"></span>
-                UF
-              </button>
-              <button class="btn-ctrl btn-series active" data-series="usd">
-                <span class="dot" style="background:#f59e0b"></span>
-                USD/CLP
-              </button>
-              <button class="btn-ctrl btn-series active" data-series="ipsa">
-                <span class="dot" style="background:#a855f7"></span>
-                IPSA
-              </button>
-            </div>
-
-            <div class="bd-controls__row">
-              <button class="btn-ctrl" data-period="1M">1M</button>
-              <button class="btn-ctrl" data-period="3M">3M</button>
-              <button class="btn-ctrl" data-period="6M">6M</button>
-              <button class="btn-ctrl active" data-period="YTD">YTD</button>
-              <button class="btn-ctrl" data-period="1Y">1Y</button>
-              <button class="btn-ctrl" data-period="All">All</button>
-            </div>
-
-            <div class="bd-controls__row">
-              <button class="btn-ctrl" data-mode="Real">Real</button>
-              <button class="btn-ctrl active" data-mode="Base100">Base100</button>
-              <button class="btn-ctrl" data-mode="%">%</button>
-            </div>
+      <p class="section__subtitle">Datos en tiempo real para decisiones informadas</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="analytics-screen">
+            <div class="chart-line"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
+            <div class="chart-bar"></div>
           </div>
-
-          <div id="c-chile" class="bd-chart">
-            <div class="bd-loading">
-              <div class="bd-spinner"></div>
-              <div>Cargando datos YTD...</div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Índices -->
-        <article class="bd-card" id="card-indices">
-          <h3 class="bd-title">Índices — SPY vs EWG vs EWJ — YTD (valores reales)</h3>
-          <p class="bd-subtitle">S&P 500, Alemania, Japón · Formas superpuestas, ejes independientes</p>
-
-          <div class="bd-controls">
-            <div class="bd-controls__row">
-              <button class="btn-ctrl btn-series active" data-series="spy">
-                <span class="dot" style="background:#3b82f6"></span>
-                SPY
-              </button>
-              <button class="btn-ctrl btn-series active" data-series="ewg">
-                <span class="dot" style="background:#10b981"></span>
-                EWG
-              </button>
-              <button class="btn-ctrl btn-series active" data-series="ewj">
-                <span class="dot" style="background:#f59e0b"></span>
-                EWJ
-              </button>
-            </div>
-
-            <div class="bd-controls__row">
-              <button class="btn-ctrl" data-period="1M">1M</button>
-              <button class="btn-ctrl" data-period="3M">3M</button>
-              <button class="btn-ctrl" data-period="6M">6M</button>
-              <button class="btn-ctrl active" data-period="YTD">YTD</button>
-              <button class="btn-ctrl" data-period="1Y">1Y</button>
-              <button class="btn-ctrl" data-period="All">All</button>
-            </div>
-
-            <div class="bd-controls__row">
-              <button class="btn-ctrl" data-mode="Real">Real</button>
-              <button class="btn-ctrl active" data-mode="Base100">Base100</button>
-              <button class="btn-ctrl" data-mode="%">%</button>
-            </div>
-          </div>
-
-          <div id="c-indices" class="bd-chart">
-            <div class="bd-loading">
-              <div class="bd-spinner"></div>
-              <div>Cargando índices YTD...</div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Commodities -->
-        <article class="bd-card" id="card-commodities">
-          <h3 class="bd-title">Commodities — Oro vs Plata vs Cobre vs Litio — YTD (valores reales)</h3>
-          <p class="bd-subtitle">Comparación Year-to-Date de metales preciosos e industriales</p>
-
-          <div class="bd-controls">
-            <div class="bd-controls__row">
-              <button class="btn-ctrl btn-series active" data-series="gold">
-                <span class="dot" style="background:#fbbf24"></span>
-                Oro
-              </button>
-              <button class="btn-ctrl btn-series active" data-series="silver">
-                <span class="dot" style="background:#9ca3af"></span>
-                Plata
-              </button>
-              <button class="btn-ctrl btn-series active" data-series="copper">
-                <span class="dot" style="background:#f97316"></span>
-                Cobre
-              </button>
-              <button class="btn-ctrl btn-series active" data-series="lithium">
-                <span class="dot" style="background:#06b6d4"></span>
-                Litio
-              </button>
-            </div>
-
-            <div class="bd-controls__row">
-              <button class="btn-ctrl" data-period="1M">1M</button>
-              <button class="btn-ctrl" data-period="3M">3M</button>
-              <button class="btn-ctrl" data-period="6M">6M</button>
-              <button class="btn-ctrl active" data-period="YTD">YTD</button>
-              <button class="btn-ctrl" data-period="1Y">1Y</button>
-              <button class="btn-ctrl" data-period="All">All</button>
-            </div>
-
-            <div class="bd-controls__row">
-              <button class="btn-ctrl active" data-mode="Real">Real</button>
-              <button class="btn-ctrl" data-mode="Base100">Base100</button>
-              <button class="btn-ctrl" data-mode="%">%</button>
-            </div>
-          </div>
-
-          <div id="c-commod" class="bd-chart">
-            <div class="bd-loading">
-              <div class="bd-spinner"></div>
-              <div>Cargando commodities YTD...</div>
-            </div>
-          </div>
-        </article>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="ia" class="section">
+  <!-- IA -->
+  <section id="ia" class="section" onclick="window.location.href='ia.html'">
     <div class="container">
       <h2 class="section__title">Inteligencia Artificial</h2>
-      <p class="section__subtitle">IA aplicada a finanzas, análisis predictivo y automatización</p>
-      <div style="text-align:center;padding:2rem 0;">
-        <a href="ia.html" class="btn btn--primary" style="font-size:16px;padding:12px 24px;">
-          Explorar IA →
-        </a>
+      <p class="section__subtitle">El poder del machine learning en finanzas</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="ai-brain">
+            <div class="neuron"></div>
+            <div class="neuron"></div>
+            <div class="neuron"></div>
+            <div class="neuron"></div>
+            <div class="neuron"></div>
+            <svg width="200" height="200" style="position:absolute;top:0;left:0">
+              <line x1="110" y1="110" x2="60" y2="60" stroke="#a855f7" stroke-width="2" opacity="0.4" class="synapse"/>
+              <line x1="110" y1="110" x2="160" y2="60" stroke="#a855f7" stroke-width="2" opacity="0.4" class="synapse" style="animation-delay:0.3s"/>
+              <line x1="110" y1="110" x2="60" y2="160" stroke="#a855f7" stroke-width="2" opacity="0.4" class="synapse" style="animation-delay:0.6s"/>
+              <line x1="110" y1="110" x2="160" y2="160" stroke="#a855f7" stroke-width="2" opacity="0.4" class="synapse" style="animation-delay:0.9s"/>
+            </svg>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="fintech" class="section fintech-section" onclick="window.location.href='tradfi.html'">
+  <!-- FINTECH -->
+  <section id="fintech" class="section" onclick="window.location.href='tradfi.html'">
     <div class="container">
       <h2 class="section__title">Fintech + TradFi</h2>
-      <p class="section__subtitle">El ecosistema financiero moderno: tradicional + innovación digital</p>
+      <p class="section__subtitle">La convergencia entre lo tradicional y lo digital</p>
       
-      <div class="fintech-icons">
-        <div class="fintech-icon">
-          <div class="fintech-icon-image">🏦</div>
-          <div class="fintech-icon-label">Bancos</div>
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="fintech-scene">
+            <div class="building">
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+              <div class="window"></div>
+            </div>
+            <div class="phone">
+              <div class="phone-screen"></div>
+              <div class="phone-button"></div>
+            </div>
+          </div>
         </div>
-        
-        <div class="fintech-icon">
-          <div class="fintech-icon-image">💳</div>
-          <div class="fintech-icon-label">Tarjetas</div>
-        </div>
-        
-        <div class="fintech-icon">
-          <div class="fintech-icon-image">📱</div>
-          <div class="fintech-icon-label">Apps</div>
-        </div>
-        
-        <div class="fintech-icon">
-          <div class="fintech-icon-image">💰</div>
-          <div class="fintech-icon-label">Pagos</div>
-        </div>
-        
-        <div class="fintech-icon">
-          <div class="fintech-icon-image">🌍</div>
-          <div class="fintech-icon-label">Global</div>
-        </div>
-        
-        <div class="fintech-icon">
-          <div class="fintech-icon-image">🤖</div>
-          <div class="fintech-icon-label">AI Finance</div>
-        </div>
-      </div>
-      
-      <div style="text-align:center;padding:1rem 0;">
-        <span style="color:var(--muted);font-size:14px;">Click en cualquier parte para explorar →</span>
       </div>
     </div>
   </section>
 
-  <section id="web3" class="section">
+  <!-- WEB3 -->
+  <section id="web3" class="section" onclick="window.location.href='web3.html'">
     <div class="container">
       <h2 class="section__title">Web3</h2>
-      <p class="section__subtitle">Blockchain, DeFi, NFTs y el Internet del Valor</p>
-      <div style="text-align:center;padding:2rem 0;">
-        <a href="web3.html" class="btn btn--primary" style="font-size:16px;padding:12px 24px;">
-          Explorar Web3 →
-        </a>
+      <p class="section__subtitle">Blockchain y el futuro descentralizado</p>
+      
+      <div class="visual-container">
+        <div class="visual-art">
+          <div class="blockchain">
+            <div class="block"></div>
+            <div class="chain-link"></div>
+            <div class="block"></div>
+            <div class="chain-link"></div>
+            <div class="block"></div>
+            <div class="chain-link"></div>
+            <div class="block"></div>
+            <div class="chain-link"></div>
+            <div class="block"></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -507,49 +289,12 @@
       <span>© 2025 Bitácora Digital</span>
       <div class="footer__links">
         <a href="podcast.html">Podcast</a>
-        <a href="#analytic">Dashboards</a>
+        <a href="analiticas.html">Dashboards</a>
         <a href="nosotros.html">Nosotros</a>
         <a href="contacto.html">Contacto</a>
       </div>
     </div>
   </footer>
 
-  <script src="assets/js/app.js"></script>
-  <script src="assets/js/indices.js"></script>
-  <script src="assets/js/commodities.js"></script>
-  
-  <script>
-  (function() {
-    const podcastSection = document.getElementById('podcast');
-    if (!podcastSection) return;
-
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      cursor: pointer;
-      z-index: 1;
-    `;
-    
-    const podcastEmbed = podcastSection.querySelector('.podcast-embed');
-    if (podcastEmbed) {
-      podcastEmbed.style.position = 'relative';
-      podcastEmbed.appendChild(overlay);
-      
-      overlay.addEventListener('click', () => {
-        window.location.href = 'podcast.html';
-      });
-      
-      const iframe = podcastEmbed.querySelector('iframe');
-      if (iframe) {
-        iframe.style.position = 'relative';
-        iframe.style.zIndex = '2';
-      }
-    }
-  })();
-  </script>
 </body>
 </html>
