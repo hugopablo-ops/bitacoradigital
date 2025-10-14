@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradFi + Fintech - Bitácora Digital</title>
+  <link rel="icon" href="assets/favicon.svg" />
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg: #0f1620;
+      --card: #141c27;
+      --text: #dbe4f3;
+      --muted: #96a3b7;
+      --accent: #1f9df2;
+      --accent2: #2dde9b;
+      --gold: #f59e0b;
+      --line: #1c2636;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    /* HEADER */
+    .header {
+      background: rgba(8, 12, 18, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .logo:hover {
+      color: var(--accent);
+    }
+    
+    .nav {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav a:hover {
+      color: var(--accent);
+    }
+    
+    /* HERO */
+    .hero {
+      padding: 4rem 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--muted);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    /* CONTAINER */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+    
+    /* COMPARACIÓN */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+    
+    .comparison-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 2.5rem;
+      transition: all 0.3s;
+    }
+    
+    .comparison-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(31, 157, 242, 0.2);
+    }
+    
+    .comparison-card.tradfi {
+      border-top: 3px solid var(--gold);
+    }
+    
+    .comparison-card.fintech {
+      border-top: 3px solid var(--accent);
+    }
+    
+    .comparison-card h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .comparison-card h2 svg {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .comparison-card .definition {
+      font-size: 1.125rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: rgba(31, 157, 242, 0.05);
+      border-radius: 8px;
+    }
+    
+    .comparison-card h3 {
+      font-size: 1.25rem;
+      color: var(--accent2);
+      margin: 1.5rem 0 1rem;
+    }
+    
+    .comparison-card ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .comparison-card ul li {
+      padding: 0.75rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: var(--muted);
+    }
+    
+    .comparison-card ul li:before {
+      content: '▹';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: bold;
+    }
+    
+    /* LOGOS SECTION */
+    .logos-section {
+      margin: 4rem 0;
+    }
+    
+    .logos-section h2 {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 3rem;
+      color: var(--accent);
+    }
+    
+    .logos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    .logo-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.3s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .logo-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(31, 157, 242, 0.2);
+    }
+    
+    .logo-icon {
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+    }
+    
+    .logo-card h3 {
+      font-size: 1.125rem;
+      color: var(--text);
+      text-align: center;
+    }
+    
+    .logo-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    
+    /* CONVERGENCIA */
+    .convergencia {
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 3rem;
+      text-align: center;
+      margin: 4rem 0;
+    }
+    
+    .convergencia h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    
+    .convergencia p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      max-width: 800px;
+      margin: 0 auto 2rem;
+    }
+    
+    .convergencia-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .feature {
+      padding: 1.5rem;
+      background: var(--card);
+      border-radius: 8px;
+    }
+    
+    .feature h3 {
+      color: var(--accent2);
+      margin-bottom: 0.5rem;
+    }
+    
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0;
+      color: #9fb0c9;
+      margin-top: 60px;
+    }
+    
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .footer-links a {
+      color: #9fb0c9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: #fff;
+    }
+    
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .nav {
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">← Bitácora Digital</a>
+      <nav class="nav">
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1>TradFi + Fintech</h1>
+    <p>
+      El ecosistema financiero moderno: desde las instituciones tradicionales 
+      hasta las innovaciones tecnológicas que están transformando el acceso al dinero
+    </p>
+  </section>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="container">
+
+    <!-- COMPARACIÓN -->
+    <div class="comparison-grid">
+      
+      <!-- TRADFI -->
+      <div class="comparison-card tradfi">
+        <h2>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          TradFi
+        </h2>
+        
+        <div class="definition">
+          <strong>Finanzas Tradicionales:</strong> Sistema bancario y financiero establecido, 
+          regulado y centralizado que ha operado por décadas.
+        </div>
+        
+        <h3>¿Qué es TradFi?</h3>
+        <p style="color: var(--muted);">
+          TradFi (Traditional Finance) representa el sistema financiero convencional: 
+          bancos, instituciones reguladas, y servicios financieros centralizados que conocemos 
+          desde hace generaciones.
+        </p>
+        
+        <h3>Componentes principales</h3>
+        <ul>
+          <li><strong>Bancos tradicionales</strong> - Instituciones reguladas que ofrecen servicios completos</li>
+          <li><strong>Tarjetas de crédito</strong> - Crédito rotativo respaldado por entidades financieras</li>
+          <li><strong>Depósitos a plazo</strong> - Instrumentos de ahorro con rentabilidad garantizada</li>
+          <li><strong>Cuentas vista</strong> - Cuentas corrientes y de ahorro estándar</li>
+          <li><strong>Corredoras de valores</strong> - Intermediarios regulados para inversión</li>
+        </ul>
+        
+        <h3>Ventajas clave</h3>
+        <ul>
+          <li>Estabilidad regulatoria y protección al consumidor</li>
+          <li>Solidez institucional respaldada por gobiernos</li>
+          <li>Infraestructura probada por décadas</li>
+          <li>Seguro de depósitos y garantías estatales</li>
+        </ul>
+      </div>
+
+      <!-- FINTECH -->
+      <div class="comparison-card fintech">
+        <h2>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1f9df2" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          Fintech
+        </h2>
+        
+        <div class="definition">
+          <strong>Tecnología Financiera:</strong> Empresas tecnológicas que innovan y democratizan 
+          el acceso a servicios financieros mediante plataformas digitales.
+        </div>
+        
+        <h3>¿Qué es Fintech?</h3>
+        <p style="color: var(--muted);">
+          Fintech (Financial Technology) representa la revolución digital de los servicios financieros: 
+          apps, plataformas y soluciones tecnológicas que hacen el dinero más accesible, rápido y transparente.
+        </p>
+        
+        <h3>Innovaciones principales</h3>
+        <ul>
+          <li><strong>Consumo inteligente</strong> - Control de gastos y análisis en tiempo real</li>
+          <li><strong>Asesoría financiera IA</strong> - Bots y algoritmos para inversión personalizada</li>
+          <li><strong>Pagos digitales</strong> - Transferencias instantáneas y sin fricción</li>
+          <li><strong>Multicash</strong> - Gestión de múltiples divisas y criptomonedas</li>
+          <li><strong>Comercio internacional</strong> - Facilitación de pagos transfronterizos</li>
+        </ul>
+        
+        <h3>Características clave</h3>
+        <ul>
+          <li>Dependen de infraestructura bancaria tradicional</li>
+          <li>Regulación en evolución constante</li>
+          <li>Basados en cloud, IA y análisis de datos</li>
+          <li>Enfoque en UX y accesibilidad móvil</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- LOGOS TRADFI -->
+    <div class="logos-section">
+      <h2>🏦 Principales Instituciones TradFi</h2>
+      <div class="logos-grid">
+        <a href="https://www.jpmorgan.com" target="_blank" class="logo-card">
+          <div class="logo-icon">🏛️</div>
+          <h3>JP Morgan Chase</h3>
+          <p>Mayor banco de EE.UU.</p>
+        </a>
+        
+        <a href="https://www.santander.com" target="_blank" class="logo-card">
+          <div class="logo-icon">🏦</div>
+          <h3>Santander</h3>
+          <p>Líder bancario global</p>
+        </a>
+        
+        <a href="https://www.bcentral.cl" target="_blank" class="logo-card">
+          <div class="logo-icon">🇨🇱</div>
+          <h3>Banco Central Chile</h3>
+          <p>Política monetaria nacional</p>
+        </a>
+        
+        <a href="https://www.goldmansachs.com" target="_blank" class="logo-card">
+          <div class="logo-icon">💼</div>
+          <h3>Goldman Sachs</h3>
+          <p>Banca de inversión</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- LOGOS FINTECH -->
+    <div class="logos-section">
+      <h2>💳 Principales Plataformas Fintech</h2>
+      <div class="logos-grid">
+        <a href="https://www.stripe.com" target="_blank" class="logo-card">
+          <div class="logo-icon">💳</div>
+          <h3>Stripe</h3>
+          <p>Pagos online globales</p>
+        </a>
+        
+        <a href="https://www.revolut.com" target="_blank" class="logo-card">
+          <div class="logo-icon">🌍</div>
+          <h3>Revolut</h3>
+          <p>Banking digital multicurrency</p>
+        </a>
+        
+        <a href="https://www.nubank.com.br" target="_blank" class="logo-card">
+          <div class="logo-icon">💜</div>
+          <h3>Nubank</h3>
+          <p>Mayor fintech de LATAM</p>
+        </a>
+        
+        <a href="https://www.square.com" target="_blank" class="logo-card">
+          <div class="logo-icon">📱</div>
+          <h3>Square (Block)</h3>
+          <p>Pagos y crypto integrados</p>
+        </a>
+        
+        <a href="https://www.wise.com" target="_blank" class="logo-card">
+          <div class="logo-icon">✈️</div>
+          <h3>Wise</h3>
+          <p>Transferencias internacionales</p>
+        </a>
+        
+        <a href="https://www.chime.com" target="_blank" class="logo-card">
+          <div class="logo-icon">🏦</div>
+          <h3>Chime</h3>
+          <p>Banking sin comisiones</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- CONVERGENCIA -->
+    <div class="convergencia">
+      <h2>La Convergencia: TradFi + Fintech</h2>
+      <p>
+        El futuro financiero no es una batalla entre tradicional y digital, 
+        sino la integración inteligente de ambos mundos para crear un ecosistema 
+        más accesible, eficiente y seguro.
+      </p>
+      
+      <div class="convergencia-features">
+        <div class="feature">
+          <h3>💡 Innovación + Estabilidad</h3>
+          <p>Fintechs aprovechan infraestructura bancaria tradicional para escalar de forma segura</p>
+        </div>
+        
+        <div class="feature">
+          <h3>🔐 Tecnología + Regulación</h3>
+          <p>Bancos adoptan tecnología fintech mientras mantienen cumplimiento regulatorio</p>
+        </div>
+        
+        <div class="feature">
+          <h3>🌐 Alcance Global + Local</h3>
+          <p>Servicios digitales globales con respaldo de instituciones locales</p>
+        </div>
+        
+        <div class="feature">
+          <h3>🤖 IA + Experiencia Humana</h3>
+          <p>Automatización inteligente combinada con asesoría personalizada</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© 2025 Bitácora Digital</span>
+      <div class="footer-links">
+        <a href="index.html">Inicio</a>
+        <a href="podcast.html">Podcast</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
