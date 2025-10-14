@@ -10,7 +10,7 @@
   <style>
     :root{
       --bg:#0f1620; --card:#141c27; --line:#243143; --text:#dbe4f3; --muted:#96a3b7;
-      --accent:#2dde9b; --accent2:#4dd3ff; --radius:14px;
+      --accent:#2dde9b; --accent2:#4dd3ff; --gold:#f59e0b; --radius:14px;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -79,6 +79,61 @@
     .section--placeholder{min-height:400px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
     .section--placeholder p{color:var(--muted);font-size:18px}
 
+    /* FINTECH SECTION MEJORADA */
+    .fintech-section {
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.03) 0%, rgba(245, 158, 11, 0.03) 100%);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .fintech-section:hover {
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.08) 0%, rgba(245, 158, 11, 0.08) 100%);
+    }
+    
+    .fintech-icons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 0;
+    }
+    
+    .fintech-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 1rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      transition: all 0.3s;
+    }
+    
+    .fintech-icon:hover {
+      border-color: var(--gold);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+    }
+    
+    .fintech-icon-image {
+      font-size: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+      border-radius: 12px;
+    }
+    
+    .fintech-icon-label {
+      font-size: 0.875rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
     .bd-title{font-size:22px;margin:0 0 4px}
     .bd-subtitle{color:var(--muted);margin:0 0 16px}
     .bd-grid{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}
@@ -134,6 +189,7 @@
       .section__title{font-size:24px}
       .nav__links{gap:20px}
       .brand{font-size:14px}
+      .fintech-icons{grid-template-columns:repeat(3, 1fr);}
     }
 
     .bd-loading{
@@ -211,9 +267,9 @@
           </a>
           
           <a class="btn" href="#analytic">Analítica/Dashboards</a>
-          <a class="btn" href="#ia">Inteligencia Artificial</a>
-          <a class="btn" href="#fintech">Fintech + TradFi</a>
-          <a class="btn" href="#web3">Web3</a>
+          <a class="btn" href="ia.html">Inteligencia Artificial</a>
+          <a class="btn" href="tradfi.html">Fintech + TradFi</a>
+          <a class="btn" href="web3.html">Web3</a>
         </div>
       </div>
     </div>
@@ -379,31 +435,70 @@
     </div>
   </section>
 
-  <section id="ia" class="section section--placeholder">
+  <section id="ia" class="section">
     <div class="container">
       <h2 class="section__title">Inteligencia Artificial</h2>
-      <p>Próximamente: contenido sobre IA aplicada a finanzas</p>
+      <p class="section__subtitle">IA aplicada a finanzas, análisis predictivo y automatización</p>
+      <div style="text-align:center;padding:2rem 0;">
+        <a href="ia.html" class="btn btn--primary" style="font-size:16px;padding:12px 24px;">
+          Explorar IA →
+        </a>
+      </div>
     </div>
   </section>
 
-  <section id="fintech" class="section section--placeholder">
+  <section id="fintech" class="section fintech-section" onclick="window.location.href='tradfi.html'">
     <div class="container">
       <h2 class="section__title">Fintech + TradFi</h2>
-      <p>Próximamente: análisis de fintech y finanzas tradicionales</p>
+      <p class="section__subtitle">El ecosistema financiero moderno: tradicional + innovación digital</p>
+      
+      <div class="fintech-icons">
+        <div class="fintech-icon">
+          <div class="fintech-icon-image">🏦</div>
+          <div class="fintech-icon-label">Bancos</div>
+        </div>
+        
+        <div class="fintech-icon">
+          <div class="fintech-icon-image">💳</div>
+          <div class="fintech-icon-label">Tarjetas</div>
+        </div>
+        
+        <div class="fintech-icon">
+          <div class="fintech-icon-image">📱</div>
+          <div class="fintech-icon-label">Apps</div>
+        </div>
+        
+        <div class="fintech-icon">
+          <div class="fintech-icon-image">💰</div>
+          <div class="fintech-icon-label">Pagos</div>
+        </div>
+        
+        <div class="fintech-icon">
+          <div class="fintech-icon-image">🌍</div>
+          <div class="fintech-icon-label">Global</div>
+        </div>
+        
+        <div class="fintech-icon">
+          <div class="fintech-icon-image">🤖</div>
+          <div class="fintech-icon-label">AI Finance</div>
+        </div>
+      </div>
+      
+      <div style="text-align:center;padding:1rem 0;">
+        <span style="color:var(--muted);font-size:14px;">Click en cualquier parte para explorar →</span>
+      </div>
     </div>
   </section>
 
-  <section id="web3" class="section section--placeholder">
+  <section id="web3" class="section">
     <div class="container">
       <h2 class="section__title">Web3</h2>
-      <p>Próximamente: contenido sobre blockchain, DeFi y Web3</p>
-    </div>
-  </section>
-
-  <section id="editorial" class="section section--placeholder">
-    <div class="container">
-      <h2 class="section__title">Editorial/Actualidad</h2>
-      <p>Próximamente: noticias y análisis de actualidad</p>
+      <p class="section__subtitle">Blockchain, DeFi, NFTs y el Internet del Valor</p>
+      <div style="text-align:center;padding:2rem 0;">
+        <a href="web3.html" class="btn btn--primary" style="font-size:16px;padding:12px 24px;">
+          Explorar Web3 →
+        </a>
+      </div>
     </div>
   </section>
 
