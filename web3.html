@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web3 - Bitácora Digital</title>
+  <link rel="icon" href="assets/favicon.svg" />
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg: #0f1620;
+      --card: #141c27;
+      --text: #dbe4f3;
+      --muted: #96a3b7;
+      --accent: #1f9df2;
+      --accent2: #2dde9b;
+      --orange: #f97316;
+      --line: #1c2636;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    .header {
+      background: rgba(8, 12, 18, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .logo:hover {
+      color: var(--accent);
+    }
+    
+    .nav {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav a:hover {
+      color: var(--accent);
+    }
+    
+    .hero {
+      padding: 4rem 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(45, 222, 155, 0.05) 0%, rgba(249, 115, 22, 0.05) 100%);
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--accent2) 0%, var(--orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--muted);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+    
+    .section {
+      margin-bottom: 4rem;
+    }
+    
+    .section h2 {
+      font-size: 2rem;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .section p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 1rem;
+    }
+    
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: all 0.3s;
+    }
+    
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(31, 157, 242, 0.2);
+    }
+    
+    .card h3 {
+      font-size: 1.5rem;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .card p {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    
+    .card ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+    
+    .card ul li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: var(--muted);
+    }
+    
+    .card ul li:before {
+      content: '▹';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+    
+    .protocols-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .protocol-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .protocol-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+    
+    .protocol-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .protocol-card h3 {
+      color: var(--text);
+      font-size: 1.125rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .protocol-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0;
+      color: #9fb0c9;
+      margin-top: 60px;
+    }
+    
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .footer-links a {
+      color: #9fb0c9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: #fff;
+    }
+    
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      .nav {
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">← Bitácora Digital</a>
+      <nav class="nav">
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>🌐 Web3</h1>
+    <p>
+      Blockchain, DeFi, NFTs y el Internet del Valor: construyendo un sistema financiero 
+      descentralizado, transparente y accesible para todos
+    </p>
+  </section>
+
+  <div class="container">
+
+    <div class="section">
+      <h2>Los Pilares de Web3</h2>
+      <p style="text-align: center; max-width: 800px; margin: 0 auto 2rem;">
+        Web3 representa la evolución de Internet hacia un ecosistema descentralizado donde 
+        usuarios tienen control real sobre sus datos, activos y participación en redes digitales.
+      </p>
+      
+      <div class="cards-grid">
+        <div class="card">
+          <h3>⛓️ Blockchain</h3>
+          <p>Tecnología de registro distribuido que permite transacciones transparentes, inmutables y sin intermediarios centralizados.</p>
+          <ul>
+            <li>Consensus mechanisms (PoW, PoS)</li>
+            <li>Smart contracts programables</li>
+            <li>Trazabilidad y transparencia</li>
+            <li>Seguridad criptográfica</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>💰 DeFi (Finanzas Descentralizadas)</h3>
+          <p>Protocolos financieros que operan sin bancos ni intermediarios tradicionales, permitiendo préstamos, trading y ahorro peer-to-peer.</p>
+          <ul>
+            <li>Lending y Borrowing (Aave, Compound)</li>
+            <li>DEXs - Exchanges descentralizados</li>
+            <li>Staking y Yield Farming</li>
+            <li>Stablecoins algorítmicas</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🎨 NFTs (Tokens No Fungibles)</h3>
+          <p>Activos digitales únicos que representan propiedad verificable de arte, coleccionables, inmuebles virtuales y más.</p>
+          <ul>
+            <li>Arte digital y coleccionables</li>
+            <li>Gaming y metaversos</li>
+            <li>Certificados de autenticidad</li>
+            <li>Tokenización de activos reales</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🔐 Wallets y Auto-Custodia</h3>
+          <p>Billeteras digitales que dan control total sobre tus activos sin depender de terceros para guardarlos.</p>
+          <ul>
+            <li>Metamask, Ledger, Trezor</li>
+            <li>Claves privadas y seed phrases</li>
+            <li>Multi-chain compatibility</li>
+            <li>"Not your keys, not your coins"</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🏛️ DAOs (Organizaciones Autónomas)</h3>
+          <p>Organizaciones gobernadas por smart contracts donde decisiones se toman mediante votación descentralizada.</p>
+          <ul>
+            <li>Gobernanza on-chain</li>
+            <li>Tesorería compartida</li>
+            <li>Propuestas y votaciones</li>
+            <li>Participación democrática</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🌉 Layer 2 y Escalabilidad</h3>
+          <p>Soluciones que mejoran velocidad y reducen costos de transacción sin sacrificar seguridad de la blockchain base.</p>
+          <ul>
+            <li>Rollups (Optimistic, ZK)</li>
+            <li>Polygon, Arbitrum, Optimism</li>
+            <li>State channels</li>
+            <li>Bridges entre cadenas</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Principales Protocolos y Ecosistemas</h2>
+      
+      <div class="protocols-grid">
+        <a href="https://ethereum.org" target="_blank" class="protocol-card">
+          <div class="protocol-icon">💎</div>
+          <h3>Ethereum</h3>
+          <p>Smart contracts platform</p>
+        </a>
+
+        <a href="https://bitcoin.org" target="_blank" class="protocol-card">
+          <div class="protocol-icon">₿</div>
+          <h3>Bitcoin</h3>
+          <p>Digital gold estándar</p>
+        </a>
+
+        <a href="https://uniswap.org" target="_blank" class="protocol-card">
+          <div class="protocol-icon">🦄</div>
+          <h3>Uniswap</h3>
+          <p>DEX líder en volumen</p>
+        </a>
+
+        <a href="https://aave.com" target="_blank" class="protocol-card">
+          <div class="protocol-icon">👻</div>
+          <h3>Aave</h3>
+          <p>Lending protocol DeFi</p>
+        </a>
+
+        <a href="https://polygon.technology" target="_blank" class="protocol-card">
+          <div class="protocol-icon">🟣</div>
+          <h3>Polygon</h3>
+          <p>Ethereum Layer 2</p>
+        </a>
+
+        <a href="https://solana.com" target="_blank" class="protocol-card">
+          <div class="protocol-icon">◎</div>
+          <h3>Solana</h3>
+          <p>High-performance blockchain</p>
+        </a>
+
+        <a href="https://opensea.io" target="_blank" class="protocol-card">
+          <div class="protocol-icon">🌊</div>
+          <h3>OpenSea</h3>
+          <p>NFT marketplace</p>
+        </a>
+
+        <a href="https://makerdao.com" target="_blank" class="protocol-card">
+          <div class="protocol-icon">Ⓜ️</div>
+          <h3>MakerDAO</h3>
+          <p>DAI stablecoin</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card" style="background: linear-gradient(135deg, rgba(45, 222, 155, 0.05) 0%, rgba(249, 115, 22, 0.05) 100%); border: 2px solid var(--accent2);">
+        <h3>⚠️ Navegando Web3 con Responsabilidad</h3>
+        <p>
+          Web3 ofrece oportunidades increíbles, pero también requiere educación y precaución. 
+          En Bitácora Digital te enseñamos a:
+        </p>
+        <ul>
+          <li><strong>Evaluar proyectos y evitar scams</strong> - Red flags, auditorías, due diligence</li>
+          <li><strong>Gestionar riesgo inteligentemente</strong> - Diversificación, position sizing</li>
+          <li><strong>Entender gas fees y optimización</strong> - Timing, L2s, batching</li>
+          <li><strong>Seguridad operacional</strong> - Cold wallets, 2FA, phishing awareness</li>
+          <li><strong>Impuestos y regulación</strong> - Tracking, reporting, compliance</li>
+        </ul>
+        <p style="margin-top: 1rem;">
+          <strong>Recuerda:</strong> En Web3, tú eres tu propio banco. Esto significa libertad, 
+          pero también responsabilidad total sobre tus activos.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© 2025 Bitácora Digital</span>
+      <div class="footer-links">
+        <a href="index.html">Inicio</a>
+        <a href="podcast.html">Podcast</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
