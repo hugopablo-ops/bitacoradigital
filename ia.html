@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inteligencia Artificial - Bitácora Digital</title>
+  <link rel="icon" href="assets/favicon.svg" />
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg: #0f1620;
+      --card: #141c27;
+      --text: #dbe4f3;
+      --muted: #96a3b7;
+      --accent: #1f9df2;
+      --accent2: #2dde9b;
+      --purple: #a855f7;
+      --line: #1c2636;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    .header {
+      background: rgba(8, 12, 18, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .logo:hover {
+      color: var(--accent);
+    }
+    
+    .nav {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .nav a:hover {
+      color: var(--accent);
+    }
+    
+    .hero {
+      padding: 4rem 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(31, 157, 242, 0.05) 100%);
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--purple) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--muted);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+    
+    .section {
+      margin-bottom: 4rem;
+    }
+    
+    .section h2 {
+      font-size: 2rem;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .section p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 1rem;
+    }
+    
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: all 0.3s;
+    }
+    
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(31, 157, 242, 0.2);
+    }
+    
+    .card h3 {
+      font-size: 1.5rem;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .card p {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    
+    .card ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+    
+    .card ul li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: var(--muted);
+    }
+    
+    .card ul li:before {
+      content: '▹';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+    
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .tool-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .tool-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+    
+    .tool-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .tool-card h3 {
+      color: var(--text);
+      font-size: 1.125rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .tool-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0;
+      color: #9fb0c9;
+      margin-top: 60px;
+    }
+    
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .footer-links a {
+      color: #9fb0c9;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: #fff;
+    }
+    
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      .nav {
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">← Bitácora Digital</a>
+      <nav class="nav">
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>🤖 Inteligencia Artificial</h1>
+    <p>
+      Explorando cómo la IA está transformando finanzas, negocios y la toma de decisiones 
+      en tiempo real
+    </p>
+  </section>
+
+  <div class="container">
+
+    <div class="section">
+      <h2>IA Aplicada a Finanzas</h2>
+      <p style="text-align: center; max-width: 800px; margin: 0 auto 2rem;">
+        La Inteligencia Artificial no es el futuro: es el presente. Desde análisis predictivo 
+        hasta automatización de inversiones, la IA está democratizando el acceso a herramientas 
+        financieras sofisticadas que antes solo estaban al alcance de instituciones.
+      </p>
+      
+      <div class="cards-grid">
+        <div class="card">
+          <h3>📊 Análisis Predictivo</h3>
+          <p>Modelos de machine learning que analizan patrones históricos para predecir movimientos de mercado, identificar oportunidades y gestionar riesgos.</p>
+          <ul>
+            <li>Análisis de sentimiento en redes sociales</li>
+            <li>Detección de anomalías en tiempo real</li>
+            <li>Forecasting de tendencias financieras</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🤝 Asesores Robo-Advisors</h3>
+          <p>Plataformas automatizadas que gestionan carteras de inversión usando algoritmos para optimizar retornos según el perfil de riesgo.</p>
+          <ul>
+            <li>Rebalanceo automático de portafolio</li>
+            <li>Optimización fiscal inteligente</li>
+            <li>Personalización basada en objetivos</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🔐 Detección de Fraude</h3>
+          <p>Sistemas de IA que identifican transacciones sospechosas y protegen contra fraudes financieros en milisegundos.</p>
+          <ul>
+            <li>Análisis comportamental en tiempo real</li>
+            <li>Identificación de patrones anómalos</li>
+            <li>Prevención proactiva de amenazas</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>💬 Chatbots Financieros</h3>
+          <p>Asistentes virtuales que responden consultas, ejecutan operaciones y brindan asesoría personalizada 24/7.</p>
+          <ul>
+            <li>Soporte al cliente automatizado</li>
+            <li>Procesamiento de lenguaje natural</li>
+            <li>Aprendizaje continuo de interacciones</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>📈 Trading Algorítmico</h3>
+          <p>Bots que ejecutan estrategias de trading automatizadas basadas en análisis técnico y fundamental en fracciones de segundo.</p>
+          <ul>
+            <li>High-frequency trading (HFT)</li>
+            <li>Arbitraje automatizado</li>
+            <li>Backtesting de estrategias</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🎯 Credit Scoring IA</h3>
+          <p>Evaluación de riesgo crediticio usando modelos alternativos que analizan datos no tradicionales para inclusión financiera.</p>
+          <ul>
+            <li>Análisis de datos alternativos</li>
+            <li>Evaluación en tiempo real</li>
+            <li>Reducción de sesgos humanos</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Herramientas y Plataformas IA</h2>
+      
+      <div class="tools-grid">
+        <a href="https://openai.com" target="_blank" class="tool-card">
+          <div class="tool-icon">🧠</div>
+          <h3>ChatGPT / OpenAI</h3>
+          <p>LLM para análisis y automatización</p>
+        </a>
+
+        <a href="https://www.anthropic.com" target="_blank" class="tool-card">
+          <div class="tool-icon">🤖</div>
+          <h3>Claude (Anthropic)</h3>
+          <p>IA conversacional avanzada</p>
+        </a>
+
+        <a href="https://www.tensorflow.org" target="_blank" class="tool-card">
+          <div class="tool-icon">🔮</div>
+          <h3>TensorFlow</h3>
+          <p>Framework ML de Google</p>
+        </a>
+
+        <a href="https://pytorch.org" target="_blank" class="tool-card">
+          <div class="tool-icon">🔥</div>
+          <h3>PyTorch</h3>
+          <p>Deep learning framework</p>
+        </a>
+
+        <a href="https://www.datarobot.com" target="_blank" class="tool-card">
+          <div class="tool-icon">📊</div>
+          <h3>DataRobot</h3>
+          <p>AutoML para finanzas</p>
+        </a>
+
+        <a href="https://www.h2o.ai" target="_blank" class="tool-card">
+          <div class="tool-icon">💧</div>
+          <h3>H2O.ai</h3>
+          <p>ML democratizado</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(31, 157, 242, 0.05) 100%); border: 2px solid var(--accent);">
+        <h3>🎓 El Humano al Centro</h3>
+        <p>
+          En Bitácora Digital creemos que la IA no reemplaza al humano, sino que lo potencia. 
+          Nuestro enfoque está en enseñar cómo usar estas herramientas para tomar mejores decisiones, 
+          no en delegar ciegamente a las máquinas.
+        </p>
+        <p style="margin-top: 1rem;">
+          <strong>La IA es tu superpoder digital.</strong> Aprende a usarla estratégicamente 
+          para analizar datos, identificar patrones y ejecutar decisiones informadas en el mundo 
+          de las finanzas y la tecnología.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© 2025 Bitácora Digital</span>
+      <div class="footer-links">
+        <a href="index.html">Inicio</a>
+        <a href="podcast.html">Podcast</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
