@@ -64,10 +64,14 @@
       color: var(--accent);
     }
     
+    .nav {
+      display: flex;
+      gap: 2rem;
+    }
+    
     .nav a {
       color: var(--muted);
       text-decoration: none;
-      margin-left: 2rem;
       font-weight: 500;
       transition: color 0.2s;
     }
@@ -285,6 +289,10 @@
       .form-card {
         padding: 2rem 1.5rem;
       }
+      
+      .nav {
+        gap: 1rem;
+      }
     }
   </style>
 </head>
@@ -295,9 +303,8 @@
     <div class="header-inner">
       <a href="index.html" class="logo">← Bitácora Digital</a>
       <nav class="nav">
-        <a href="index.html#podcast">Podcast</a>
-        <a href="index.html#analytic">Dashboards</a>
         <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
       </nav>
     </div>
   </header>
@@ -401,8 +408,8 @@
     <div class="footer-inner">
       <span>© 2025 Bitácora Digital</span>
       <div class="footer-links">
-        <a href="index.html#podcast">Podcast</a>
-        <a href="index.html#analytic">Dashboards</a>
+        <a href="index.html">Inicio</a>
+        <a href="podcast.html">Podcast</a>
         <a href="nosotros.html">Nosotros</a>
         <a href="contacto.html">Contacto</a>
       </div>
@@ -415,7 +422,6 @@
     const successAlert = document.getElementById('successAlert');
     const errorAlert = document.getElementById('errorAlert');
     
-    // Elementos de error
     const nameInput = document.getElementById('name');
     const emailInput = document.getElementById('email');
     const messageInput = document.getElementById('message');
@@ -424,7 +430,6 @@
     const emailError = document.getElementById('emailError');
     const messageError = document.getElementById('messageError');
     
-    // Validación en tiempo real
     function validateEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
@@ -439,15 +444,12 @@
       errorElement.classList.remove('show');
     }
     
-    // Validación al enviar
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      // Reset alertas
       successAlert.classList.remove('show');
       errorAlert.classList.remove('show');
       
-      // Validar campos
       let isValid = true;
       
       if (!nameInput.value.trim()) {
@@ -473,28 +475,22 @@
       
       if (!isValid) return;
       
-      // Deshabilitar botón
       submitBtn.disabled = true;
       submitBtn.textContent = 'Enviando...';
       
-      // Simular envío (aquí conectarías con tu backend)
       try {
-        // Construir mailto link como fallback
         const mailtoLink = `mailto:hugopablo@gmail.com?subject=${encodeURIComponent(document.getElementById('subject').value || 'Contacto desde Bitácora Digital')}&body=${encodeURIComponent(
           `Nombre: ${nameInput.value}\nEmail: ${emailInput.value}\n\nMensaje:\n${messageInput.value}`
         )}`;
         
-        // Abrir cliente de email
         window.location.href = mailtoLink;
         
-        // Mostrar éxito
         setTimeout(() => {
           successAlert.classList.add('show');
           form.reset();
           submitBtn.disabled = false;
           submitBtn.textContent = 'Enviar mensaje';
           
-          // Ocultar alerta después de 5 segundos
           setTimeout(() => {
             successAlert.classList.remove('show');
           }, 5000);
@@ -512,7 +508,6 @@
       }
     });
     
-    // Limpiar errores al escribir
     nameInput.addEventListener('input', () => hideError(nameInput, nameError));
     emailInput.addEventListener('input', () => hideError(emailInput, emailError));
     messageInput.addEventListener('input', () => hideError(messageInput, messageError));
