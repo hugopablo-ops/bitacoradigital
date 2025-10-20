@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compass Digital - Data, Software & Web3 Solutions</title>
+  <meta name="description" content="Servicios empresariales de Datos, Software, IA, y Pasarelas de Pago Web3 (USDT/USDC)">
+  <link rel="icon" href="../assets/favicon.svg">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #0f1620;
+      --cyan: #4DD3FF;
+      --purple: #A855F7;
+      --magenta: #F9009D;
+      --text: #E5E7EB;
+      --text-muted: #9CA3AF;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    .bg-animated {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(77, 211, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(249, 0, 157, 0.05) 0%, transparent 50%);
+      animation: bgShift 15s ease-in-out infinite;
+    }
+    
+    @keyframes bgShift {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+    
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 0;
+      backdrop-filter: blur(10px);
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      position: relative;
+    }
+    
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      transition: width 0.3s;
+    }
+    
+    .nav-links a:hover {
+      color: var(--cyan);
+    }
+    
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+    
+    .hero {
+      min-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    
+    .logo-container {
+      margin-bottom: 3rem;
+      animation: fadeInDown 1s ease-out;
+    }
+    
+    .logo-main {
+      max-width: 600px;
+      width: 100%;
+      height: auto;
+      filter: 
+        drop-shadow(0 0 30px rgba(77, 211, 255, 0.4))
+        drop-shadow(0 0 60px rgba(168, 85, 247, 0.3));
+      animation: logoGlow 4s ease-in-out infinite;
+    }
+    
+    @keyframes logoGlow {
+      0%, 100% { 
+        filter: 
+          drop-shadow(0 0 30px rgba(77, 211, 255, 0.4))
+          drop-shadow(0 0 60px rgba(168, 85, 247, 0.3));
+      }
+      50% { 
+        filter: 
+          drop-shadow(0 0 40px rgba(77, 211, 255, 0.6))
+          drop-shadow(0 0 80px rgba(168, 85, 247, 0.5));
+      }
+    }
+    
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .hero-tagline {
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      animation: fadeIn 1.2s ease-out 0.3s both;
+    }
+    
+    .hero-description {
+      font-size: 1.125rem;
+      color: var(--text-muted);
+      max-width: 700px;
+      margin: 0 auto 3rem;
+      line-height: 1.8;
+      animation: fadeIn 1.4s ease-out 0.5s both;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .cta-primary {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.125rem;
+      border-radius: 50px;
+      transition: all 0.3s;
+      box-shadow: 0 10px 40px rgba(77, 211, 255, 0.3);
+      animation: fadeIn 1.6s ease-out 0.7s both;
+    }
+    
+    .cta-primary:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 15px 60px rgba(77, 211, 255, 0.5);
+    }
+    
+    .services {
+      padding: 6rem 0;
+    }
+    
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--cyan), var(--purple), var(--magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 4rem;
+      font-size: 1.125rem;
+    }
+    
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    
+    .service-card {
+      background: rgba(15, 22, 32, 0.6);
+      border: 1px solid rgba(77, 211, 255, 0.1);
+      border-radius: 20px;
+      padding: 2.5rem;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(77, 211, 255, 0.05), rgba(168, 85, 247, 0.05));
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    
+    .service-card:hover {
+      transform: translateY(-10px);
+      border-color: var(--cyan);
+      box-shadow: 
+        0 20px 60px rgba(77, 211, 255, 0.2),
+        inset 0 0 30px rgba(77, 211, 255, 0.05);
+    }
+    
+    .service-card:hover::before {
+      opacity: 1;
+    }
+    
+    .service-icon {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      display: block;
+      filter: drop-shadow(0 0 20px currentColor);
+    }
+    
+    .service-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--cyan);
+    }
+    
+    .service-card p {
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+    
+    .service-features {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .service-features li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    
+    .service-features li::before {
+      content: '▹';
+      position: absolute;
+      left: 0;
+      color: var(--purple);
+      font-weight: bold;
+    }
+    
+    .tech-stack {
+      padding: 6rem 0;
+      text-align: center;
+    }
+    
+    .tech-icons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 3rem;
+      margin-top: 3rem;
+    }
+    
+    .tech-icon {
+      font-size: 4rem;
+      opacity: 0.7;
+      transition: all 0.3s;
+      filter: grayscale(0.5);
+    }
+    
+    .tech-icon:hover {
+      opacity: 1;
+      filter: grayscale(0);
+      transform: scale(1.2) translateY(-5px);
+    }
+    
+    .contact {
+      padding: 6rem 0;
+      background: rgba(15, 22, 32, 0.4);
+      backdrop-filter: blur(20px);
+    }
+    
+    .contact-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 1rem;
+      background: rgba(10, 14, 26, 0.8);
+      border: 1px solid rgba(77, 211, 255, 0.2);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(77, 211, 255, 0.2);
+    }
+    
+    .form-group textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+    
+    .btn-submit {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.125rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+    
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(77, 211, 255, 0.4);
+    }
+    
+    .footer {
+      padding: 3rem 0;
+      text-align: center;
+      border-top: 1px solid rgba(77, 211, 255, 0.1);
+      color: var(--text-muted);
+    }
+    
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+    
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    .footer-links a:hover {
+      color: var(--cyan);
+    }
+    
+    @media (max-width: 768px) {
+      .hero {
+        min-height: 70vh;
+        padding: 3rem 1rem;
+      }
+      
+      .logo-main {
+        max-width: 90%;
+      }
+      
+      .hero-tagline {
+        font-size: 1.25rem;
+      }
+      
+      .section-title {
+        font-size: 2rem;
+      }
+      
+      .services-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      
+      .nav-links {
+        gap: 1rem;
+      }
+      
+      .tech-icons {
+        gap: 2rem;
+      }
+      
+      .tech-icon {
+        font-size: 3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-animated"></div>
+
+  <nav class="nav container">
+    <div></div>
+    <div class="nav-links">
+      <a href="../index.html">← Bitácora Digital</a>
+      <a href="#servicios">Servicios</a>
+      <a href="#contacto">Contacto</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="logo-container">
+      <img src="assets/img/logo.png" alt="Compass Digital" class="logo-main">
+    </div>
+    
+    <p class="hero-tagline">Enterprise Tech Solutions</p>
+    
+    <p class="hero-description">
+      Integramos <strong>Datos, Software, IA y Pasarelas de Pago Web3</strong> 
+      para empresas que buscan ventajas competitivas reales en un mundo digital.
+    </p>
+    
+    <a href="#contacto" class="cta-primary">Comenzar proyecto</a>
+  </section>
+
+  <section id="servicios" class="services">
+    <div class="container">
+      <h2 class="section-title">Servicios</h2>
+      <p class="section-subtitle">
+        Soluciones tecnológicas end-to-end para empresas que quieren ejecutar, no solo planear
+      </p>
+      
+      <div class="services-grid">
+        
+        <div class="service-card">
+          <span class="service-icon">📊</span>
+          <h3>Datos & Analytics</h3>
+          <p>Infraestructura de datos que convierte información en decisiones accionables.</p>
+          <ul class="service-features">
+            <li>Data pipelines automatizados</li>
+            <li>Dashboards en tiempo real</li>
+            <li>Modelos predictivos</li>
+            <li>Data governance</li>
+          </ul>
+        </div>
+
+        <div class="service-card">
+          <span class="service-icon">💻</span>
+          <h3>Software Development</h3>
+          <p>Desarrollo de aplicaciones escalables con arquitectura moderna.</p>
+          <ul class="service-features">
+            <li>Web & Mobile apps</li>
+            <li>APIs RESTful</li>
+            <li>Microservicios</li>
+            <li>Cloud infrastructure</li>
+          </ul>
+        </div>
+
+        <div class="service-card">
+          <span class="service-icon">🤖</span>
+          <h3>IA Integration</h3>
+          <p>Integración de inteligencia artificial en procesos de negocio existentes.</p>
+          <ul class="service-features">
+            <li>LLMs personalizados</li>
+            <li>Automatización inteligente</li>
+            <li>Computer vision</li>
+            <li>NLP & chatbots</li>
+          </ul>
+        </div>
+
+        <div class="service-card">
+          <span class="service-icon">💳</span>
+          <h3>Payment Gateways</h3>
+          <p>Integración de pasarelas de pago tradicionales y Web3.</p>
+          <ul class="service-features">
+            <li>Stripe, PayPal integration</li>
+            <li>USDT/USDC payments</li>
+            <li>Multi-currency support</li>
+            <li>Smart contracts</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="tech-stack">
+    <div class="container">
+      <h2 class="section-title">Tech Stack</h2>
+      <p class="section-subtitle">Tecnologías enterprise-grade que usamos</p>
+      
+      <div class="tech-icons">
+        <span class="tech-icon" title="Python">🐍</span>
+        <span class="tech-icon" title="JavaScript">⚡</span>
+        <span class="tech-icon" title="React">⚛️</span>
+        <span class="tech-icon" title="PostgreSQL">🐘</span>
+        <span class="tech-icon" title="AWS">☁️</span>
+        <span class="tech-icon" title="Docker">🐳</span>
+        <span class="tech-icon" title="Ethereum">💎</span>
+        <span class="tech-icon" title="AI">🧠</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="contacto" class="contact">
+    <div class="container contact-container">
+      <h2 class="section-title">Contacto</h2>
+      <p class="section-subtitle">¿Listo para comenzar tu proyecto?</p>
+      
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="name">Nombre</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-grou
