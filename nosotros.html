@@ -141,6 +141,91 @@
       font-weight: 600;
     }
     
+    /* CO-FUNDADORES GRID */
+    .cofounders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    
+    .founder-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 2.5rem;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    
+    .founder-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(31, 157, 242, 0.2);
+    }
+    
+    .founder-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--bg);
+      margin: 0 auto 1.5rem;
+    }
+    
+    .founder-card:nth-child(2) .founder-avatar {
+      background: linear-gradient(135deg, var(--accent2) 0%, var(--accent) 100%);
+    }
+    
+    .founder-card h3 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    
+    .founder-card .role {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+    
+    .founder-card p {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.7;
+      text-align: left;
+      margin-bottom: 0;
+    }
+    
+    /* VISIÓN DUAL */
+    .vision-dual {
+      background: linear-gradient(135deg, rgba(31, 157, 242, 0.05) 0%, rgba(45, 222, 155, 0.05) 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-top: 2rem;
+      text-align: center;
+    }
+    
+    .vision-dual h3 {
+      font-size: 1.5rem;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+    }
+    
+    .vision-dual p {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    
     /* GRID DE PILARES */
     .pillars-grid {
       display: grid;
@@ -173,54 +258,6 @@
     }
     
     .pillar-card p {
-      font-size: 1rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-    
-    /* EQUIPO */
-    .team-section {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 3rem;
-      margin-top: 3rem;
-    }
-    
-    .team-member {
-      display: flex;
-      gap: 2rem;
-      align-items: flex-start;
-      margin-bottom: 2rem;
-    }
-    
-    .team-avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3rem;
-      font-weight: 700;
-      color: var(--bg);
-      flex-shrink: 0;
-    }
-    
-    .team-info h3 {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-    
-    .team-info .role {
-      color: var(--accent);
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
-    
-    .team-info p {
       font-size: 1rem;
       color: var(--muted);
       line-height: 1.6;
@@ -307,10 +344,8 @@
         font-size: 1.125rem;
       }
       
-      .team-member {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+      .cofounders-grid {
+        grid-template-columns: 1fr;
       }
       
       .section h2 {
@@ -360,9 +395,46 @@
       </p>
       <p>
         Nuestro lema <strong>"el humano al centro"</strong> refleja nuestra convicción: las tecnologías 
-        son literalmente superpoderes digitales para el desarrollo humano de cara al futuro. Es el humano 
-        que, potenciándose con IA y herramientas digitales, podrá elevar su estándar de vida y toma de decisiones.
+        son literalmente superpoderes digitales para el desarrollo humano de cara al futuro.
       </p>
+    </section>
+
+    <!-- CO-FUNDADORES -->
+    <section class="section">
+      <h2>Co-fundadores</h2>
+      
+      <div class="cofounders-grid">
+        <div class="founder-card">
+          <div class="founder-avatar">H</div>
+          <h3>Hugo De Foms</h3>
+          <span class="role">Co-fundador & Co-host</span>
+          <p>
+            Lidera la visión estratégica y educativa de Bitácora Digital. Especializado en traducir 
+            conceptos complejos de finanzas y tecnología en contenido accionable. Su enfoque democratiza 
+            el acceso al conocimiento, siempre con el humano al centro de la transformación digital.
+          </p>
+        </div>
+
+        <div class="founder-card">
+          <div class="founder-avatar">M</div>
+          <h3>Martín Lobo</h3>
+          <span class="role">Co-fundador & Co-host</span>
+          <p>
+            Aporta la visión corporativa y ejecutiva al proyecto. Su experiencia en negocios y tecnología 
+            empresarial complementa la estrategia de Bitácora Digital, enfocándose en la aplicación práctica 
+            de IA y fintech en organizaciones.
+          </p>
+        </div>
+      </div>
+
+      <div class="vision-dual">
+        <h3>Visión Dual: Educación + Corporación</h3>
+        <p>
+          Hugo y Martín co-conducen el podcast con una perspectiva complementaria: <strong>educación estratégica 
+          y ejecución empresarial</strong>. Juntos ofrecen análisis que conecta teoría con práctica, 
+          visión con acción, y tecnología con resultados de negocio.
+        </p>
+      </div>
     </section>
 
     <!-- PILARES -->
@@ -422,30 +494,6 @@
             Noticias curadas, calendario financiero y comentarios sobre los 
             eventos más relevantes del ecosistema.
           </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- EQUIPO -->
-    <section class="section">
-      <h2>Equipo</h2>
-      
-      <div class="team-section">
-        <div class="team-member">
-          <div class="team-avatar">H</div>
-          <div class="team-info">
-            <h3>Hugo De Foms</h3>
-            <p class="role">Fundador y Host Principal</p>
-            <p>
-              Creador de Bitácora Digital, Hugo lidera la visión estratégica del proyecto 
-              y conduce el podcast semanal. Con experiencia en finanzas, tecnología y educación, 
-              Hugo traduce conceptos complejos en contenido accionable para audiencias diversas.
-            </p>
-            <p style="margin-top:1rem">
-              Su enfoque se centra en democratizar el acceso al conocimiento financiero y tecnológico, 
-              siempre con el humano al centro de la transformación digital.
-            </p>
-          </div>
         </div>
       </div>
     </section>
