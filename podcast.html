@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Podcast y Editorial - Bitácora Digital</title>
+  <title>Podcast - Bitácora Digital</title>
   <link rel="icon" href="assets/favicon.svg" />
   
   <style>
@@ -18,7 +18,8 @@
       --card: #141c27;
       --text: #dbe4f3;
       --muted: #96a3b7;
-      --accent: #1f9df2;
+      --accent: #2dde9b;
+      --accent2: #4dd3ff;
       --line: #1c2636;
     }
     
@@ -29,333 +30,442 @@
       line-height: 1.6;
     }
     
-    /* HEADER */
+    /* HEADER STICKY */
     .header {
       background: rgba(8, 12, 18, 0.95);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--line);
-      padding: 1rem 0;
+      padding: 1rem;
       position: sticky;
       top: 0;
       z-index: 100;
     }
     
     .header-inner {
-      max-width: 1400px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 0 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     
     .logo {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--text);
       text-decoration: none;
-      transition: color 0.2s;
-    }
-    
-    .logo:hover {
-      color: var(--accent);
     }
     
     .nav a {
       color: var(--muted);
       text-decoration: none;
-      margin-left: 2rem;
+      margin-left: 1.5rem;
+      font-size: 0.9rem;
       font-weight: 500;
-      transition: color 0.2s;
     }
     
-    .nav a:hover {
-      color: var(--accent);
-    }
-    
-    /* LAYOUT PRINCIPAL */
-    .main-container {
-      max-width: 1600px;
+    /* CONTAINER MOBILE-FIRST */
+    .container {
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 2rem;
-      display: grid;
-      grid-template-columns: 400px 1fr;
-      gap: 2rem;
-      min-height: calc(100vh - 100px);
-    }
-    
-    /* COLUMNA IZQUIERDA: EPISODIOS */
-    .episodes-sidebar {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 1.5rem;
-      border: 1px solid var(--line);
-      height: fit-content;
-      position: sticky;
-      top: 100px;
-    }
-    
-    .episodes-sidebar h2 {
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      color: var(--accent);
-    }
-    
-    .episode-list {
-      list-style: none;
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-    
-    .episode-item {
       padding: 1rem;
-      margin-bottom: 0.75rem;
-      background: var(--bg);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid transparent;
     }
     
-    .episode-item:hover {
-      border-color: var(--accent);
+    /* PLAYER DESTACADO */
+    .player-hero {
+      background: linear-gradient(135deg, var(--card) 0%, #1a2332 100%);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    
+    .player-hero h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .player-hero .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .player-container {
+      position: relative;
+      width: 100%;
+      min-height: auto;
+      background: var(--bg);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    /* BOTÓN CTA SPOTIFY */
+    .spotify-cta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+    }
+    
+    .spotify-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(29, 185, 84, 0.4);
+    }
+    
+    .spotify-cta:active {
+      transform: translateY(0);
+    }
+    
+    .spotify-cta-icon {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+    
+    .spotify-cta-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+    
+    .spotify-cta-content {
+      flex: 1;
+    }
+    
+    .spotify-cta-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+    
+    .spotify-cta-subtitle {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .spotify-cta-arrow {
+      font-size: 1.5rem;
+      color: #fff;
+      transition: transform 0.3s;
+    }
+    
+    .spotify-cta:hover .spotify-cta-arrow {
       transform: translateX(4px);
     }
     
-    .episode-item.active {
+    .spotify-embed {
+      width: 100%;
+      height: 232px;
+      border-radius: 12px;
+      border: none;
+      display: block;
+    }
+    
+    /* TAB NAVIGATION */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .tabs::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    .tabs::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+    
+    .tab-btn.active {
+      background: var(--accent);
+      color: var(--bg);
       border-color: var(--accent);
-      background: rgba(31, 157, 242, 0.1);
+    }
+    
+    .tab-btn:hover:not(.active) {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    
+    /* TAB CONTENT */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* EPISODIOS - LISTA VERTICAL */
+    .episodes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .episode-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    
+    .episode-card:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(45, 222, 155, 0.2);
     }
     
     .episode-number {
-      font-size: 0.75rem;
+      flex-shrink: 0;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--bg);
+    }
+    
+    .episode-info {
+      flex: 1;
+    }
+    
+    .episode-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+    
+    .episode-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
       color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    
+    .episode-description {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* PALABRAS DE LA BITÁCORA */
+    .bitacora-section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .bitacora-content {
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 0.95rem;
+    }
+    
+    .bitacora-content p {
+      margin-bottom: 1rem;
+    }
+    
+    .bitacora-content p:last-child {
+      margin-bottom: 0;
+    }
+    
+    /* ACTUALIDAD - NEWS GRID */
+    .news-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    
+    .news-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.25rem;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: block;
+    }
+    
+    .news-card:hover {
+      border-left-color: var(--accent2);
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(45, 222, 155, 0.2);
+    }
+    
+    .news-tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: rgba(45, 222, 155, 0.1);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.75rem;
       font-weight: 600;
+      margin-bottom: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
     
-    .episode-title {
-      font-weight: 600;
-      margin: 0.25rem 0;
-      color: var(--text);
-    }
-    
-    .episode-date {
-      font-size: 0.875rem;
-      color: var(--muted);
-    }
-    
-    /* COLUMNA DERECHA: EDITORIAL */
-    .editorial-section {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-    
-    /* PLAYER */
-    .player-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 1.5rem;
-      border: 1px solid var(--line);
-    }
-    
-    .player-card iframe {
-      width: 100%;
-      border-radius: 8px;
-    }
-    
-    /* GRID SUPERIOR: PALABRAS + CALENDARIO */
-    .editorial-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-    
-    .editorial-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 1.5rem;
-      border: 1px solid var(--line);
-    }
-    
-    .editorial-card h3 {
-      font-size: 1.125rem;
-      margin-bottom: 1rem;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    /* PALABRAS DE LA BITÁCORA */
-    .bitacora-text {
-      color: var(--muted);
-      line-height: 1.8;
-      max-height: 200px;
-      overflow: hidden;
-      transition: max-height 0.3s;
-    }
-    
-    .bitacora-text.expanded {
-      max-height: none;
-    }
-    
-    .read-more {
-      margin-top: 1rem;
-      color: var(--accent);
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.875rem;
-      display: inline-block;
-    }
-    
-    .read-more:hover {
-      text-decoration: underline;
-    }
-    
-    /* CALENDARIO */
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 0.5rem;
-    }
-    
-    .calendar-day {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      border-radius: 6px;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-    }
-    
-    .calendar-day:hover {
-      background: rgba(31, 157, 242, 0.2);
-    }
-    
-    .calendar-day.event::after {
-      content: '';
-      position: absolute;
-      bottom: 4px;
-      width: 4px;
-      height: 4px;
-      background: var(--accent);
-      border-radius: 50%;
-    }
-    
-    .calendar-day.header {
+    .news-title {
       font-weight: 700;
-      color: var(--accent);
-      cursor: default;
-      background: transparent;
-    }
-    
-    /* CONTENIDO ADICIONAL */
-    .content-section {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 1.5rem;
-      border: 1px solid var(--line);
-    }
-    
-    .content-section h3 {
-      font-size: 1.125rem;
-      margin-bottom: 1rem;
-      color: var(--accent);
-    }
-    
-    .news-item, .comment-item {
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-      background: var(--bg);
-      border-radius: 8px;
-      border-left: 3px solid var(--accent);
-    }
-    
-    .news-item h4 {
-      font-size: 1rem;
+      font-size: 1.05rem;
       margin-bottom: 0.5rem;
-    }
-    
-    .news-item a {
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.875rem;
-    }
-    
-    .news-item a:hover {
-      text-decoration: underline;
-    }
-    
-    .comment-author {
-      font-weight: 600;
       color: var(--text);
-      margin-bottom: 0.25rem;
     }
     
-    .comment-time {
-      font-size: 0.75rem;
+    .news-description {
+      font-size: 0.9rem;
       color: var(--muted);
-      margin-bottom: 0.5rem;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
     }
     
-    .comment-text {
-      color: var(--muted);
-      font-size: 0.875rem;
+    .news-source {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--accent2);
+    }
+    
+    .news-source svg {
+      width: 16px;
+      height: 16px;
     }
     
     /* FOOTER */
     .footer {
       border-top: 1px solid var(--line);
-      padding: 24px 0;
+      padding: 1.5rem 1rem;
       color: #9fb0c9;
-      margin-top: 60px;
-    }
-    
-    .footer-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
+      margin-top: 3rem;
+      text-align: center;
     }
     
     .footer-links {
       display: flex;
-      gap: 24px;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
     }
     
     .footer-links a {
       color: #9fb0c9;
       text-decoration: none;
-      transition: color 0.2s;
+      font-size: 0.9rem;
     }
     
-    .footer-links a:hover {
-      color: #fff;
+    /* DESKTOP OPTIMIZATIONS */
+    @media (min-width: 768px) {
+      .container {
+        padding: 2rem;
+      }
+      
+      .player-hero {
+        padding: 2rem;
+      }
+      
+      .player-hero h1 {
+        font-size: 2rem;
+      }
+      
+      .spotify-cta {
+        padding: 2rem;
+      }
+      
+      .spotify-cta-icon {
+        width: 64px;
+        height: 64px;
+      }
+      
+      .spotify-cta-icon svg {
+        width: 36px;
+        height: 36px;
+      }
+      
+      .spotify-cta-title {
+        font-size: 1.25rem;
+      }
+      
+      .news-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .tabs {
+        justify-content: center;
+      }
     }
     
-    /* RESPONSIVE */
-    @media (max-width: 1200px) {
-      .main-container {
-        grid-template-columns: 1fr;
-      }
-      
-      .episodes-sidebar {
-        position: static;
-      }
-      
-      .editorial-grid {
-        grid-template-columns: 1fr;
+    @media (min-width: 1024px) {
+      .news-grid {
+        grid-template-columns: repeat(3, 1fr);
       }
     }
   </style>
@@ -367,238 +477,380 @@
     <div class="header-inner">
       <a href="index.html" class="logo">← Bitácora Digital</a>
       <nav class="nav">
-        <a href="index.html#analytic">Dashboards</a>
         <a href="nosotros.html">Nosotros</a>
         <a href="contacto.html">Contacto</a>
       </nav>
     </div>
   </header>
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <div class="main-container">
+  <!-- CONTAINER -->
+  <div class="container">
     
-    <!-- COLUMNA IZQUIERDA: EPISODIOS -->
-    <aside class="episodes-sidebar">
-      <h2>📻 Capítulos</h2>
-      <ul class="episode-list" id="episodeList">
-        <li class="episode-item active" data-episode="5" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
-          <div class="episode-number">Capítulo 5</div>
-          <div class="episode-title">Blockchain y Cripto</div>
-          <div class="episode-date">Hace 1 mes</div>
-        </li>
-        <li class="episode-item" data-episode="4" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
-          <div class="episode-number">Capítulo 4</div>
-          <div class="episode-title">DeFi: El Futuro de las Finanzas</div>
-          <div class="episode-date">Hace 2 meses</div>
-        </li>
-        <li class="episode-item" data-episode="3" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
-          <div class="episode-number">Capítulo 3</div>
-          <div class="episode-title">Inteligencia Artificial en Finanzas</div>
-          <div class="episode-date">Hace 3 meses</div>
-        </li>
-        <li class="episode-item" data-episode="2" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
-          <div class="episode-number">Capítulo 2</div>
-          <div class="episode-title">Web3 y el Internet del Valor</div>
-          <div class="episode-date">Hace 4 meses</div>
-        </li>
-        <li class="episode-item" data-episode="1" data-spotify="1wUiA7esT4Mx8OUA16PSyo">
-          <div class="episode-number">Capítulo 1</div>
-          <div class="episode-title">Introducción a TradFi</div>
-          <div class="episode-date">Hace 5 meses</div>
-        </li>
-      </ul>
-    </aside>
-
-    <!-- COLUMNA DERECHA: EDITORIAL -->
-    <main class="editorial-section">
+    <!-- PLAYER HERO -->
+    <div class="player-hero">
+      <h1>🎙️ Podcast Bitácora Digital</h1>
+      <p class="subtitle">Navegando por el futuro de las IA y Finanzas</p>
       
-      <!-- PLAYER SPOTIFY -->
-      <div class="player-card">
-        <iframe
+      <div class="player-container">
+        <!-- Botón principal (siempre visible) -->
+        <a href="https://open.spotify.com/show/1wUiA7esT4Mx8OUA16PSyo" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="spotify-cta">
+          <div class="spotify-cta-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+            </svg>
+          </div>
+          <div class="spotify-cta-content">
+            <div class="spotify-cta-title">🎧 Escuchar en Spotify</div>
+            <div class="spotify-cta-subtitle">5 episodios • Actualizado semanalmente</div>
+          </div>
+          <div class="spotify-cta-arrow">→</div>
+        </a>
+        
+        <!-- Iframe (funciona en tu sitio real, no en el visor de Claude) -->
+        <iframe 
           id="spotifyPlayer"
-          style="border:0;width:100%;height:232px;border-radius:10px"
-          src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy">
+          class="spotify-embed"
+          src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator&theme=0" 
+          frameBorder="0" 
+          allowfullscreen="" 
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+          loading="lazy"
+          style="display:none">
         </iframe>
       </div>
+    </div>
 
-      <!-- GRID: PALABRAS + CALENDARIO -->
-      <div class="editorial-grid">
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="episodios">📻 Episodios</button>
+      <button class="tab-btn" data-tab="bitacora">📝 Palabras</button>
+      <button class="tab-btn" data-tab="actualidad">📰 Actualidad</button>
+    </div>
+
+    <!-- TAB: EPISODIOS -->
+    <div class="tab-content active" id="tab-episodios">
+      <div class="episodes-list" id="episodesList">
         
-        <!-- PALABRAS DE LA BITÁCORA -->
-        <div class="editorial-card">
-          <h3>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
+        <div class="episode-card">
+          <div class="episode-number">5</div>
+          <div class="episode-info">
+            <div class="episode-title">Blockchain y Cripto</div>
+            <div class="episode-meta">
+              <span>⏱️ 58 min</span>
+              <span>📅 Hace 1 mes</span>
+            </div>
+            <div class="episode-description">
+              Exploramos el mundo de blockchain y las criptomonedas, desde Bitcoin hasta contratos inteligentes.
+            </div>
+          </div>
+        </div>
+
+        <div class="episode-card">
+          <div class="episode-number">4</div>
+          <div class="episode-info">
+            <div class="episode-title">DeFi: El Futuro de las Finanzas</div>
+            <div class="episode-meta">
+              <span>⏱️ 62 min</span>
+              <span>📅 Hace 2 meses</span>
+            </div>
+            <div class="episode-description">
+              Análisis profundo de las finanzas descentralizadas y su impacto en el sistema financiero tradicional.
+            </div>
+          </div>
+        </div>
+
+        <div class="episode-card">
+          <div class="episode-number">3</div>
+          <div class="episode-info">
+            <div class="episode-title">Inteligencia Artificial en Finanzas</div>
+            <div class="episode-meta">
+              <span>⏱️ 55 min</span>
+              <span>📅 Hace 3 meses</span>
+            </div>
+            <div class="episode-description">
+              Cómo la IA está transformando el análisis de mercados, gestión de riesgos y decisiones de inversión.
+            </div>
+          </div>
+        </div>
+
+        <div class="episode-card">
+          <div class="episode-number">2</div>
+          <div class="episode-info">
+            <div class="episode-title">Web3 y el Internet del Valor</div>
+            <div class="episode-meta">
+              <span>⏱️ 50 min</span>
+              <span>📅 Hace 4 meses</span>
+            </div>
+            <div class="episode-description">
+              La evolución de internet hacia una arquitectura descentralizada y sus implicaciones económicas.
+            </div>
+          </div>
+        </div>
+
+        <div class="episode-card">
+          <div class="episode-number">1</div>
+          <div class="episode-info">
+            <div class="episode-title">Introducción a TradFi</div>
+            <div class="episode-meta">
+              <span>⏱️ 45 min</span>
+              <span>📅 Hace 5 meses</span>
+            </div>
+            <div class="episode-description">
+              Fundamentos de las finanzas tradicionales y cómo están evolucionando con la tecnología.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB: PALABRAS DE LA BITÁCORA -->
+    <div class="tab-content" id="tab-bitacora">
+      <div class="bitacora-section">
+        <h2 class="section-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Palabras de la Bitácora
+        </h2>
+        <div class="bitacora-content">
+          <p>
+            <strong>Bitácora Digital</strong> nace de la convicción de que la educación financiera y tecnológica 
+            debe ser accesible, práctica y orientada a la acción. En cada episodio, navegamos por los temas 
+            más relevantes del ecosistema digital y financiero con una perspectiva que conecta teoría y práctica.
+          </p>
+          <p>
+            Nuestro enfoque es conversacional pero riguroso, diseñado para audiencias que buscan entender 
+            <strong>cómo funcionan las cosas</strong> y <strong>por qué importan</strong>. No solo explicamos 
+            conceptos, sino que analizamos su impacto en negocios reales y en la vida cotidiana.
+          </p>
+          <p>
+            Desde inteligencia artificial aplicada a finanzas, pasando por la revolución de Web3 y DeFi, 
+            hasta la convergencia entre TradFi y Fintech, cada capítulo está diseñado para entregar valor 
+            inmediato y conocimiento aplicable.
+          </p>
+          <p>
+            <strong>El humano siempre al centro.</strong> Las tecnologías son herramientas poderosas, 
+            pero son las personas quienes toman decisiones. Nuestro objetivo es potenciar esa capacidad 
+            de decisión con información clara, análisis crítico y perspectiva estratégica.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ACTUALIDAD -->
+    <div class="tab-content" id="tab-actualidad">
+      <div class="news-grid">
+        
+        <a href="https://www.bloomberg.com/crypto" target="_blank" class="news-card">
+          <span class="news-tag">Crypto</span>
+          <h3 class="news-title">Bitcoin ETFs alcanzan récord de $1B en entradas diarias</h3>
+          <p class="news-description">
+            Los ETFs de Bitcoin al contado registran flujos institucionales históricos tras la aprobación de la SEC.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
             </svg>
-            Palabras de la Bitácora
-          </h3>
-          <div class="bitacora-text" id="bitacoraText">
-            <p>
-              En este capítulo exploramos el fascinante mundo de blockchain y las criptomonedas,
-              tecnologías que están redefiniendo cómo entendemos el dinero, la confianza y las
-              transacciones en la era digital.
-            </p>
-            <p style="margin-top:1rem">
-              Desde Bitcoin hasta los contratos inteligentes de Ethereum, pasando por las innovaciones
-              en escalabilidad de redes Layer 2, analizamos cómo estas tecnologías están democratizando
-              el acceso a servicios financieros y creando nuevas oportunidades de inversión y desarrollo.
-            </p>
-            <p style="margin-top:1rem">
-              Discutimos también los desafíos regulatorios, la sostenibilidad energética de las redes proof-of-work,
-              y cómo las instituciones tradicionales están adoptando gradualmente estas tecnologías disruptivas.
-            </p>
+            Bloomberg
           </div>
-          <span class="read-more" id="readMoreBtn">Leer más ▼</span>
-        </div>
+        </a>
 
-        <!-- CALENDARIO FINANCIERO -->
-        <div class="editorial-card">
-          <h3>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
+        <a href="https://www.coindesk.com/" target="_blank" class="news-card">
+          <span class="news-tag">DeFi</span>
+          <h3 class="news-title">Ethereum completa actualización Dencun</h3>
+          <p class="news-description">
+            Proto-danksharding reduce costos de transacción en Layer 2 hasta un 90%, mejorando escalabilidad.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
             </svg>
-            Calendario Financiero
-          </h3>
-          <div class="calendar">
-            <div class="calendar-day header">L</div>
-            <div class="calendar-day header">M</div>
-            <div class="calendar-day header">X</div>
-            <div class="calendar-day header">J</div>
-            <div class="calendar-day header">V</div>
-            <div class="calendar-day header">S</div>
-            <div class="calendar-day header">D</div>
-            
-            <div class="calendar-day">1</div>
-            <div class="calendar-day event" title="Fed Meeting">2</div>
-            <div class="calendar-day">3</div>
-            <div class="calendar-day">4</div>
-            <div class="calendar-day event" title="Banco Central Chile">5</div>
-            <div class="calendar-day">6</div>
-            <div class="calendar-day">7</div>
-            
-            <div class="calendar-day">8</div>
-            <div class="calendar-day">9</div>
-            <div class="calendar-day">10</div>
-            <div class="calendar-day">11</div>
-            <div class="calendar-day">12</div>
-            <div class="calendar-day event" title="CPI Report">13</div>
-            <div class="calendar-day">14</div>
-            
-            <div class="calendar-day">15</div>
-            <div class="calendar-day">16</div>
-            <div class="calendar-day">17</div>
-            <div class="calendar-day">18</div>
-            <div class="calendar-day">19</div>
-            <div class="calendar-day event" title="FOMC Minutes">20</div>
-            <div class="calendar-day">21</div>
+            CoinDesk
           </div>
-          <p style="margin-top:1rem;font-size:0.875rem;color:var(--muted)">
-            Los puntos indican eventos importantes de Fed, BCE, y Banco Central de Chile
-          </p>
-        </div>
-        
-      </div>
+        </a>
 
-      <!-- NOTICIAS RELACIONADAS -->
-      <div class="content-section">
-        <h3>📰 Noticias Relacionadas</h3>
-        
-        <div class="news-item">
-          <h4>Bitcoin alcanza nuevo máximo histórico</h4>
-          <p style="color:var(--muted);font-size:0.875rem;margin:0.5rem 0">
-            El precio de BTC supera los $70,000 impulsado por la adopción institucional y la aprobación de ETFs.
+        <a href="https://www.anthropic.com/news/claude-3-family" target="_blank" class="news-card">
+          <span class="news-tag">IA</span>
+          <h3 class="news-title">Claude 3 supera a GPT-4 en benchmarks clave</h3>
+          <p class="news-description">
+            Anthropic lanza familia Claude 3 con capacidades superiores en razonamiento y contexto extendido.
           </p>
-          <a href="#" target="_blank">Leer más →</a>
-        </div>
-        
-        <div class="news-item">
-          <h4>Ethereum completa actualización Dencun</h4>
-          <p style="color:var(--muted);font-size:0.875rem;margin:0.5rem 0">
-            La red reduce costos de transacción en Layer 2 hasta en un 90% con proto-danksharding.
-          </p>
-          <a href="#" target="_blank">Leer más →</a>
-        </div>
-      </div>
-
-      <!-- COMENTARIOS -->
-      <div class="content-section">
-        <h3>💬 Comentarios</h3>
-        
-        <div class="comment-item">
-          <div class="comment-author">Carlos M.</div>
-          <div class="comment-time">Hace 2 días</div>
-          <div class="comment-text">
-            Excelente análisis sobre blockchain. Me encantó cómo explicaron la diferencia entre proof-of-work y proof-of-stake.
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Anthropic
           </div>
-        </div>
-        
-        <div class="comment-item">
-          <div class="comment-author">María P.</div>
-          <div class="comment-time">Hace 5 días</div>
-          <div class="comment-text">
-            ¿Podrían profundizar más en las aplicaciones de smart contracts en el próximo episodio? Tema súper interesante.
-          </div>
-        </div>
-      </div>
+        </a>
 
-    </main>
+        <a href="https://www.sec.gov/news" target="_blank" class="news-card">
+          <span class="news-tag">Regulación</span>
+          <h3 class="news-title">SEC aprueba primeros ETFs de Ethereum al contado</h3>
+          <p class="news-description">
+            Decisión histórica abre las puertas a productos institucionales de criptoactivos en EE.UU.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            SEC.gov
+          </div>
+        </a>
+
+        <a href="https://www.jpmorgan.com/insights" target="_blank" class="news-card">
+          <span class="news-tag">TradFi</span>
+          <h3 class="news-title">JPMorgan lanza plataforma de tokenización Onyx</h3>
+          <p class="news-description">
+            Banco líder adopta blockchain para liquidación instantánea de activos tradicionales.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            JPMorgan
+          </div>
+        </a>
+
+        <a href="https://www.theblockcrypto.com/" target="_blank" class="news-card">
+          <span class="news-tag">Fintech</span>
+          <h3 class="news-title">Stripe integra pagos con USDC en 70+ países</h3>
+          <p class="news-description">
+            Gigante de pagos adopta stablecoins para transacciones transfronterizas instantáneas y de bajo costo.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            The Block
+          </div>
+        </a>
+
+        <a href="https://openai.com/research" target="_blank" class="news-card">
+          <span class="news-tag">IA</span>
+          <h3 class="news-title">OpenAI anuncia GPT-5 con capacidades multimodales</h3>
+          <p class="news-description">
+            Nueva generación promete razonamiento avanzado y comprensión contextual sin precedentes.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            OpenAI
+          </div>
+        </a>
+
+        <a href="https://www.federalreserve.gov/" target="_blank" class="news-card">
+          <span class="news-tag">Economía</span>
+          <h3 class="news-title">Fed mantiene tasas y señala posible recorte en 2025</h3>
+          <p class="news-description">
+            Banco central estadounidense analiza datos de inflación y empleo para próximas decisiones monetarias.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Federal Reserve
+          </div>
+        </a>
+
+        <a href="https://www.bcentral.cl/" target="_blank" class="news-card">
+          <span class="news-tag">Local</span>
+          <h3 class="news-title">Banco Central de Chile reduce TPM a 5.75%</h3>
+          <p class="news-description">
+            Decisión busca reactivar economía tras mejora en indicadores de inflación y actividad.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            BCCh
+          </div>
+        </a>
+
+        <a href="https://www.solana.com/news" target="_blank" class="news-card">
+          <span class="news-tag">Blockchain</span>
+          <h3 class="news-title">Solana procesa 65M de transacciones diarias</h3>
+          <p class="news-description">
+            Red alcanza nuevo récord de actividad impulsada por adopción en pagos y DeFi.
+          </p>
+          <div class="news-source">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Solana
+          </div>
+        </a>
+
+      </div>
+    </div>
+
   </div>
 
   <!-- FOOTER -->
   <footer class="footer">
-    <div class="footer-inner">
-      <span>© 2025 Bitácora Digital</span>
-      <div class="footer-links">
-        <a href="index.html#podcast">Podcast</a>
-        <a href="index.html#analytic">Dashboards</a>
-        <a href="nosotros.html">Nosotros</a>
-        <a href="contacto.html">Contacto</a>
-      </div>
+    <span>© 2025 Bitácora Digital</span>
+    <div class="footer-links">
+      <a href="index.html">Inicio</a>
+      <a href="index.html#analytic">Dashboards</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="contacto.html">Contacto</a>
     </div>
   </footer>
 
   <script>
-    // Funcionalidad "Leer más"
-    const readMoreBtn = document.getElementById('readMoreBtn');
-    const bitacoraText = document.getElementById('bitacoraText');
+    // TAB SWITCHING
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
     
-    readMoreBtn.addEventListener('click', () => {
-      bitacoraText.classList.toggle('expanded');
-      readMoreBtn.textContent = bitacoraText.classList.contains('expanded') 
-        ? 'Leer menos ▲' 
-        : 'Leer más ▼';
-    });
-
-    // Selector de episodios
-    const episodeItems = document.querySelectorAll('.episode-item');
-    const spotifyPlayer = document.getElementById('spotifyPlayer');
-    
-    episodeItems.forEach(item => {
-      item.addEventListener('click', () => {
-        // Remover active de todos
-        episodeItems.forEach(i => i.classList.remove('active'));
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove active from all
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
         
-        // Activar el clickeado
-        item.classList.add('active');
-        
-        // Cambiar el embed de Spotify
-        const spotifyId = item.dataset.spotify;
-        if (spotifyId) {
-          spotifyPlayer.src = `https://open.spotify.com/embed/show/${spotifyId}?utm_source=generator`;
-        }
-        
-        // Aquí podrías actualizar el contenido editorial dinámicamente
-        console.log('Episodio seleccionado:', item.dataset.episode);
+        // Add active to clicked
+        button.classList.add('active');
+        const tabId = button.dataset.tab;
+        document.getElementById(`tab-${tabId}`).classList.add('active');
       });
     });
+
+    // NOTA: El iframe de Spotify está oculto por defecto porque no funciona 
+    // en el visor de Claude. Cuando copies este código a tu sitio real 
+    // (bitacoradigital.io), puedes cambiar display:none a display:block 
+    // y el player se mostrará correctamente.
+    
+    // TODO: Fetch episodes from Spotify API
+    // Esta función se reemplazará cuando conectemos la API real
+    async function loadSpotifyEpisodes() {
+      // PRÓXIMO PASO: implementar fetch a tu backend que llame a Spotify API
+      console.log('Conectar con Spotify API aquí');
+    }
   </script>
 
 </body>
