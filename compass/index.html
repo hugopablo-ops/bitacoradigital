@@ -136,7 +136,7 @@
         rgba(255, 255, 255, 0.9) 0%,
         rgba(255, 255, 255, 0.7) 15%,
         rgba(200, 220, 255, 0.5) 30%,
-        rgba(77, 211, 255, 0.3) 50%,
+        rgba(139, 92, 246, 0.3) 50%,
         rgba(168, 85, 247, 0.15) 70%,
         transparent 100%
       );
@@ -177,18 +177,20 @@
       }
     }
     
-    /* LOGO GIGANTE CON BRÚJULA EN BLANCO */
+    /* LOGO GIGANTE CON BRÚJULA EN BLANCO Y TEXTO MORADO */
     .logo-main {
       max-width: 1200px;
       width: 100%;
       height: auto;
-      /* INVERTIR COLORES: NEGRO → BLANCO */
+      /* FILTRO PARA CAMBIAR VERDE A MORADO: hue-rotate transforma los verdes a púrpura */
       filter: 
         invert(1)
         brightness(1.2)
+        hue-rotate(280deg)
+        saturate(1.8)
         drop-shadow(0 0 50px rgba(255, 255, 255, 0.9))
         drop-shadow(0 0 80px rgba(200, 230, 255, 0.8))
-        drop-shadow(0 0 120px rgba(77, 211, 255, 0.6))
+        drop-shadow(0 0 120px rgba(139, 92, 246, 0.6))
         drop-shadow(0 0 160px rgba(168, 85, 247, 0.4));
       animation: logoFloat 4s ease-in-out infinite;
       position: relative;
@@ -201,9 +203,11 @@
         filter: 
           invert(1)
           brightness(1.2)
+          hue-rotate(280deg)
+          saturate(1.8)
           drop-shadow(0 0 50px rgba(255, 255, 255, 0.9))
           drop-shadow(0 0 80px rgba(200, 230, 255, 0.8))
-          drop-shadow(0 0 120px rgba(77, 211, 255, 0.6))
+          drop-shadow(0 0 120px rgba(139, 92, 246, 0.6))
           drop-shadow(0 0 160px rgba(168, 85, 247, 0.4));
       }
       50% { 
@@ -211,9 +215,11 @@
         filter: 
           invert(1)
           brightness(1.3)
+          hue-rotate(280deg)
+          saturate(1.8)
           drop-shadow(0 0 60px rgba(255, 255, 255, 1))
           drop-shadow(0 0 100px rgba(200, 230, 255, 1))
-          drop-shadow(0 0 140px rgba(77, 211, 255, 0.8))
+          drop-shadow(0 0 140px rgba(139, 92, 246, 0.8))
           drop-shadow(0 0 180px rgba(168, 85, 247, 0.6));
       }
     }
