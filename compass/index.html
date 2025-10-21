@@ -102,62 +102,94 @@
     }
     
     .hero {
-      min-height: 90vh;
+      min-height: 95vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 4rem 2rem;
+      padding: 2rem 1rem;
       position: relative;
     }
     
+    /* LOGO CONTAINER - TAMAÑO GIGANTE */
     .logo-container {
-      margin-bottom: 3rem;
+      margin-bottom: 2rem;
       animation: fadeInDown 1.2s ease-out;
       position: relative;
-      padding: 2rem;
+      padding: 3rem;
+      width: 100%;
+      max-width: 1400px;
     }
     
+    /* GLOW BLANCO BRILLANTE DETRÁS DEL LOGO */
     .logo-container::before {
       content: '';
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 120%;
-      height: 120%;
+      width: 150%;
+      height: 150%;
       background: radial-gradient(
         circle,
-        rgba(77, 211, 255, 0.3) 0%,
-        rgba(168, 85, 247, 0.2) 30%,
-        rgba(249, 0, 157, 0.1) 60%,
-        transparent 80%
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.7) 15%,
+        rgba(200, 220, 255, 0.5) 30%,
+        rgba(77, 211, 255, 0.3) 50%,
+        rgba(168, 85, 247, 0.15) 70%,
+        transparent 100%
       );
-      filter: blur(40px);
-      animation: glowPulse 3s ease-in-out infinite;
+      filter: blur(60px);
+      animation: glowPulseWhite 3s ease-in-out infinite;
       z-index: -1;
     }
     
-    @keyframes glowPulse {
+    /* SEGUNDO GLOW - CAPA EXTRA DE BLANCO */
+    .logo-container::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.6) 20%,
+        rgba(220, 240, 255, 0.4) 40%,
+        transparent 70%
+      );
+      filter: blur(40px);
+      animation: glowPulseWhite 2.5s ease-in-out infinite;
+      z-index: -1;
+    }
+    
+    @keyframes glowPulseWhite {
       0%, 100% {
-        opacity: 0.6;
+        opacity: 0.95;
         transform: translate(-50%, -50%) scale(1);
       }
       50% {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1.1);
+        transform: translate(-50%, -50%) scale(1.05);
       }
     }
     
+    /* LOGO GIGANTE CON BRÚJULA EN BLANCO */
     .logo-main {
-      max-width: 900px;
+      max-width: 1200px;
       width: 100%;
       height: auto;
+      /* INVERTIR COLORES: NEGRO → BLANCO */
       filter: 
-        drop-shadow(0 0 40px rgba(77, 211, 255, 0.6))
-        drop-shadow(0 0 80px rgba(168, 85, 247, 0.5))
-        drop-shadow(0 0 120px rgba(249, 0, 157, 0.3));
+        invert(1)
+        brightness(1.2)
+        drop-shadow(0 0 50px rgba(255, 255, 255, 0.9))
+        drop-shadow(0 0 80px rgba(200, 230, 255, 0.8))
+        drop-shadow(0 0 120px rgba(77, 211, 255, 0.6))
+        drop-shadow(0 0 160px rgba(168, 85, 247, 0.4));
       animation: logoFloat 4s ease-in-out infinite;
       position: relative;
       z-index: 2;
@@ -167,16 +199,22 @@
       0%, 100% { 
         transform: translateY(0px);
         filter: 
-          drop-shadow(0 0 40px rgba(77, 211, 255, 0.6))
-          drop-shadow(0 0 80px rgba(168, 85, 247, 0.5))
-          drop-shadow(0 0 120px rgba(249, 0, 157, 0.3));
+          invert(1)
+          brightness(1.2)
+          drop-shadow(0 0 50px rgba(255, 255, 255, 0.9))
+          drop-shadow(0 0 80px rgba(200, 230, 255, 0.8))
+          drop-shadow(0 0 120px rgba(77, 211, 255, 0.6))
+          drop-shadow(0 0 160px rgba(168, 85, 247, 0.4));
       }
       50% { 
-        transform: translateY(-10px);
+        transform: translateY(-15px);
         filter: 
-          drop-shadow(0 0 50px rgba(77, 211, 255, 0.8))
-          drop-shadow(0 0 100px rgba(168, 85, 247, 0.7))
-          drop-shadow(0 0 140px rgba(249, 0, 157, 0.4));
+          invert(1)
+          brightness(1.3)
+          drop-shadow(0 0 60px rgba(255, 255, 255, 1))
+          drop-shadow(0 0 100px rgba(200, 230, 255, 1))
+          drop-shadow(0 0 140px rgba(77, 211, 255, 0.8))
+          drop-shadow(0 0 180px rgba(168, 85, 247, 0.6));
       }
     }
     
@@ -192,7 +230,7 @@
     }
     
     .hero-tagline {
-      font-size: 1.8rem;
+      font-size: 2rem;
       font-weight: 300;
       color: var(--text);
       margin-bottom: 1.5rem;
@@ -201,9 +239,9 @@
     }
     
     .hero-description {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       color: var(--text-muted);
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto 3rem;
       line-height: 1.8;
       animation: fadeIn 1.4s ease-out 0.5s both;
@@ -456,16 +494,20 @@
     
     @media (max-width: 768px) {
       .hero {
-        min-height: 80vh;
-        padding: 3rem 1rem;
+        min-height: 85vh;
+        padding: 2rem 1rem;
       }
       
       .logo-main {
-        max-width: 95%;
+        max-width: 98%;
+      }
+      
+      .logo-container {
+        padding: 2rem 1rem;
       }
       
       .hero-tagline {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
       }
       
       .hero-description {
