@@ -32,7 +32,7 @@
       overflow-x: hidden;
     }
     
-    /* ✨ NUEVO: FONDO CON FOTO DE CIELO */
+    /* ✨ FONDO CON FOTO DE CIELO */
     .bg-animated {
       position: fixed;
       top: 0;
@@ -242,21 +242,25 @@
     .hero-tagline {
       font-size: 2rem;
       font-weight: 300;
-      color: var(--text);
+      background: linear-gradient(135deg, var(--cyan), var(--purple), var(--magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: 1.5rem;
       animation: fadeIn 1.2s ease-out 0.3s both;
       letter-spacing: 0.5px;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
     
     .hero-description {
       font-size: 1.3rem;
-      color: var(--text-muted);
+      background: linear-gradient(135deg, var(--cyan), var(--purple), var(--magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       max-width: 900px;
       margin: 0 auto 3rem;
       line-height: 1.8;
       animation: fadeIn 1.4s ease-out 0.5s both;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     }
     
     @keyframes fadeIn {
@@ -299,10 +303,14 @@
     
     .section-subtitle {
       text-align: center;
-      color: var(--text-muted);
+      background: linear-gradient(135deg, var(--cyan), var(--purple), var(--magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       max-width: 600px;
       margin: 0 auto 4rem;
       font-size: 1.125rem;
+      font-weight: 600;
     }
     
     .services-grid {
@@ -485,6 +493,14 @@
       text-align: center;
       border-top: 1px solid rgba(77, 211, 255, 0.1);
       color: var(--text-muted);
+      background: rgba(10, 14, 26, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .footer p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
     }
     
     .footer-links {
@@ -492,12 +508,14 @@
       justify-content: center;
       gap: 2rem;
       margin-top: 1rem;
+      flex-wrap: wrap;
     }
     
     .footer-links a {
       color: var(--text-muted);
       text-decoration: none;
-      transition: color 0.3s;
+      transition: all 0.3s;
+      font-weight: 500;
     }
     
     .footer-links a:hover {
@@ -556,6 +574,10 @@
       
       .tech-icon {
         font-size: 3rem;
+      }
+
+      .footer-links {
+        gap: 1rem;
       }
     }
   </style>
