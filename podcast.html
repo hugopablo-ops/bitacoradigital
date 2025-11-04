@@ -179,6 +179,15 @@
     
     .latest-episode-player {
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* PLAYER SPOTIFY IFRAME */
+    #spotifyPlayer {
+      border-radius: 12px;
+      border: 1px solid var(--line) !important;
     }
     
     .player-placeholder {
@@ -209,6 +218,10 @@
       
       .latest-episode {
         padding: 1.5rem;
+      }
+      
+      #spotifyPlayer {
+        height: 180px !important;
       }
     }
     
@@ -620,24 +633,42 @@
             Hay frases que no necesitan adornos porque gritan desnudas la verdad. Los impuestos es parte del pulso vital de un país. Exploramos por qué no se trata solo de cumplir con tus impuestos, sino de prosperar sabiendo.
           </p>
           <div class="latest-episode-buttons">
-            <a href="https://open.spotify.com/episode/EPISODE_ID" target="_blank" class="btn btn-primary">
+            <a href="https://open.spotify.com/episode/4ELZCEuqGsW9qKdVvFwStc" target="_blank" class="btn btn-primary">
               🎧 Escuchar en Spotify
             </a>
-            <a href="https://podcasts.apple.com/EPISODE_ID" target="_blank" class="btn btn-secondary">
+            <a href="https://podcasts.apple.com/pe/podcast/bitacora-digital/id1234567890?i=1000123456789" target="_blank" class="btn btn-secondary">
               🎙️ Apple Podcasts
             </a>
           </div>
         </div>
+        
+        <!-- PLAYER EMBEBIDO DE SPOTIFY -->
         <div class="latest-episode-player">
-          <div class="player-placeholder">
-            <div>
-              <div class="player-placeholder-icon">🎙️</div>
-              <p style="color: var(--muted); font-size: 0.9rem;">
-                Disponible en Spotify<br>y todas las plataformas
-              </p>
+          <iframe id="spotifyPlayer"
+            style="border-radius: 12px; width: 100%; height: 232px; border: 1px solid #1c2636;"
+            src="https://open.spotify.com/embed/episode/4ELZCEuqGsW9qKdVvFwStc?utm_source=generator&theme=0" 
+            frameBorder="0" 
+            allowfullscreen="" 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+            loading="lazy">
+          </iframe>
+          
+          <!-- FALLBACK SI NO CARGA -->
+          <noscript>
+            <div class="player-placeholder">
+              <div>
+                <div class="player-placeholder-icon">🎙️</div>
+                <p style="color: var(--muted); font-size: 0.9rem;">
+                  <a href="https://open.spotify.com/episode/4ELZCEuqGsW9qKdVvFwStc" target="_blank" 
+                     style="color: var(--accent); text-decoration: underline;">
+                    Escuchar en Spotify
+                  </a>
+                </p>
+              </div>
             </div>
-          </div>
+          </noscript>
         </div>
+        
       </div>
     </div>
 
@@ -972,14 +1003,12 @@
       scrollToCard(currentIndex + 1);
     });
 
-    // Click en cards del carousel
     carouselCards.forEach((card, index) => {
       card.addEventListener('click', () => {
         scrollToCard(index);
       });
     });
 
-    // Inicializar
     scrollToCard(0);
 
     // ========== EPISODIOS INTERACTIVOS ==========
@@ -988,7 +1017,6 @@
       card.addEventListener('click', function() {
         const episodeNumber = this.querySelector('.episode-number').textContent;
         console.log(`Reproducir episodio ${episodeNumber} en Spotify`);
-        // Aquí puedes agregar lógica para reproducir en Spotify o abrir modal
       });
     });
   </script>
