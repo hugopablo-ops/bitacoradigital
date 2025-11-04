@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Podcast - Bitácora Digital</title>
+  <title>Podcast y Editorial - Bitácora Digital</title>
   <link rel="icon" href="assets/favicon.svg" />
   
   <style>
@@ -64,171 +64,194 @@
       font-weight: 500;
     }
     
-    /* CONTAINER MOBILE-FIRST */
+    /* CONTAINER */
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 1rem;
     }
     
-    /* PLAYER DESTACADO */
-    .player-hero {
-      background: linear-gradient(135deg, var(--card) 0%, #1a2332 100%);
-      border-radius: 16px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid var(--line);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    /* ========== ÚLTIMO CAPÍTULO DESTACADO ========== */
+    .latest-episode {
+      background: linear-gradient(135deg, rgba(45, 222, 155, 0.1), rgba(77, 211, 255, 0.1));
+      border: 1px solid rgba(45, 222, 155, 0.3);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
     }
     
-    .player-hero h1 {
-      font-size: 1.5rem;
+    .latest-episode::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(77, 211, 255, 0.1), transparent);
+      border-radius: 50%;
+      z-index: 0;
+    }
+    
+    .latest-episode-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    
+    .latest-episode-content h2 {
+      font-size: 1.25rem;
+      color: var(--accent);
       margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    
+    .latest-episode-content h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
       background: linear-gradient(135deg, var(--accent2), var(--accent));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
     
-    .player-hero .subtitle {
+    .latest-episode-meta {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+    
+    .latest-episode-description {
       color: var(--muted);
       font-size: 0.95rem;
+      line-height: 1.7;
       margin-bottom: 1.5rem;
     }
     
-    .player-container {
-      position: relative;
-      width: 100%;
-      min-height: auto;
-      background: var(--bg);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    
-    /* BOTÓN CTA SPOTIFY */
-    .spotify-cta {
+    .latest-episode-buttons {
       display: flex;
-      align-items: center;
       gap: 1rem;
-      padding: 1.5rem;
-      background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
-      border-radius: 12px;
-      text-decoration: none;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
       transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
     }
     
-    .spotify-cta:hover {
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: var(--bg);
+    }
+    
+    .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(29, 185, 84, 0.4);
+      box-shadow: 0 8px 24px rgba(45, 222, 155, 0.3);
     }
     
-    .spotify-cta:active {
-      transform: translateY(0);
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
     }
     
-    .spotify-cta-icon {
-      flex-shrink: 0;
-      width: 48px;
-      height: 48px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 50%;
+    .btn-secondary:hover {
+      background: rgba(45, 222, 155, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .latest-episode-player {
+      position: relative;
+    }
+    
+    .player-placeholder {
+      background: var(--card);
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      min-height: 180px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #fff;
     }
     
-    .spotify-cta-icon svg {
-      width: 28px;
-      height: 28px;
+    .player-placeholder-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
     }
     
-    .spotify-cta-content {
-      flex: 1;
+    @media (max-width: 768px) {
+      .latest-episode-inner {
+        grid-template-columns: 1fr;
+      }
+      
+      .latest-episode-content h1 {
+        font-size: 1.5rem;
+      }
+      
+      .latest-episode {
+        padding: 1.5rem;
+      }
     }
     
-    .spotify-cta-title {
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: #fff;
-      margin-bottom: 0.25rem;
-    }
-    
-    .spotify-cta-subtitle {
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.8);
-    }
-    
-    .spotify-cta-arrow {
-      font-size: 1.5rem;
-      color: #fff;
-      transition: transform 0.3s;
-    }
-    
-    .spotify-cta:hover .spotify-cta-arrow {
-      transform: translateX(4px);
-    }
-    
-    .spotify-embed {
-      width: 100%;
-      height: 232px;
-      border-radius: 12px;
-      border: none;
-      display: block;
-    }
-    
-    /* TAB NAVIGATION */
+    /* ========== TABS ========== */
     .tabs {
       display: flex;
       gap: 0.5rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--line);
       overflow-x: auto;
-      padding-bottom: 0.5rem;
       -webkit-overflow-scrolling: touch;
     }
     
-    .tabs::-webkit-scrollbar {
-      height: 4px;
-    }
-    
-    .tabs::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 2px;
-    }
-    
     .tab-btn {
-      padding: 0.75rem 1.5rem;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 999px;
+      padding: 1rem 1.5rem;
+      background: transparent;
+      border: none;
       color: var(--muted);
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
+      border-bottom: 2px solid transparent;
       white-space: nowrap;
-      font-size: 0.9rem;
+      position: relative;
     }
     
-    .tab-btn.active {
-      background: var(--accent);
-      color: var(--bg);
-      border-color: var(--accent);
-    }
-    
-    .tab-btn:hover:not(.active) {
-      border-color: var(--accent);
+    .tab-btn:hover {
       color: var(--accent);
     }
     
-    /* TAB CONTENT */
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    
+    /* ========== TAB CONTENT ========== */
     .tab-content {
       display: none;
+      animation: fadeIn 0.3s ease-in;
     }
     
     .tab-content.active {
       display: block;
-      animation: fadeIn 0.3s ease-in;
     }
     
     @keyframes fadeIn {
@@ -236,10 +259,230 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    /* EPISODIOS - LISTA VERTICAL */
-    .episodes-list {
+    /* ========== EDITORIAL DESTACADA ========== */
+    .editorial-hero {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid var(--accent);
+    }
+    
+    .editorial-header {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .editorial-episode-badge {
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: var(--bg);
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    
+    .editorial-info h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.25rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    
+    .editorial-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    
+    .editorial-body {
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .editorial-body p {
+      margin-bottom: 1rem;
+      text-align: justify;
+    }
+    
+    .editorial-body p strong {
+      color: var(--accent);
+    }
+    
+    .editorial-meta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--line);
+    }
+    
+    .editorial-tag {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(45, 222, 155, 0.1);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    /* ========== CAROUSEL DE EDITORIALES ========== */
+    .editorials-section h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent2);
+    }
+    
+    .carousel-container {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .carousel {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding-bottom: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+    }
+    
+    .carousel::-webkit-scrollbar {
+      height: 6px;
+    }
+    
+    .carousel::-webkit-scrollbar-track {
+      background: var(--line);
+      border-radius: 10px;
+    }
+    
+    .carousel::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+    
+    .carousel-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.5rem;
+      min-width: 320px;
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      transition: all 0.3s;
+      cursor: pointer;
+      border-left: 3px solid var(--accent2);
+      position: relative;
+    }
+    
+    .carousel-card:hover {
+      border-left-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(45, 222, 155, 0.2);
+    }
+    
+    .carousel-card-badge {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      background: rgba(45, 222, 155, 0.1);
+      color: var(--accent);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .carousel-card-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .carousel-card-preview {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    
+    .carousel-card-cta {
+      color: var(--accent2);
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .carousel-card.active {
+      border-left-color: var(--accent);
+      background: rgba(45, 222, 155, 0.05);
+    }
+    
+    /* ========== CAROUSEL CONTROLS ========== */
+    .carousel-controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      justify-content: center;
+    }
+    
+    .carousel-btn {
+      background: var(--card);
+      border: 1px solid var(--line);
+      color: var(--accent);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    
+    .carousel-btn:hover {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    
+    .carousel-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* ========== TODOS LOS EPISODIOS ========== */
+    .episodes-grid {
+      display: grid;
       gap: 1rem;
     }
     
@@ -304,102 +547,7 @@
       overflow: hidden;
     }
     
-    /* PALABRAS DE LA BITÁCORA */
-    .bitacora-section {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .section-title {
-      font-size: 1.25rem;
-      margin-bottom: 1rem;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .bitacora-content {
-      color: var(--muted);
-      line-height: 1.8;
-      font-size: 0.95rem;
-    }
-    
-    .bitacora-content p {
-      margin-bottom: 1rem;
-    }
-    
-    .bitacora-content p:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* ACTUALIDAD - NEWS GRID */
-    .news-grid {
-      display: grid;
-      gap: 1rem;
-    }
-    
-    .news-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-left: 3px solid var(--accent);
-      border-radius: 8px;
-      padding: 1.25rem;
-      transition: all 0.3s;
-      text-decoration: none;
-      display: block;
-    }
-    
-    .news-card:hover {
-      border-left-color: var(--accent2);
-      transform: translateX(4px);
-      box-shadow: 0 4px 12px rgba(45, 222, 155, 0.2);
-    }
-    
-    .news-tag {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      background: rgba(45, 222, 155, 0.1);
-      color: var(--accent);
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .news-title {
-      font-weight: 700;
-      font-size: 1.05rem;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-    
-    .news-description {
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 0.75rem;
-    }
-    
-    .news-source {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.85rem;
-      color: var(--accent2);
-    }
-    
-    .news-source svg {
-      width: 16px;
-      height: 16px;
-    }
-    
-    /* FOOTER */
+    /* ========== FOOTER ========== */
     .footer {
       border-top: 1px solid var(--line);
       padding: 1.5rem 1rem;
@@ -422,50 +570,21 @@
       font-size: 0.9rem;
     }
     
-    /* DESKTOP OPTIMIZATIONS */
-    @media (min-width: 768px) {
+    @media (max-width: 768px) {
       .container {
-        padding: 2rem;
+        padding: 1rem;
       }
       
-      .player-hero {
-        padding: 2rem;
+      .carousel-card {
+        min-width: 280px;
       }
       
-      .player-hero h1 {
-        font-size: 2rem;
+      .editorial-hero {
+        padding: 1.5rem;
       }
       
-      .spotify-cta {
-        padding: 2rem;
-      }
-      
-      .spotify-cta-icon {
-        width: 64px;
-        height: 64px;
-      }
-      
-      .spotify-cta-icon svg {
-        width: 36px;
-        height: 36px;
-      }
-      
-      .spotify-cta-title {
-        font-size: 1.25rem;
-      }
-      
-      .news-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      
-      .tabs {
-        justify-content: center;
-      }
-    }
-    
-    @media (min-width: 1024px) {
-      .news-grid {
-        grid-template-columns: repeat(3, 1fr);
+      .latest-episode {
+        padding: 1.5rem;
       }
     }
   </style>
@@ -486,68 +605,246 @@
   <!-- CONTAINER -->
   <div class="container">
     
-    <!-- PLAYER HERO -->
-    <div class="player-hero">
-      <h1>🎙️ Podcast Bitácora Digital</h1>
-      <p class="subtitle">Navegando por el futuro de las IA y Finanzas</p>
-      
-      <div class="player-container">
-        <!-- Botón principal (siempre visible) -->
-        <a href="https://open.spotify.com/show/1wUiA7esT4Mx8OUA16PSyo" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           class="spotify-cta">
-          <div class="spotify-cta-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-            </svg>
+    <!-- ÚLTIMO CAPÍTULO DESTACADO -->
+    <div class="latest-episode">
+      <div class="latest-episode-inner">
+        <div class="latest-episode-content">
+          <h2>🎙️ Último Capítulo</h2>
+          <h1>Ep. 7: Impuestos - El Pacto Social que nos Sostiene</h1>
+          <div class="latest-episode-meta">
+            <span>⏱️ 58 min</span>
+            <span>👤 Cristóbal Groetaers</span>
+            <span>📅 Hace 1 semana</span>
           </div>
-          <div class="spotify-cta-content">
-            <div class="spotify-cta-title">🎧 Escuchar en Spotify</div>
-            <div class="spotify-cta-subtitle">5 episodios • Actualizado semanalmente</div>
+          <p class="latest-episode-description">
+            Hay frases que no necesitan adornos porque gritan desnudas la verdad. Los impuestos es parte del pulso vital de un país. Exploramos por qué no se trata solo de cumplir con tus impuestos, sino de prosperar sabiendo.
+          </p>
+          <div class="latest-episode-buttons">
+            <a href="https://open.spotify.com/episode/EPISODE_ID" target="_blank" class="btn btn-primary">
+              🎧 Escuchar en Spotify
+            </a>
+            <a href="https://podcasts.apple.com/EPISODE_ID" target="_blank" class="btn btn-secondary">
+              🎙️ Apple Podcasts
+            </a>
           </div>
-          <div class="spotify-cta-arrow">→</div>
-        </a>
-        
-        <!-- Iframe (funciona en tu sitio real, no en el visor de Claude) -->
-        <iframe 
-          id="spotifyPlayer"
-          class="spotify-embed"
-          src="https://open.spotify.com/embed/show/1wUiA7esT4Mx8OUA16PSyo?utm_source=generator&theme=0" 
-          frameBorder="0" 
-          allowfullscreen="" 
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-          loading="lazy"
-          style="display:none">
-        </iframe>
+        </div>
+        <div class="latest-episode-player">
+          <div class="player-placeholder">
+            <div>
+              <div class="player-placeholder-icon">🎙️</div>
+              <p style="color: var(--muted); font-size: 0.9rem;">
+                Disponible en Spotify<br>y todas las plataformas
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- TABS -->
     <div class="tabs">
-      <button class="tab-btn active" data-tab="episodios">📻 Episodios</button>
-      <button class="tab-btn" data-tab="bitacora">📝 Palabras</button>
-      <button class="tab-btn" data-tab="actualidad">📰 Actualidad</button>
+      <button class="tab-btn active" data-tab="editorial">📝 Podcast y Editorial</button>
+      <button class="tab-btn" data-tab="episodios">📻 Todos los Episodios</button>
     </div>
 
-    <!-- TAB: EPISODIOS -->
-    <div class="tab-content active" id="tab-episodios">
-      <div class="episodes-list" id="episodesList">
+    <!-- TAB 1: PODCAST Y EDITORIAL -->
+    <div class="tab-content active" id="tab-editorial">
+      
+      <!-- EDITORIAL DESTACADA (ÚLTIMA) -->
+      <div class="editorial-hero">
+        <div class="editorial-header">
+          <div class="editorial-episode-badge">7</div>
+          <div class="editorial-info">
+            <h2>Editorial del Capítulo</h2>
+          </div>
+        </div>
         
+        <h3 class="editorial-title">Impuestos: El Pacto Social que nos Sostiene</h3>
+        
+        <div class="editorial-body">
+          <p>
+            Hay frases que no necesitan adornos porque gritan desnudas la verdad. Esta es una de ellas. Los impuestos 
+            (esa palabra que solemos esquivar) es parte del pulso vital de un país. Chile, como miembro de la OCDE, 
+            enfrenta hoy el desafío de alinear su estructura fiscal con los estándares de ese club, lo que implica 
+            revisar cuánto y cómo contribuimos, tanto personas como empresas (y que implicaría un aumento efectivo de 
+            realizarse). El tema impuestos no es solo un debate económico: es una reflexión ética sobre la forma en que 
+            sostenemos personas y empresas, entre todos, el lugar donde vivimos.
+          </p>
+          
+          <p>
+            Cumplir con los impuestos no es únicamente una obligación legal; también es un acto de ciudadanía. 
+            <strong>Informarse evita sanciones (tan graves como cárcel)</strong>, pero sobre todo expresa respeto por uno 
+            mismo y por el pacto social que nos une. Detrás de cada tributo también existen retornos tangibles: subsidios, 
+            becas, exenciones, programas de apoyo (tanto para personas naturales como jurídicas) que justifican la existencia 
+            del Estado. En teoría, ese aparato público subsidiario debería ser reflejo de eficiencia y rigor, pero en la 
+            práctica, el debate sobre el uso y destino de los impuestos sigue abierto, especialmente en tiempos en que la 
+            liquidez escasea, las demandas crecen y noticias de ineficiencias públicas han inundado a la prensa.
+          </p>
+          
+          <p>
+            Sin embargo, no todo es sombra. Por ejemplo, el <strong>nuevo proyecto de ley pro Pymes 2026</strong> propone 
+            alivios significativos: exenciones al impuesto de primera categoría bajo ciertas condiciones y beneficios para 
+            personas naturales, tales como descontar parte del valor de su arriendo en su impuesto global complementario 
+            (si el contrato está formalizado frente a SII y otras condiciones). Estas son señales del aparato fiscal por una 
+            búsqueda de mayor equidad fiscal entre empresas y personas (además de desincentivar contratos "en negro").
+          </p>
+          
+          <p>
+            En el capítulo 7, <strong>Cristóbal Groetaers</strong>, experto asesor en planificación tributaria, nos enseña 
+            a leer el impuesto como lo que realmente es: un instrumento de poder en tus manos. Con su experiencia en personas, 
+            empresas y corporaciones relevantes de nuestro país nos introducirá a por qué no se trata solo de cumplir con tus 
+            impuestos, sino de <strong>prosperar sabiendo</strong>.
+          </p>
+        </div>
+        
+        <div class="editorial-meta">
+          <span class="editorial-tag">💰 Finanzas Personales</span>
+          <span class="editorial-tag">🏛️ Tributación</span>
+          <span class="editorial-tag">📊 Estrategia Fiscal</span>
+        </div>
+      </div>
+
+      <!-- CAROUSEL DE EDITORIALES ANTERIORES -->
+      <div class="editorials-section">
+        <h3>📚 Editoriales Anteriores</h3>
+        
+        <div class="carousel-container">
+          <div class="carousel" id="editorialCarousel">
+            
+            <!-- Editorial 6 -->
+            <div class="carousel-card">
+              <span class="carousel-card-badge">Ep. 6</span>
+              <h4 class="carousel-card-title">Web3 y Soberanía Digital</h4>
+              <p class="carousel-card-preview">
+                La revolución de Web3 no es solo tecnológica, es una reflexión sobre quién controla nuestros datos y activos digitales. Descubre por qué la soberanía digital es el próximo derecho fundamental...
+              </p>
+              <div class="carousel-card-cta">
+                Leer editorial →
+              </div>
+            </div>
+
+            <!-- Editorial 5 -->
+            <div class="carousel-card">
+              <span class="carousel-card-badge">Ep. 5</span>
+              <h4 class="carousel-card-title">IA en Finanzas: Riesgo y Oportunidad</h4>
+              <p class="carousel-card-preview">
+                La inteligencia artificial está redefiniendo cómo operamos en los mercados financieros. Pero, ¿qué riesgos traemos con ella? Exploración de algoritmos, sesgo y responsabilidad...
+              </p>
+              <div class="carousel-card-cta">
+                Leer editorial →
+              </div>
+            </div>
+
+            <!-- Editorial 4 -->
+            <div class="carousel-card">
+              <span class="carousel-card-badge">Ep. 4</span>
+              <h4 class="carousel-card-title">DeFi: La Democratización de las Finanzas</h4>
+              <p class="carousel-card-preview">
+                Las finanzas descentralizadas prometen romper el monopolio bancario. Pero, ¿es realmente accesible para todos? Análisis profundo de oportunidades y limitaciones del sistema DeFi...
+              </p>
+              <div class="carousel-card-cta">
+                Leer editorial →
+              </div>
+            </div>
+
+            <!-- Editorial 3 -->
+            <div class="carousel-card">
+              <span class="carousel-card-badge">Ep. 3</span>
+              <h4 class="carousel-card-title">Inversión en Tiempos de Volatilidad</h4>
+              <p class="carousel-card-preview">
+                Los mercados nunca fueron predecibles, pero hoy la volatilidad es la norma. ¿Cómo invertir con confianza? Estrategias para navegantes en mares turbulentos...
+              </p>
+              <div class="carousel-card-cta">
+                Leer editorial →
+              </div>
+            </div>
+
+            <!-- Editorial 2 -->
+            <div class="carousel-card">
+              <span class="carousel-card-badge">Ep. 2</span>
+              <h4 class="carousel-card-title">TradFi vs Fintech: La Convergencia</h4>
+              <p class="carousel-card-preview">
+                La batalla entre finanzas tradicionales y fintech no es un enfrentamiento, es una fusión inevitable. Descubre por qué ambas necesitan coexistir...
+              </p>
+              <div class="carousel-card-cta">
+                Leer editorial →
+              </div>
+            </div>
+
+            <!-- Editorial 1 -->
+            <div class="carousel-card">
+              <span class="carousel-card-badge">Ep. 1</span>
+              <h4 class="carousel-card-title">El Futuro de las Decisiones Financieras</h4>
+              <p class="carousel-card-preview">
+                En un mundo donde la información fluye en tiempo real y la tecnología democratiza el acceso, ¿cómo toman decisiones inteligentes los individuos y organizaciones?
+              </p>
+              <div class="carousel-card-cta">
+                Leer editorial →
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="carousel-controls">
+          <button class="carousel-btn" id="carouselPrev">←</button>
+          <button class="carousel-btn" id="carouselNext">→</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: TODOS LOS EPISODIOS -->
+    <div class="tab-content" id="tab-episodios">
+      <div class="episodes-grid" id="episodesList">
+        
+        <!-- Episodio 7 -->
+        <div class="episode-card">
+          <div class="episode-number">7</div>
+          <div class="episode-info">
+            <div class="episode-title">Impuestos - El Pacto Social que nos Sostiene</div>
+            <div class="episode-meta">
+              <span>⏱️ 58 min</span>
+              <span>👤 Cristóbal Groetaers</span>
+              <span>📅 Hace 1 semana</span>
+            </div>
+            <div class="episode-description">
+              Exploramos por qué los impuestos no son solo una obligación legal, sino un instrumento de poder personal. Cristóbal Groetaers nos enseña a prosperar sabiendo.
+            </div>
+          </div>
+        </div>
+
+        <!-- Episodio 6 -->
+        <div class="episode-card">
+          <div class="episode-number">6</div>
+          <div class="episode-info">
+            <div class="episode-title">Web3 y Soberanía Digital</div>
+            <div class="episode-meta">
+              <span>⏱️ 64 min</span>
+              <span>📅 Hace 2 semanas</span>
+            </div>
+            <div class="episode-description">
+              La revolución de Web3 no es solo tecnológica, es una reflexión sobre quién controla nuestros datos y activos digitales.
+            </div>
+          </div>
+        </div>
+
+        <!-- Episodio 5 -->
         <div class="episode-card">
           <div class="episode-number">5</div>
           <div class="episode-info">
-            <div class="episode-title">Blockchain y Cripto</div>
+            <div class="episode-title">Blockchain y Cripto: Fundamentos</div>
             <div class="episode-meta">
               <span>⏱️ 58 min</span>
               <span>📅 Hace 1 mes</span>
             </div>
             <div class="episode-description">
-              Exploramos el mundo de blockchain y las criptomonedas, desde Bitcoin hasta contratos inteligentes.
+              Exploramos el mundo de blockchain y las criptomonedas, desde Bitcoin hasta contratos inteligentes y DeFi.
             </div>
           </div>
         </div>
 
+        <!-- Episodio 4 -->
         <div class="episode-card">
           <div class="episode-number">4</div>
           <div class="episode-info">
@@ -562,6 +859,7 @@
           </div>
         </div>
 
+        <!-- Episodio 3 -->
         <div class="episode-card">
           <div class="episode-number">3</div>
           <div class="episode-info">
@@ -576,235 +874,35 @@
           </div>
         </div>
 
+        <!-- Episodio 2 -->
         <div class="episode-card">
           <div class="episode-number">2</div>
           <div class="episode-info">
-            <div class="episode-title">Web3 y el Internet del Valor</div>
+            <div class="episode-title">TradFi vs Fintech: La Convergencia</div>
             <div class="episode-meta">
               <span>⏱️ 50 min</span>
               <span>📅 Hace 4 meses</span>
             </div>
             <div class="episode-description">
-              La evolución de internet hacia una arquitectura descentralizada y sus implicaciones económicas.
+              La evolución de las finanzas tradicionales hacia una arquitectura digital e híbrida. No es competencia, es fusión.
             </div>
           </div>
         </div>
 
+        <!-- Episodio 1 -->
         <div class="episode-card">
           <div class="episode-number">1</div>
           <div class="episode-info">
-            <div class="episode-title">Introducción a TradFi</div>
+            <div class="episode-title">Introducción a Bitácora Digital</div>
             <div class="episode-meta">
               <span>⏱️ 45 min</span>
               <span>📅 Hace 5 meses</span>
             </div>
             <div class="episode-description">
-              Fundamentos de las finanzas tradicionales y cómo están evolucionando con la tecnología.
+              Primer episodio donde presentamos la visión, propósito y hoja de ruta de Bitácora Digital.
             </div>
           </div>
         </div>
-
-      </div>
-    </div>
-
-    <!-- TAB: PALABRAS DE LA BITÁCORA -->
-    <div class="tab-content" id="tab-bitacora">
-      <div class="bitacora-section">
-        <h2 class="section-title">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-          Palabras de la Bitácora
-        </h2>
-        <div class="bitacora-content">
-          <p>
-            <strong>Bitácora Digital</strong> nace de la convicción de que la educación financiera y tecnológica 
-            debe ser accesible, práctica y orientada a la acción. En cada episodio, navegamos por los temas 
-            más relevantes del ecosistema digital y financiero con una perspectiva que conecta teoría y práctica.
-          </p>
-          <p>
-            Nuestro enfoque es conversacional pero riguroso, diseñado para audiencias que buscan entender 
-            <strong>cómo funcionan las cosas</strong> y <strong>por qué importan</strong>. No solo explicamos 
-            conceptos, sino que analizamos su impacto en negocios reales y en la vida cotidiana.
-          </p>
-          <p>
-            Desde inteligencia artificial aplicada a finanzas, pasando por la revolución de Web3 y DeFi, 
-            hasta la convergencia entre TradFi y Fintech, cada capítulo está diseñado para entregar valor 
-            inmediato y conocimiento aplicable.
-          </p>
-          <p>
-            <strong>El humano siempre al centro.</strong> Las tecnologías son herramientas poderosas, 
-            pero son las personas quienes toman decisiones. Nuestro objetivo es potenciar esa capacidad 
-            de decisión con información clara, análisis crítico y perspectiva estratégica.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB: ACTUALIDAD -->
-    <div class="tab-content" id="tab-actualidad">
-      <div class="news-grid">
-        
-        <a href="https://www.bloomberg.com/crypto" target="_blank" class="news-card">
-          <span class="news-tag">Crypto</span>
-          <h3 class="news-title">Bitcoin ETFs alcanzan récord de $1B en entradas diarias</h3>
-          <p class="news-description">
-            Los ETFs de Bitcoin al contado registran flujos institucionales históricos tras la aprobación de la SEC.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            Bloomberg
-          </div>
-        </a>
-
-        <a href="https://www.coindesk.com/" target="_blank" class="news-card">
-          <span class="news-tag">DeFi</span>
-          <h3 class="news-title">Ethereum completa actualización Dencun</h3>
-          <p class="news-description">
-            Proto-danksharding reduce costos de transacción en Layer 2 hasta un 90%, mejorando escalabilidad.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            CoinDesk
-          </div>
-        </a>
-
-        <a href="https://www.anthropic.com/news/claude-3-family" target="_blank" class="news-card">
-          <span class="news-tag">IA</span>
-          <h3 class="news-title">Claude 3 supera a GPT-4 en benchmarks clave</h3>
-          <p class="news-description">
-            Anthropic lanza familia Claude 3 con capacidades superiores en razonamiento y contexto extendido.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            Anthropic
-          </div>
-        </a>
-
-        <a href="https://www.sec.gov/news" target="_blank" class="news-card">
-          <span class="news-tag">Regulación</span>
-          <h3 class="news-title">SEC aprueba primeros ETFs de Ethereum al contado</h3>
-          <p class="news-description">
-            Decisión histórica abre las puertas a productos institucionales de criptoactivos en EE.UU.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            SEC.gov
-          </div>
-        </a>
-
-        <a href="https://www.jpmorgan.com/insights" target="_blank" class="news-card">
-          <span class="news-tag">TradFi</span>
-          <h3 class="news-title">JPMorgan lanza plataforma de tokenización Onyx</h3>
-          <p class="news-description">
-            Banco líder adopta blockchain para liquidación instantánea de activos tradicionales.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            JPMorgan
-          </div>
-        </a>
-
-        <a href="https://www.theblockcrypto.com/" target="_blank" class="news-card">
-          <span class="news-tag">Fintech</span>
-          <h3 class="news-title">Stripe integra pagos con USDC en 70+ países</h3>
-          <p class="news-description">
-            Gigante de pagos adopta stablecoins para transacciones transfronterizas instantáneas y de bajo costo.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            The Block
-          </div>
-        </a>
-
-        <a href="https://openai.com/research" target="_blank" class="news-card">
-          <span class="news-tag">IA</span>
-          <h3 class="news-title">OpenAI anuncia GPT-5 con capacidades multimodales</h3>
-          <p class="news-description">
-            Nueva generación promete razonamiento avanzado y comprensión contextual sin precedentes.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            OpenAI
-          </div>
-        </a>
-
-        <a href="https://www.federalreserve.gov/" target="_blank" class="news-card">
-          <span class="news-tag">Economía</span>
-          <h3 class="news-title">Fed mantiene tasas y señala posible recorte en 2025</h3>
-          <p class="news-description">
-            Banco central estadounidense analiza datos de inflación y empleo para próximas decisiones monetarias.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            Federal Reserve
-          </div>
-        </a>
-
-        <a href="https://www.bcentral.cl/" target="_blank" class="news-card">
-          <span class="news-tag">Local</span>
-          <h3 class="news-title">Banco Central de Chile reduce TPM a 5.75%</h3>
-          <p class="news-description">
-            Decisión busca reactivar economía tras mejora en indicadores de inflación y actividad.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            BCCh
-          </div>
-        </a>
-
-        <a href="https://www.solana.com/news" target="_blank" class="news-card">
-          <span class="news-tag">Blockchain</span>
-          <h3 class="news-title">Solana procesa 65M de transacciones diarias</h3>
-          <p class="news-description">
-            Red alcanza nuevo récord de actividad impulsada por adopción en pagos y DeFi.
-          </p>
-          <div class="news-source">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            Solana
-          </div>
-        </a>
 
       </div>
     </div>
@@ -823,34 +921,76 @@
   </footer>
 
   <script>
-    // TAB SWITCHING
+    // ========== TAB SWITCHING ==========
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     
     tabButtons.forEach(button => {
       button.addEventListener('click', () => {
-        // Remove active from all
         tabButtons.forEach(btn => btn.classList.remove('active'));
         tabContents.forEach(content => content.classList.remove('active'));
         
-        // Add active to clicked
         button.classList.add('active');
         const tabId = button.dataset.tab;
         document.getElementById(`tab-${tabId}`).classList.add('active');
       });
     });
 
-    // NOTA: El iframe de Spotify está oculto por defecto porque no funciona 
-    // en el visor de Claude. Cuando copies este código a tu sitio real 
-    // (bitacoradigital.io), puedes cambiar display:none a display:block 
-    // y el player se mostrará correctamente.
-    
-    // TODO: Fetch episodes from Spotify API
-    // Esta función se reemplazará cuando conectemos la API real
-    async function loadSpotifyEpisodes() {
-      // PRÓXIMO PASO: implementar fetch a tu backend que llame a Spotify API
-      console.log('Conectar con Spotify API aquí');
+    // ========== CAROUSEL CONTROLS ==========
+    const carousel = document.getElementById('editorialCarousel');
+    const carouselPrev = document.getElementById('carouselPrev');
+    const carouselNext = document.getElementById('carouselNext');
+    const carouselCards = carousel.querySelectorAll('.carousel-card');
+    let currentIndex = 0;
+
+    function scrollToCard(index) {
+      if (index < 0 || index >= carouselCards.length) return;
+      
+      currentIndex = index;
+      carouselCards.forEach(card => card.classList.remove('active'));
+      carouselCards[currentIndex].classList.add('active');
+      
+      const scrollPosition = carouselCards[currentIndex].offsetLeft - carousel.offsetLeft;
+      carousel.scrollTo({
+        left: scrollPosition - 20,
+        behavior: 'smooth'
+      });
+
+      updateCarouselButtons();
     }
+
+    function updateCarouselButtons() {
+      carouselPrev.disabled = currentIndex === 0;
+      carouselNext.disabled = currentIndex === carouselCards.length - 1;
+    }
+
+    carouselPrev.addEventListener('click', () => {
+      scrollToCard(currentIndex - 1);
+    });
+
+    carouselNext.addEventListener('click', () => {
+      scrollToCard(currentIndex + 1);
+    });
+
+    // Click en cards del carousel
+    carouselCards.forEach((card, index) => {
+      card.addEventListener('click', () => {
+        scrollToCard(index);
+      });
+    });
+
+    // Inicializar
+    scrollToCard(0);
+
+    // ========== EPISODIOS INTERACTIVOS ==========
+    const episodeCards = document.querySelectorAll('.episode-card');
+    episodeCards.forEach(card => {
+      card.addEventListener('click', function() {
+        const episodeNumber = this.querySelector('.episode-number').textContent;
+        console.log(`Reproducir episodio ${episodeNumber} en Spotify`);
+        // Aquí puedes agregar lógica para reproducir en Spotify o abrir modal
+      });
+    });
   </script>
 
 </body>
