@@ -177,34 +177,150 @@
       transform: translateY(-2px);
     }
     
-    .latest-episode-player {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    /* PLAYER SPOTIFY IFRAME */
-    #spotifyPlayer {
-      border-radius: 12px;
-      border: 1px solid var(--line) !important;
-    }
-    
-    .player-placeholder {
+    /* ========== CUSTOM AUDIO PLAYER ========== */
+    .audio-player {
       background: var(--card);
-      border: 2px dashed var(--line);
+      border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 2rem;
-      text-align: center;
-      min-height: 180px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .player-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .player-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
     }
     
-    .player-placeholder-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
+    .player-info h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    
+    .player-info p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .play-btn {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg);
+      font-size: 1.2rem;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    
+    .play-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 24px rgba(45, 222, 155, 0.3);
+    }
+    
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--line);
+      border-radius: 3px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      width: 0%;
+      transition: width 0.1s linear;
+      border-radius: 3px;
+    }
+    
+    .time-display {
+      font-size: 0.85rem;
+      color: var(--muted);
+      min-width: 60px;
+      text-align: right;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .volume-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+    
+    .volume-btn:hover {
+      color: var(--accent2);
+    }
+    
+    .volume-slider {
+      width: 80px;
+      height: 4px;
+      background: var(--line);
+      border-radius: 2px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+    
+    .platform-links {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    
+    .platform-link {
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      background: rgba(45, 222, 155, 0.1);
+      border: 1px solid rgba(45, 222, 155, 0.3);
+      border-radius: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .platform-link:hover {
+      background: rgba(45, 222, 155, 0.2);
+      border-color: var(--accent);
     }
     
     @media (max-width: 768px) {
@@ -220,8 +336,12 @@
         padding: 1.5rem;
       }
       
-      #spotifyPlayer {
-        height: 180px !important;
+      .player-controls {
+        flex-wrap: wrap;
+      }
+      
+      .volume-slider {
+        display: none;
       }
     }
     
@@ -633,40 +753,56 @@
             Hay frases que no necesitan adornos porque gritan desnudas la verdad. Los impuestos es parte del pulso vital de un país. Exploramos por qué no se trata solo de cumplir con tus impuestos, sino de prosperar sabiendo.
           </p>
           <div class="latest-episode-buttons">
-            <a href="https://open.spotify.com/episode/4ELZCEuqGsW9qKdVvFwStc" target="_blank" class="btn btn-primary">
+            <a href="https://open.spotify.com/episode/EPISODE_ID" target="_blank" class="btn btn-primary">
               🎧 Escuchar en Spotify
             </a>
-            <a href="https://podcasts.apple.com/pe/podcast/bitacora-digital/id1234567890?i=1000123456789" target="_blank" class="btn btn-secondary">
+            <a href="https://podcasts.apple.com/EPISODE_ID" target="_blank" class="btn btn-secondary">
               🎙️ Apple Podcasts
             </a>
           </div>
         </div>
         
-        <!-- PLAYER EMBEBIDO DE SPOTIFY -->
-        <div class="latest-episode-player">
-          <iframe id="spotifyPlayer"
-            style="border-radius: 12px; width: 100%; height: 232px; border: 1px solid #1c2636;"
-            src="https://open.spotify.com/embed/episode/4ELZCEuqGsW9qKdVvFwStc?utm_source=generator&theme=0" 
-            frameBorder="0" 
-            allowfullscreen="" 
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-            loading="lazy">
-          </iframe>
-          
-          <!-- FALLBACK SI NO CARGA -->
-          <noscript>
-            <div class="player-placeholder">
-              <div>
-                <div class="player-placeholder-icon">🎙️</div>
-                <p style="color: var(--muted); font-size: 0.9rem;">
-                  <a href="https://open.spotify.com/episode/4ELZCEuqGsW9qKdVvFwStc" target="_blank" 
-                     style="color: var(--accent); text-decoration: underline;">
-                    Escuchar en Spotify
-                  </a>
-                </p>
-              </div>
+        <!-- CUSTOM AUDIO PLAYER -->
+        <div class="audio-player">
+          <div class="player-header">
+            <div class="player-icon">🎙️</div>
+            <div class="player-info">
+              <h3>Ep. 7 - Impuestos</h3>
+              <p>Bitácora Digital | 58 min</p>
             </div>
-          </noscript>
+          </div>
+          
+          <div class="player-controls">
+            <button class="play-btn" id="playBtn">▶</button>
+            <div class="progress-bar" id="progressBar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="time-display">
+              <span id="currentTime">0:00</span> / <span id="duration">58:00</span>
+            </div>
+            <div class="volume-control">
+              <button class="volume-btn">🔊</button>
+              <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
+            </div>
+          </div>
+          
+          <div class="platform-links">
+            <a href="https://open.spotify.com/episode/EPISODE_ID" target="_blank" class="platform-link">
+              🟢 Spotify
+            </a>
+            <a href="https://podcasts.apple.com/EPISODE_ID" target="_blank" class="platform-link">
+              🎙️ Apple Podcasts
+            </a>
+            <a href="https://www.youtube.com/watch?v=VIDEO_ID" target="_blank" class="platform-link">
+              ▶️ YouTube
+            </a>
+          </div>
+          
+          <!-- AUDIO ELEMENT (OCULTO) -->
+          <audio id="audioPlayer" style="display: none;">
+            <source src="https://tu-servidor.com/ep7-impuestos.mp3" type="audio/mpeg">
+            Tu navegador no soporta audio.
+          </audio>
         </div>
         
       </div>
@@ -690,16 +826,16 @@
           </div>
         </div>
         
-        <h3 class="editorial-title">Impuestos: El Pacto Social que nos Sostiene</h3>
+        <h3 class="editorial-title">Capítulo 7, Dos asuntos inevitables: la muerte y los impuetos ( Invitado Experto en Tributación)</h3>
         
         <div class="editorial-body">
           <p>
             Hay frases que no necesitan adornos porque gritan desnudas la verdad. Esta es una de ellas. Los impuestos 
-            (esa palabra que solemos esquivar) es parte del pulso vital de un país. Chile, como miembro de la OCDE, 
-            enfrenta hoy el desafío de alinear su estructura fiscal con los estándares de ese club, lo que implica 
-            revisar cuánto y cómo contribuimos, tanto personas como empresas (y que implicaría un aumento efectivo de 
-            realizarse). El tema impuestos no es solo un debate económico: es una reflexión ética sobre la forma en que 
-            sostenemos personas y empresas, entre todos, el lugar donde vivimos.
+            (esa palabra que solemos esquivar) es parte del pulso vital de un país. Chile al ser miembro de la OCDE,  
+            y como país en vías de desarrollo enfrenta hoy el desafío de alinear su estructura fiscal con los estándares  
+            de ese club, lo que implica revisar cuánto y cómo contribuimos, tanto personas como empresas (y que implicaría  
+            un aumento efectivo de realizarse). El tema impuestos no es solo un debate económico: es una reflexión  
+            ética sobre la forma en quesostenemos personas y empresas, entre todos, el lugar donde vivimos.
           </p>
           
           <p>
@@ -952,6 +1088,61 @@
   </footer>
 
   <script>
+    // ========== CUSTOM AUDIO PLAYER ==========
+    const audioPlayer = document.getElementById('audioPlayer');
+    const playBtn = document.getElementById('playBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const currentTimeEl = document.getElementById('currentTime');
+    const durationEl = document.getElementById('duration');
+    const volumeSlider = document.getElementById('volumeSlider');
+    
+    let isPlaying = false;
+
+    playBtn.addEventListener('click', () => {
+      if (isPlaying) {
+        audioPlayer.pause();
+        playBtn.textContent = '▶';
+        isPlaying = false;
+      } else {
+        audioPlayer.play();
+        playBtn.textContent = '⏸';
+        isPlaying = true;
+      }
+    });
+
+    audioPlayer.addEventListener('timeupdate', () => {
+      const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+      progressFill.style.width = percent + '%';
+      currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+    });
+
+    audioPlayer.addEventListener('loadedmetadata', () => {
+      durationEl.textContent = formatTime(audioPlayer.duration);
+    });
+
+    audioPlayer.addEventListener('ended', () => {
+      playBtn.textContent = '▶';
+      isPlaying = false;
+    });
+
+    progressBar.addEventListener('click', (e) => {
+      const rect = progressBar.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      audioPlayer.currentTime = percent * audioPlayer.duration;
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+      audioPlayer.volume = e.target.value / 100;
+    });
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '0:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
     // ========== TAB SWITCHING ==========
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
