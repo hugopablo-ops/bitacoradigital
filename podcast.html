@@ -177,8 +177,8 @@
       transform: translateY(-2px);
     }
     
-    /* ========== CUSTOM AUDIO PLAYER ========== */
-    .audio-player {
+    /* ========== SPOTIFY PLAYER PERSONALIZADO ========== */
+    .spotify-player-wrapper {
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -192,6 +192,7 @@
       display: flex;
       align-items: center;
       gap: 1rem;
+      margin-bottom: 0.5rem;
     }
     
     .player-icon {
@@ -218,85 +219,23 @@
       color: var(--muted);
     }
     
-    .player-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    
-    .play-btn {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(135deg, var(--accent2), var(--accent));
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
+    /* SPOTIFY EMBED */
+    .spotify-embed-container {
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(45, 222, 155, 0.05);
+      border: 1px solid rgba(45, 222, 155, 0.2);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--bg);
-      font-size: 1.2rem;
-      transition: all 0.3s;
-      flex-shrink: 0;
+      min-height: 80px;
+      padding: 1rem;
     }
     
-    .play-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 8px 24px rgba(45, 222, 155, 0.3);
-    }
-    
-    .progress-bar {
-      flex: 1;
-      height: 6px;
-      background: var(--line);
-      border-radius: 3px;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      width: 0%;
-      transition: width 0.1s linear;
-      border-radius: 3px;
-    }
-    
-    .time-display {
-      font-size: 0.85rem;
-      color: var(--muted);
-      min-width: 60px;
-      text-align: right;
-      font-family: 'Courier New', monospace;
-    }
-    
-    .volume-control {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .volume-btn {
-      background: none;
-      border: none;
-      color: var(--accent);
-      cursor: pointer;
-      font-size: 1.2rem;
-      transition: color 0.3s;
-    }
-    
-    .volume-btn:hover {
-      color: var(--accent2);
-    }
-    
-    .volume-slider {
-      width: 80px;
-      height: 4px;
-      background: var(--line);
-      border-radius: 2px;
-      cursor: pointer;
-      accent-color: var(--accent);
+    .spotify-embed-container iframe {
+      border-radius: 8px;
+      border: none !important;
     }
     
     .platform-links {
@@ -323,6 +262,16 @@
       border-color: var(--accent);
     }
     
+    .info-message {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 1rem;
+      background: rgba(77, 211, 255, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(77, 211, 255, 0.2);
+    }
+    
     @media (max-width: 768px) {
       .latest-episode-inner {
         grid-template-columns: 1fr;
@@ -334,14 +283,6 @@
       
       .latest-episode {
         padding: 1.5rem;
-      }
-      
-      .player-controls {
-        flex-wrap: wrap;
-      }
-      
-      .volume-slider {
-        display: none;
       }
     }
     
@@ -753,17 +694,17 @@
             Hay frases que no necesitan adornos porque gritan desnudas la verdad. Los impuestos es parte del pulso vital de un país. Exploramos por qué no se trata solo de cumplir con tus impuestos, sino de prosperar sabiendo.
           </p>
           <div class="latest-episode-buttons">
-            <a href="https://open.spotify.com/episode/EPISODE_ID" target="_blank" class="btn btn-primary">
+            <a href="https://open.spotify.com/episode/EPISODE_ID_AQUI" target="_blank" class="btn btn-primary">
               🎧 Escuchar en Spotify
             </a>
-            <a href="https://podcasts.apple.com/EPISODE_ID" target="_blank" class="btn btn-secondary">
+            <a href="https://podcasts.apple.com/EPISODE_ID_AQUI" target="_blank" class="btn btn-secondary">
               🎙️ Apple Podcasts
             </a>
           </div>
         </div>
         
-        <!-- CUSTOM AUDIO PLAYER -->
-        <div class="audio-player">
+        <!-- SPOTIFY PLAYER PERSONALIZADO -->
+        <div class="spotify-player-wrapper">
           <div class="player-header">
             <div class="player-icon">🎙️</div>
             <div class="player-info">
@@ -772,37 +713,34 @@
             </div>
           </div>
           
-          <div class="player-controls">
-            <button class="play-btn" id="playBtn">▶</button>
-            <div class="progress-bar" id="progressBar">
-              <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="time-display">
-              <span id="currentTime">0:00</span> / <span id="duration">58:00</span>
-            </div>
-            <div class="volume-control">
-              <button class="volume-btn">🔊</button>
-              <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
-            </div>
+          <!-- EMBED DE SPOTIFY -->
+          <div class="spotify-embed-container">
+            <iframe style="border-radius:12px" 
+              src="https://open.spotify.com/embed/episode/EPISODE_ID_AQUI?utm_source=generator" 
+              width="100%" 
+              height="80" 
+              frameBorder="0" 
+              allowfullscreen="" 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy">
+            </iframe>
+          </div>
+          
+          <div class="info-message">
+            💡 Reproducción desde Spotify - Sin salir de la página
           </div>
           
           <div class="platform-links">
-            <a href="https://open.spotify.com/episode/EPISODE_ID" target="_blank" class="platform-link">
+            <a href="https://open.spotify.com/episode/EPISODE_ID_AQUI" target="_blank" class="platform-link">
               🟢 Spotify
             </a>
-            <a href="https://podcasts.apple.com/EPISODE_ID" target="_blank" class="platform-link">
+            <a href="https://podcasts.apple.com/EPISODE_ID_AQUI" target="_blank" class="platform-link">
               🎙️ Apple Podcasts
             </a>
-            <a href="https://www.youtube.com/watch?v=VIDEO_ID" target="_blank" class="platform-link">
+            <a href="https://www.youtube.com/watch?v=VIDEO_ID_AQUI" target="_blank" class="platform-link">
               ▶️ YouTube
             </a>
           </div>
-          
-          <!-- AUDIO ELEMENT (OCULTO) -->
-          <audio id="audioPlayer" style="display: none;">
-            <source src="https://tu-servidor.com/ep7-impuestos.mp3" type="audio/mpeg">
-            Tu navegador no soporta audio.
-          </audio>
         </div>
         
       </div>
@@ -826,7 +764,7 @@
           </div>
         </div>
         
-        <h3 class="editorial-title">Capítulo 7, Dos asuntos inevitables: la muerte y los impuetos ( Invitado Experto en Tributación)</h3>
+        <h3 class="editorial-title">Capítulo 7, Dos asuntos inevitables: la muerte y los impuestos (Invitado Experto en Tributación)</h3>
         
         <div class="editorial-body">
           <p>
@@ -835,7 +773,7 @@
             y como país en vías de desarrollo enfrenta hoy el desafío de alinear su estructura fiscal con los estándares  
             de ese club, lo que implica revisar cuánto y cómo contribuimos, tanto personas como empresas (y que implicaría  
             un aumento efectivo de realizarse). El tema impuestos no es solo un debate económico: es una reflexión  
-            ética sobre la forma en quesostenemos personas y empresas, entre todos, el lugar donde vivimos.
+            ética sobre la forma en que sostenemos personas y empresas, entre todos, el lugar donde vivimos.
           </p>
           
           <p>
@@ -907,7 +845,7 @@
               <span class="carousel-card-badge">Ep. 4</span>
               <h4 class="carousel-card-title">DeFi: La Democratización de las Finanzas</h4>
               <p class="carousel-card-preview">
-                Las finanzas descentralizadas prometen romper el monopolio bancario. Pero, ¿es realmente accesible para todos? Análisis profundo de oportunidades y limitaciones del sistema DeFi...
+                Las finanzas descentralizadas prometen romper el monopolio bancario. Pero, ¿es realmente accesible para todos? Análisis profundo de oportunidades y limitaciones...
               </p>
               <div class="carousel-card-cta">
                 Leer editorial →
@@ -919,7 +857,7 @@
               <span class="carousel-card-badge">Ep. 3</span>
               <h4 class="carousel-card-title">Inversión en Tiempos de Volatilidad</h4>
               <p class="carousel-card-preview">
-                Los mercados nunca fueron predecibles, pero hoy la volatilidad es la norma. ¿Cómo invertir con confianza? Estrategias para navegantes en mares turbulentos...
+                Los mercados nunca fueron predecibles, pero hoy la volatilidad es la norma. ¿Cómo invertir con confianza?...
               </p>
               <div class="carousel-card-cta">
                 Leer editorial →
@@ -931,7 +869,7 @@
               <span class="carousel-card-badge">Ep. 2</span>
               <h4 class="carousel-card-title">TradFi vs Fintech: La Convergencia</h4>
               <p class="carousel-card-preview">
-                La batalla entre finanzas tradicionales y fintech no es un enfrentamiento, es una fusión inevitable. Descubre por qué ambas necesitan coexistir...
+                La batalla entre finanzas tradicionales y fintech no es un enfrentamiento, es una fusión inevitable...
               </p>
               <div class="carousel-card-cta">
                 Leer editorial →
@@ -943,7 +881,7 @@
               <span class="carousel-card-badge">Ep. 1</span>
               <h4 class="carousel-card-title">El Futuro de las Decisiones Financieras</h4>
               <p class="carousel-card-preview">
-                En un mundo donde la información fluye en tiempo real y la tecnología democratiza el acceso, ¿cómo toman decisiones inteligentes los individuos y organizaciones?
+                En un mundo donde la información fluye en tiempo real y la tecnología democratiza el acceso...
               </p>
               <div class="carousel-card-cta">
                 Leer editorial →
@@ -976,7 +914,7 @@
               <span>📅 Hace 1 semana</span>
             </div>
             <div class="episode-description">
-              Exploramos por qué los impuestos no son solo una obligación legal, sino un instrumento de poder personal. Cristóbal Groetaers nos enseña a prosperar sabiendo.
+              Exploramos por qué los impuestos no son solo una obligación legal, sino un instrumento de poder personal.
             </div>
           </div>
         </div>
@@ -991,7 +929,7 @@
               <span>📅 Hace 2 semanas</span>
             </div>
             <div class="episode-description">
-              La revolución de Web3 no es solo tecnológica, es una reflexión sobre quién controla nuestros datos y activos digitales.
+              La revolución de Web3 no es solo tecnológica, es una reflexión sobre quién controla nuestros datos y activos.
             </div>
           </div>
         </div>
@@ -1006,7 +944,7 @@
               <span>📅 Hace 1 mes</span>
             </div>
             <div class="episode-description">
-              Exploramos el mundo de blockchain y las criptomonedas, desde Bitcoin hasta contratos inteligentes y DeFi.
+              Exploramos el mundo de blockchain y las criptomonedas, desde Bitcoin hasta contratos inteligentes.
             </div>
           </div>
         </div>
@@ -1051,7 +989,7 @@
               <span>📅 Hace 4 meses</span>
             </div>
             <div class="episode-description">
-              La evolución de las finanzas tradicionales hacia una arquitectura digital e híbrida. No es competencia, es fusión.
+              La evolución de las finanzas tradicionales hacia una arquitectura digital e híbrida.
             </div>
           </div>
         </div>
@@ -1088,61 +1026,6 @@
   </footer>
 
   <script>
-    // ========== CUSTOM AUDIO PLAYER ==========
-    const audioPlayer = document.getElementById('audioPlayer');
-    const playBtn = document.getElementById('playBtn');
-    const progressBar = document.getElementById('progressBar');
-    const progressFill = document.getElementById('progressFill');
-    const currentTimeEl = document.getElementById('currentTime');
-    const durationEl = document.getElementById('duration');
-    const volumeSlider = document.getElementById('volumeSlider');
-    
-    let isPlaying = false;
-
-    playBtn.addEventListener('click', () => {
-      if (isPlaying) {
-        audioPlayer.pause();
-        playBtn.textContent = '▶';
-        isPlaying = false;
-      } else {
-        audioPlayer.play();
-        playBtn.textContent = '⏸';
-        isPlaying = true;
-      }
-    });
-
-    audioPlayer.addEventListener('timeupdate', () => {
-      const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-      progressFill.style.width = percent + '%';
-      currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
-    });
-
-    audioPlayer.addEventListener('loadedmetadata', () => {
-      durationEl.textContent = formatTime(audioPlayer.duration);
-    });
-
-    audioPlayer.addEventListener('ended', () => {
-      playBtn.textContent = '▶';
-      isPlaying = false;
-    });
-
-    progressBar.addEventListener('click', (e) => {
-      const rect = progressBar.getBoundingClientRect();
-      const percent = (e.clientX - rect.left) / rect.width;
-      audioPlayer.currentTime = percent * audioPlayer.duration;
-    });
-
-    volumeSlider.addEventListener('input', (e) => {
-      audioPlayer.volume = e.target.value / 100;
-    });
-
-    function formatTime(seconds) {
-      if (isNaN(seconds)) return '0:00';
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60);
-      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
     // ========== TAB SWITCHING ==========
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -1201,15 +1084,6 @@
     });
 
     scrollToCard(0);
-
-    // ========== EPISODIOS INTERACTIVOS ==========
-    const episodeCards = document.querySelectorAll('.episode-card');
-    episodeCards.forEach(card => {
-      card.addEventListener('click', function() {
-        const episodeNumber = this.querySelector('.episode-number').textContent;
-        console.log(`Reproducir episodio ${episodeNumber} en Spotify`);
-      });
-    });
   </script>
 
 </body>
